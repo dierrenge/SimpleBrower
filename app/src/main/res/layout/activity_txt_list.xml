@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.TxtListActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/txt_back"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:background="@color/trans_color"
+            android:textColor="@color/gray2"
+            android:gravity="center|start"
+            android:paddingLeft="5dp"
+            android:textSize="20dp"
+            android:text="〈"/>
+
+        <TextView
+            android:text="小说"
+            android:textSize="17dp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/txt_change"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:paddingLeft="-10dp"
+            android:background="@color/trans_color"
+            android:textColor="@color/gray2"
+            android:textSize="15dp"
+            android:gravity="center"
+            android:text="编辑"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/txt_bg"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="空空如也"/>
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/txt_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>

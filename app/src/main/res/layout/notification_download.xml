@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_width="fill_parent"
+    android:layout_height="50dp"
+    android:background="@color/colorLightGray1">
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@color/colorLightGray1"
+            android:layout_margin="10dp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_marginRight="14dp">
+            <TextView
+                android:id="@+id/task_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gray2"
+                android:text="自制浏览器下载任务"
+                android:textSize="14dp"
+                android:textStyle="bold"/>
+            <ProgressBar
+                android:id="@+id/pbDownload"
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="3dp"
+                android:progress="0"
+                android:max="100"
+                android:progressDrawable="@drawable/progress_bar"
+                style="?android:attr/progressBarStyleHorizontal"  />
+            <TextView
+                android:id="@+id/tvProcess"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gray2"
+                android:text="已下载0%"
+                android:textSize="12dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

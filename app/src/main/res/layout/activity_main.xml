@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:id="@+id/editLayout"
+    tools:context=".activity.MainActivity">
+
+
+    <!--不自动获取焦点
+    在edittext的父级容器中添加属性：
+    android:focusable="true"
+    android:clickable=“true”
+    android:focusableInTouchMode="true"
+    -->
+    <!--设置 android:inputType="text" 属性。不会自动换行-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/editBox"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="0dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:text="是否开启影音监测"
+                android:textSize="15dp" />
+
+            <RadioGroup
+                android:id="@+id/downLoadGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:ignore="MissingConstraints">
+
+                <RadioButton
+                    android:id="@+id/downLoadTip"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:checked="true"
+                    android:theme="@style/MyRadioButton"/>
+
+            </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:text="是否开启动图过滤"
+                android:textSize="15dp" />
+
+            <RadioGroup
+                android:id="@+id/gifGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:ignore="MissingConstraints">
+
+                <RadioButton
+                    android:id="@+id/gifTip"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:theme="@style/MyRadioButton"
+                    android:checked="true"/>
+
+            </RadioGroup>
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/editBox"
+        android:layout_width="match_parent"
+        android:layout_height="41dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.429"
+        tools:ignore="MissingConstraints">
+
+        <EditText
+            android:id="@+id/edit"
+            android:layout_width="320dp"
+            android:layout_height="40dp"
+            android:background="@drawable/edit_text_bg"
+            android:gravity="center"
+            android:hint="搜索或输入网址"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/gray2"
+            android:textColorHint="@color/gray2"
+            android:textCursorDrawable="@drawable/edit_text_cursor"
+            android:textSize="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/jumpBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:text="浏览"
+            android:textSize="16dp"
+            app:layout_constraintRight_toRightOf="@id/edit" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="70dp"
+        android:orientation="horizontal"
+        android:gravity="center|start"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editBox"
+        tools:ignore="MissingConstraints">
+
+        <Button
+            android:id="@+id/likesBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:textSize="16dp"
+            android:text="书签" />
+
+        <Button
+            android:id="@+id/videoBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:textSize="16dp"
+            android:text="影音" />
+
+        <Button
+            android:id="@+id/txtBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:textSize="16dp"
+            android:text="小说"/>
+
+        <!--已不用-->
+        <Button
+            android:id="@+id/exitBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:textSize="16dp"
+            android:text="退出"/>
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

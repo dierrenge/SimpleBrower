@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="deploymentTargetDropDown">
+    <targetSelectedWithDropDown>
+      <Target>
+        <type value="BOOT_WITH_SNAPSHOT_TARGET" />
+        <deviceKey>
+          <Key>
+            <type value="VIRTUAL_DEVICE_PATH" />
+            <value value="D:\soft\a_work\Android\android-sdk_r24.4.1-windows\android-sdk-windows\.android\avd\Pixel_3a_API_33_x86_64.avd" />
+          </Key>
+        </deviceKey>
+        <snapshotKey value="D:\soft\a_work\Android\android-sdk_r24.4.1-windows\android-sdk-windows\.android\avd\Pixel_3a_API_33_x86_64.avd\snapshots\snap_2024-05-22_23-31-40" />
+      </Target>
+    </targetSelectedWithDropDown>
+    <timeTargetWasSelectedWithDropDown value="2024-06-10T05:22:36.753020400Z" />
+    <multipleDevicesSelectedInDropDown value="true" />
+    <targetsSelectedWithDialog>
+      <Target>
+        <type value="QUICK_BOOT_TARGET" />
+        <deviceKey>
+          <Key>
+            <type value="VIRTUAL_DEVICE_PATH" />
+            <value value="D:\soft\a_work\Android\android-sdk_r24.4.1-windows\android-sdk-windows\.android\avd\Pixel_3a_API_33_x86_64.avd" />
+          </Key>
+        </deviceKey>
+      </Target>
+    </targetsSelectedWithDialog>
+  </component>
+</project>

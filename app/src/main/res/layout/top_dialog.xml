@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:background="@drawable/feet_dialog_bg"
+    android:gravity="center|top"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:paddingTop="10dp">
+        <Button
+            android:id="@+id/catalogBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:text="目录"/>
+        <Button
+            android:id="@+id/readBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:text="朗读"/>
+        <Button
+            android:id="@+id/readSetBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:text="引擎"/>
+
+        <Button
+            android:id="@+id/powerSetBtn"
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/btn_bg1"
+            android:textColor="@color/blackGray"
+            android:text="省电策略"/>
+    </LinearLayout>
+
+</LinearLayout>

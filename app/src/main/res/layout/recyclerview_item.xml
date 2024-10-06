@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center|start"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/item_l"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingRight="40dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/item_txt"
+                android:gravity="center|start"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:textIsSelectable="true"
+                android:textSize="14dp"
+                android:inputType="text"
+                android:maxLines="1"/> <!-- android:textIsSelectable="true" 允许复制-->
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="-40dp"
+            android:orientation="horizontal"
+            android:gravity="end">
+            <Button
+                android:id="@+id/item_del"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:gravity="center|end"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:paddingRight="8dp"
+                android:background="@color/trans_color"
+                android:textColor="@color/gray2"
+                android:textSize="20dp"
+                android:text="×"/>
+            <Button
+                android:id="@+id/item_true"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:gravity="center|end"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:paddingRight="8dp"
+                android:background="@color/trans_color"
+                android:textColor="@color/gray2"
+                android:textSize="20dp"
+                android:text="√"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="370dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorLightGray1"/>
+
+</LinearLayout>
