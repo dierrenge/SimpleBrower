@@ -67,7 +67,7 @@ public class VideoActivity extends AppCompatActivity {
         Uri uri = intent.getData();
         if (Intent.ACTION_VIEW.equals(action) && uri != null) {
             // 设置此activity可用于打开 视频文件
-            videoUrl = uri.getPath().replace("/external_files", Environment.getExternalStorageDirectory().getAbsolutePath());
+            videoUrl = CommonUtils.correctUrl(uri.getPath());
         } else {
             // 获取上个页面传递的信息
             videoUrl = intent.getStringExtra("videoUrl");

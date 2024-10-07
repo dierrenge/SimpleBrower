@@ -102,7 +102,7 @@ public class TxtActivity extends AppCompatActivity {
         Uri uri = intent.getData();
         if (Intent.ACTION_VIEW.equals(action) && uri != null) {
             // 设置此activity可用于打开 txt文件
-            txtUrl = uri.getPath().replace("/external_files", Environment.getExternalStorageDirectory().getAbsolutePath());
+            txtUrl = CommonUtils.correctUrl(uri.getPath());
         } else {
             // 获取上一界面传过来的数据
             txtUrl = intent.getStringExtra("txtUrl");
