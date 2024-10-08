@@ -35,6 +35,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class VideoListActivity extends AppCompatActivity {
@@ -208,24 +209,9 @@ public class VideoListActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             // 影音文件格式
-            List<String> formats = new ArrayList<>();
-            formats.add(".mp4");
-            formats.add(".avi");
-            formats.add(".mov");
-            formats.add(".mkv");
-            formats.add(".flv");
-            formats.add(".f4v");
-            formats.add(".rmvb");
-            formats.add(".m3u8");
-            formats.add(".mp3");
-            formats.add(".wav");
-            formats.add(".ape");
-            formats.add(".flac");
-            formats.add(".ogg");
-            formats.add(".aac");
-            formats.add(".wma");
+            List<String> formats = AssetsReader.getList("audioVideo.txt");
             new Handler().postDelayed(() -> {
-                CommonUtils.fileWalk(dir, formats, videoUrls);
+                CommonUtils.fileWalk(dir, formats, videoUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
             }, 400);

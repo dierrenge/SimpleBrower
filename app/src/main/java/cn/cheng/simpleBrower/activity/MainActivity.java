@@ -77,8 +77,13 @@ public class MainActivity extends AppCompatActivity {
 
         MyApplication.setActivity(this);
 
+        new Handler().post(() -> {
+            AssetsReader.init(this, "audioVideo.txt");
+            AssetsReader.init(this, "like.txt");
+        });
+
         // 安装包后只运行一次
-        if (!CommonUtils.onlySet(this)) {
+        if (!CommonUtils.onlySet(this, "only")) {
             initSetting();
         } else {
             init();
@@ -86,13 +91,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSetting() {
-        AssetsReader.init(this);
         // android 12的sd卡读写
         if (Build.VERSION.SDK_INT >= 29) {
             //启动线程开始执行
             new Handler().post(() -> {
-                // 存档默认收藏网址
-                CommonUtils.setDefaultLikes();
                 // 设置默认配置
                 SysBean sysBean = new SysBean();
                 sysBean.setFlagGif(true);
@@ -300,6 +302,13 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (isInit) {
             setSys();
+        }
+        // 有读写权限后只执行一次
+        if (CommonUtils.hasStoragePermissions(this) && !CommonUtils.onlySet(this, "onlyLike")) {
+            new Handler().post(() -> {
+                // 存档默认收藏网址
+                CommonUtils.setDefaultLikes();
+            });
         }
     }
 

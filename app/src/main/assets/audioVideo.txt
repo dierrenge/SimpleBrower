@@ -1,0 +1,15 @@
+.mp4
+.avi
+.mov
+.mkv
+.flv
+.f4v
+.rmvb
+.m3u8
+.mp3
+.wav
+.ape
+.flac
+.ogg
+.aac
+.wma

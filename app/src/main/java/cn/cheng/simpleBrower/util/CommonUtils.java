@@ -164,9 +164,9 @@ public class CommonUtils {
      * @param formats  目标文件格式集
      * @param fileList 结果文件地址集
      */
-    public static void fileWalk(String dir, List<String> formats, List<String> fileList) {
+    public static void fileWalk(String dir, List<String> formats, List<String> fileList, int maxDepth) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            try (Stream<Path> paths = Files.walk(Paths.get(dir), 2)) { // 递归两层目录
+            try (Stream<Path> paths = Files.walk(Paths.get(dir), maxDepth)) { // 递归两层目录
                 paths.map(path -> path.toString()).filter(path -> {
                     if (path.contains("/") && !path.endsWith("/")) {
                         String name = path.substring(path.lastIndexOf("/") + 1);
@@ -764,13 +764,13 @@ public class CommonUtils {
     /**
      * 安装包后是否已设置 （用于判断只设置一次的配置）
      */
-    public static boolean onlySet(Context context) {
+    public static boolean onlySet(Context context, String key) {
         String path = PhoneSysPath.getSandboxPath(context);
-        File file = new File(path, "set.txt");
+        File file = new File(path, key);
         if (file.exists()) {
             try(BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String line = br.readLine();
-                if ("only".equals(line)) {
+                if (key.equals(line)) {
                     return true;
                 }
             } catch (Exception e) {
@@ -778,11 +778,12 @@ public class CommonUtils {
             }
         } else {
             try(FileWriter writer = new FileWriter(file)) {
-                writer.write("only");
+                writer.write(key);
                 writer.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            System.out.println("***************执行一次***********************" + key);
         }
         return false;
     }
@@ -811,18 +812,19 @@ public class CommonUtils {
                         likes.add(line);
                     }
                 }
-                List<String> list = AssetsReader.getLikeList();
+                List<String> list = AssetsReader.getList("like.txt");
                 for (String currentUrl : list) {
                     String likeUrl = currentUrl + "\n";
                     if (!likes.contains(currentUrl)) {
                         bos.write(likeUrl.getBytes());
                     }
                 }
+                bos.flush();
             } catch (IOException e) {
-                e.getMessage();
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.getMessage();
+            e.printStackTrace();
         }
     }
 

@@ -207,7 +207,7 @@ public class TxtListActivity extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 List<String> formats = new ArrayList<>();
                 formats.add(".txt");
-                CommonUtils.fileWalk(dir, formats, txtUrls);
+                CommonUtils.fileWalk(dir, formats, txtUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
             }, 400);

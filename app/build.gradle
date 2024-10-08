@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace 'cn.cheng.simpleBrower'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "cn.cheng.simpleBrower"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode 3
-        versionName "4.7"
+        versionName "5.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -48,7 +48,7 @@ dependencies {
     // implementation "com.jaeger.statusbarutil:library:1.5.1"
 
     // 视频播放框架
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.1.7-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
 
     implementation 'com.google.code.gson:gson:2.8.6'
 

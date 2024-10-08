@@ -31,7 +31,7 @@
         android:minSdkVersion="33" />
 
     <!--文字转语音权限-->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
@@ -54,12 +54,12 @@
         tools:targetApi="33">
         <activity
             android:name=".activity.TxtCatalogActivity"
-            android:exported="false"
-            ><!--android:launchMode="singleInstance" -->
+            android:exported="false"><!--android:launchMode="singleInstance" -->
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
         <activity
             android:name=".activity.TxtActivity"
             android:exported="true"
@@ -74,6 +74,7 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
         <activity
             android:name=".activity.TxtListActivity"
             android:exported="false">
@@ -93,18 +94,21 @@
 
         <activity
             android:name=".activity.VideoListActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:exported="false"
-            android:screenOrientation="portrait">
+            android:exported="false">
 
-            <!-- 以上两行 防止旋转时重新播放 -->
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <!-- 以下两行 防止旋转时重新播放 -->
+        <!-- android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+             android:screenOrientation="portrait" -->
         <activity
             android:name=".activity.VideoActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
+            android:screenOrientation="portrait"
             tools:ignore="AppLinkUrlError">
             <!-- 设置此activity可用于打开 视频文件 -->
             <intent-filter>
@@ -117,10 +121,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="video/*" />
             </intent-filter>
+
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
         <activity
             android:name=".activity.LikeActivity"
             android:exported="false">
@@ -164,10 +170,12 @@
             <!-- 设置此activity可用于打开 网络链接 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
             </intent-filter>
         </activity>
     </application>

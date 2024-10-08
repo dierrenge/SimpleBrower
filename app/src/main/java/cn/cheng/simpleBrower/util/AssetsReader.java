@@ -1,25 +1,17 @@
 package cn.cheng.simpleBrower.util;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.webkit.WebResourceResponse;
 
 import androidx.annotation.WorkerThread;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 配置文件读取器
@@ -28,15 +20,17 @@ import java.util.Set;
  */
 public class AssetsReader {
 
-    private static final String LIKE_FILE = "like.txt";
-    private static final List<String> LIKE_HOSTS = new ArrayList<>();
+    private static String FILE = "";
+    private static List<String> LIST = new ArrayList<>();
+    private static HashMap<String, List<String>> map = new HashMap<>();
 
-    public static void init(final Context context) {
+    public static void init(final Context context, String key) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    if (LIKE_HOSTS.size() == 0) {
+                    FILE = key;
+                    if (LIST.size() == 0) {
                         loadFromAssets(context);
                     }
                 } catch (IOException e) {
@@ -49,22 +43,23 @@ public class AssetsReader {
 
     @WorkerThread
     private static void loadFromAssets(Context context) throws IOException {
-        InputStream stream = context.getAssets().open(LIKE_FILE);
+        InputStream stream = context.getAssets().open(FILE);
         InputStreamReader inputStreamReader = new InputStreamReader(stream);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         String line;
         while ((line = bufferedReader.readLine()) != null) {
-            if (!LIKE_FILE.contains(line)) {
-                LIKE_HOSTS.add(line);
+            if (!FILE.contains(line)) {
+                LIST.add(line);
             }
         }
         bufferedReader.close();
         inputStreamReader.close();
         stream.close();
+        map.put(FILE, LIST);
     }
 
-    public static List<String> getLikeList() {
-        return LIKE_HOSTS;
+    public static List<String> getList(String key) {
+        return map.get(key);
     }
 
 }

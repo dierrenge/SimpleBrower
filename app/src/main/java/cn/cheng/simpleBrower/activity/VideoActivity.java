@@ -4,35 +4,34 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.view.View;
 
-import com.shuyu.gsyvideoplayer.GSYVideoADManager;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
-import com.shuyu.gsyvideoplayer.cache.CacheFactory;
-import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.listener.GSYVideoProgressListener;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import cn.cheng.simpleBrower.bean.SwitchVideoModel;
+import cn.cheng.simpleBrower.custom.video.SampleVideo;
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class VideoActivity extends AppCompatActivity {
 
-    StandardGSYVideoPlayer mVideoPlayer;
+    SampleVideo mVideoPlayer;
 
     private OrientationUtils orientationUtils;
 
@@ -42,7 +41,7 @@ public class VideoActivity extends AppCompatActivity {
     private long position;
 
     // 记录播放时长
-    private int durationAll = 0;
+    private long durationAll = 0;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -77,14 +76,23 @@ public class VideoActivity extends AppCompatActivity {
         if (videoUrl == null || !videoUrl.contains("/")) {
             return;
         }
-        String[] s = videoUrl.split("/");
-        String name = s[s.length - 1];
+        String name = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
+
+        // 获取影音列表
+        List<String> formats = AssetsReader.getList("audioVideo.txt");
+        List<String> videoUrls = new ArrayList<>();
+        List<SwitchVideoModel> videoList = new ArrayList<>();
+        CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
+        for (String url : videoUrls) {
+            SwitchVideoModel switchVideoModel = new SwitchVideoModel(url.substring(url.lastIndexOf("/") + 1), url);
+            videoList.add(switchVideoModel);
+        }
 
         // 初始化视频设置
-        initVideoView(videoUrl, name);
+        initVideoView(videoList, name);
     }
 
-    private void initVideoView(String videoUrl, String name) {
+    private void initVideoView(List<SwitchVideoModel> videoList, String name) {
 
         //EXOPlayer内核，支持格式更多
         //PlayerFactory.setPlayManager(Exo2PlayerManager.class);
@@ -102,8 +110,8 @@ public class VideoActivity extends AppCompatActivity {
 
         mVideoPlayer = findViewById(R.id.video_player);
 
-        //播放横屏视频
-        boolean setUp = mVideoPlayer.setUp(videoUrl, true, name);
+        //播放视频
+        boolean setUp = mVideoPlayer.setUp(videoList, true, name);
 
         //默认显示比例
         GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_DEFAULT);
@@ -113,6 +121,9 @@ public class VideoActivity extends AppCompatActivity {
 
         //全屏动画
         mVideoPlayer.setShowFullAnimation(true);
+
+        //是否可以滑动调整
+        mVideoPlayer.setIsTouchWiget(true);
 
         //循环播放 关闭
         mVideoPlayer.setLooping(false);
@@ -169,7 +180,7 @@ public class VideoActivity extends AppCompatActivity {
         // 获取进度
         mVideoPlayer.setGSYVideoProgressListener(new GSYVideoProgressListener() {
             @Override
-            public void onProgress(int progress, int secProgress, int currentPosition, int duration) {
+            public void onProgress(long progress, long secProgress, long currentPosition, long duration) {
                 position = currentPosition;
                 if (durationAll == 0) {
                     // 根据播放时长 调整触摸滑动快进比例
@@ -193,8 +204,7 @@ public class VideoActivity extends AppCompatActivity {
                 //直接横屏
                 orientationUtils.resolveByClick();
                 //第一个true是否需要隐藏actionbar，第二个true是否需要隐藏statusbar
-                mVideoPlayer.startWindowFullscreen(VideoActivity.this, true, true);
-
+                // mVideoPlayer.startWindowFullscreen(VideoActivity.this, true, true);
 
             }
         });
@@ -214,6 +224,9 @@ public class VideoActivity extends AppCompatActivity {
         if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
+        //释放所有
+        mVideoPlayer.setVideoAllCallBack(null);
+        GSYVideoManager.releaseAllVideos();
         super.onBackPressed();
     }
 
@@ -244,34 +257,14 @@ public class VideoActivity extends AppCompatActivity {
             } else if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                 // 当前为竖屏
             }
-            // 定位历史播放进度
-            new Handler().postDelayed(() -> {
-                if (position > 2000) {
-                    mVideoPlayer.seekTo(position);
-                }
-            }, 500);
         }
     }
-
-    /*@Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        System.out.println("貌似该方法没被调用");
-        super.onConfigurationChanged(newConfig);
-        // 如果旋转了就全屏
-        if (isPlay) {
-            mVideoPlayer.onConfigurationChanged(this, newConfig, orientationUtils, true, true);
-        }
-        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // 当前为横屏
-        } else if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            // 当前为竖屏
-        }
-    }*/
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        GSYVideoADManager.releaseAllVideos();
+        if (orientationUtils != null)
+            orientationUtils.releaseListener();
     }
 
 }
