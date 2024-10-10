@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.List;
@@ -23,7 +22,7 @@ public class SwitchVideoTypeDialog extends Dialog {
 
     private ListView listView = null;
 
-    private ArrayAdapter<SwitchVideoModel> adapter = null;
+    private MyArrayAdapter<SwitchVideoModel> adapter = null;
 
     private OnListItemClickListener onItemClickListener;
 
@@ -43,7 +42,7 @@ public class SwitchVideoTypeDialog extends Dialog {
         super.onCreate(savedInstanceState);
     }
 
-    public void initList(List<SwitchVideoModel> data, OnListItemClickListener onItemClickListener) {
+    public void initList(List<SwitchVideoModel> data, String name, OnListItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
         this.data = data;
 
@@ -51,7 +50,7 @@ public class SwitchVideoTypeDialog extends Dialog {
         View view = inflater.inflate(R.layout.switch_video_dialog, null);
         listView = (ListView) view.findViewById(R.id.switch_dialog_list);
         setContentView(view);
-        adapter = new ArrayAdapter<>(mContext, R.layout.switch_video_dialog_item, data);
+        adapter = new MyArrayAdapter<>(mContext, R.layout.switch_video_dialog_item, data, name);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new OnItemClickListener());
 

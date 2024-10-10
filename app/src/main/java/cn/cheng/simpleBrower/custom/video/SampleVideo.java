@@ -20,8 +20,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.SwitchVideoModel;
+import cn.cheng.simpleBrower.custom.MyToast;
 
 /**
  * Created by shuyu on 2016/12/7.
@@ -334,7 +336,8 @@ public class SampleVideo extends StandardGSYVideoPlayer {
             return;
         }
         SwitchVideoTypeDialog switchVideoTypeDialog = new SwitchVideoTypeDialog(getContext());
-        switchVideoTypeDialog.initList(mUrlList, new SwitchVideoTypeDialog.OnListItemClickListener() {
+        String name = mUrlList.get(mSourcePosition).getName();
+        switchVideoTypeDialog.initList(mUrlList, name, new SwitchVideoTypeDialog.OnListItemClickListener() {
             @Override
             public void onItemClick(int position) {
                 final String name = mUrlList.get(position).getName();
@@ -351,7 +354,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                             @Override
                             public void run() {
                                 setUp(url, mCache, mCachePath, mTitle);
-                                setSeekOnStart(currentPosition);
+                                // setSeekOnStart(currentPosition);
                                 startPlayLogic();
                                 cancelProgressTimer();
                                 hideAllWidget();
@@ -362,7 +365,8 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                         mSourcePosition = position;
                     }
                 } else {
-                    Toast.makeText(getContext(), "已经是 " + name, Toast.LENGTH_LONG).show();
+                    MyToast.getInstance(MyApplication.getActivity(), "当前正在播放").show();
+                    // Toast.makeText(getContext(), "已经是 " + name, Toast.LENGTH_LONG).show();
                 }
             }
         });

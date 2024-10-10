@@ -186,13 +186,13 @@ public class VideoActivity extends AppCompatActivity {
                     // 根据播放时长 调整触摸滑动快进比例
                     // 大概估算 参数为1时小拖一下 进度1/15
                     // 快进比例 = duration/1000 * 1/15  / 目标小拖动时间
-                    int m = 10; // 目标小拖动时间10秒
+                    int m = 20; // 目标小拖动时间10秒
                     float pro = duration/1000F * 1/15F /m; // 快进比例
                     mVideoPlayer.setSeekRatio(pro);
                     durationAll = duration;
-                    /*System.out.println("=======================" + mVideoPlayer.getSeekRatio());
-                    System.out.println("=======================" + pro);
-                    System.out.println("=======================" + duration);*/
+                    // System.out.println("=======================" + mVideoPlayer.getSeekRatio());
+                    // System.out.println("=======================" + pro);
+                    // System.out.println("=======================" + duration);
                 }
             }
         });
