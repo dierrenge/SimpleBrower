@@ -11,7 +11,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode 3
-        versionName "5.1"
+        versionName "5.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,6 +41,8 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.7'
     implementation files('libs\\bcprov-jdk16-139.jar')
 
+    implementation 'com.google.code.gson:gson:2.8.6'
+
     // 沉浸式状态栏(状态栏工具)
     // 需在项目根目录下的gradle.properties文件中加入这两行
     // android.useAndroidX=true //是否使用androidx
@@ -48,8 +50,19 @@ dependencies {
     // implementation "com.jaeger.statusbarutil:library:1.5.1"
 
     // 视频播放框架
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
-
-    implementation 'com.google.code.gson:gson:2.8.6'
+    // 完整版引入
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
+    // 部分引入
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v9.0.0-release-jitpack'
+    // 是否需要ExoPlayer模式
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2:v9.0.0-release-jitpack'
+    // 是否需要AliPlayer模式
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v9.0.0-release-jitpack'
+    // 根据你的需求ijk模式的so
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-arm64:v9.0.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a:v9.0.0-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5:v9.0.0-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86:v9.0.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'
 
 }
