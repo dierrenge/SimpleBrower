@@ -483,6 +483,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     // 下载
     private void download(String url, String titleO) {
+        CommonUtils.requestNotificationPermissions(this); // 通知
         String title = titleO;
         try {
             title = URLDecoder.decode(titleO, "utf-8");

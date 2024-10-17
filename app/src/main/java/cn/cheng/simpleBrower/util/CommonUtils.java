@@ -1,7 +1,10 @@
 package cn.cheng.simpleBrower.util;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -295,7 +298,7 @@ public class CommonUtils {
     }
 
     /**
-     * 权限检查
+     * 文件管理 权限检查
      *
      * @param context
      * @return
@@ -322,7 +325,7 @@ public class CommonUtils {
     }
 
     /**
-     * 权限申请
+     * 文件管理 权限申请
      *
      * @param context
      */
@@ -352,6 +355,41 @@ public class CommonUtils {
                 permissions = new String[]{Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
             }
             ActivityCompat.requestPermissions(context, permissions, STORAGE_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    /**
+     * 通知 权限检查
+     *
+     * @param context
+     * @return
+     */
+    public static boolean hasNotificationPermissions(Context context) {
+        return  ((NotificationManager) context.getSystemService(NOTIFICATION_SERVICE)).areNotificationsEnabled();
+    }
+
+    /**
+     * 通知 权限申请
+     *
+     * @param context
+     */
+    public static void requestNotificationPermissions(Activity context) {
+        if (!hasNotificationPermissions(context)) {
+            FeetDialog feetDialog = new FeetDialog(context, "授权", "该功能将会使用通知", "授权", "取消");
+            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                @Override
+                public void close() {
+                    feetDialog.dismiss();
+                }
+                @Override
+                public void ok() {
+                    Intent settingsIntent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                    settingsIntent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
+                    context.startActivityForResult(settingsIntent, 200);
+                    feetDialog.dismiss();
+                }
+            });
+            feetDialog.show();
         }
     }
 
