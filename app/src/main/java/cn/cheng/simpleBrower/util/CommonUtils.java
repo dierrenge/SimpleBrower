@@ -48,9 +48,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -904,5 +906,10 @@ public class CommonUtils {
             txtUrl = txtUrl.replace("/external_files", Environment.getExternalStorageDirectory().getAbsolutePath());
         }
         return txtUrl;
+    }
+
+    // 获取系统时间
+    public static String SysTime() {
+       return new SimpleDateFormat("HH:mm").format(new Date());
     }
 }

@@ -5,6 +5,7 @@ import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.SwitchVideoModel;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
  * Created by shuyu on 2016/12/7.
@@ -36,7 +38,7 @@ import cn.cheng.simpleBrower.custom.MyToast;
 
 public class SampleVideo extends StandardGSYVideoPlayer {
 
-    private TextView mMoreScale;
+    private TextView mNowTime;
 
     private TextView mSwitchSize;
 
@@ -78,34 +80,24 @@ public class SampleVideo extends StandardGSYVideoPlayer {
     }
 
     private void initView() {
-        mMoreScale = (TextView) findViewById(R.id.moreScale);
+        mNowTime = (TextView) findViewById(R.id.nowTime);
         mSwitchSize = (TextView) findViewById(R.id.switchSize);
         mChangeRotate = (TextView) findViewById(R.id.change_rotate);
         mChangeTransform = (TextView) findViewById(R.id.change_transform);
 
-        //切换清晰度
-        mMoreScale.setOnClickListener(new OnClickListener() {
+        // 时间
+        mNowTime.setText(CommonUtils.SysTime());
+        mNowTime.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!mHadPlay) {
                     return;
                 }
-                if (mType == 0) {
-                    mType = 1;
-                } else if (mType == 1) {
-                    mType = 2;
-                } else if (mType == 2) {
-                    mType = 3;
-                } else if (mType == 3) {
-                    mType = 4;
-                } else if (mType == 4) {
-                    mType = 0;
-                }
-                resolveTypeUI();
+
             }
         });
 
-        //切换视频清晰度
+        //切换视频
         mSwitchSize.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -306,20 +298,8 @@ public class SampleVideo extends StandardGSYVideoPlayer {
         if (!mHadPlay) {
             return;
         }
-        if (mType == 1) {
-            mMoreScale.setText("16:9");
-            GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_16_9);
-        } else if (mType == 2) {
-            mMoreScale.setText("4:3");
-            GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_4_3);
-        } else if (mType == 3) {
-            mMoreScale.setText("全屏");
-            GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_FULL);
-        } else if (mType == 4) {
-            mMoreScale.setText("拉伸全屏");
-            GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
-        } else if (mType == 0) {
-            mMoreScale.setText("默认比例");
+        if (mType == 0) {
+            // 默认比例
             GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_DEFAULT);
         }
         changeTextureViewShowType();
@@ -329,7 +309,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
     }
 
     /**
-     * 弹出切换清晰度
+     * 弹出选集
      */
     private void showSwitchDialog() {
         if (!mHadPlay) {
@@ -373,5 +353,13 @@ public class SampleVideo extends StandardGSYVideoPlayer {
         switchVideoTypeDialog.show();
     }
 
-
+    /**
+     * 点击触摸显示和隐藏逻辑
+     * @param e
+     */
+    @Override
+    protected void onClickUiToggle(MotionEvent e) {
+        mNowTime.setText(CommonUtils.SysTime());
+        super.onClickUiToggle(e);
+    }
 }

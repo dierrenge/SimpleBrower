@@ -68,6 +68,12 @@ public class TxtActivity extends AppCompatActivity {
 
     private Handler handler = new Handler();
 
+    // 双击标记
+    private boolean doubleClick = false;
+
+    // 滑动距离边界值
+    private static final int DISTANCE = 10;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -231,37 +237,45 @@ public class TxtActivity extends AppCompatActivity {
         // 内容
         n_content = findViewById(R.id.n_content);
         n_content.setOnTouchListener(new View.OnTouchListener() {
-            float mPosX, mPosY, mCurPosX, mCurPosY;
+            float mPosX, mPosY;
 
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        mPosX = event.getX();
-                        mPosY = event.getY();
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        mCurPosX = event.getX();
-                        mCurPosY = event.getY();
-
+                        mPosX = event.getRawX();
+                        mPosY = event.getRawY();
                         break;
                     case MotionEvent.ACTION_UP:
-                        float Y = mCurPosY - mPosY;
-                        float X = mCurPosX - mPosX;
-                        if (Math.abs(Y) > Math.abs(X)) {
-                            if (Y > 0) {
+                        float X = Math.abs(mPosX - event.getRawX());
+                        float Y = Math.abs(mPosY - event.getRawY());
+                        // 活动判断
+                        if (Y > X) {
+                            if (Y > DISTANCE) {
                                 // 下滑
-                            } else {
+                            } else if (Y < -DISTANCE) {
                                 // 上滑
                             }
                         } else {
-                            if (X > 0) {
+                            if (X > DISTANCE) {
                                 // 右滑
                                 setPreviousPosition();
-                            } else {
+                            } else if (X < -DISTANCE){
                                 // 左滑
                                 setNextPosition();
+                            }
+                        }
+                        // 双击判断
+                        if (Y <= DISTANCE && X <= DISTANCE) {
+                            if (doubleClick) { // 双击朗读
+                                flagRead = !flagRead;
+                                TxtActivity.this.read(positionBean.getTxt());
+                            } else {
+                                doubleClick = true;
+                                new Handler().postDelayed(() -> {
+                                    doubleClick = false;
+                                }, 1600);
                             }
                         }
                         break;

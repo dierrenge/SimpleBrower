@@ -11,7 +11,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode 3
-        versionName "5.2"
+        versionName "5.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,7 +54,7 @@ dependencies {
     // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
     // 部分引入
     implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v9.0.0-release-jitpack'
-    // 是否需要ExoPlayer模式
+    // 是否需要ExoPlayer模式 支持格式更多
     // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2:v9.0.0-release-jitpack'
     // 是否需要AliPlayer模式
     // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v9.0.0-release-jitpack'

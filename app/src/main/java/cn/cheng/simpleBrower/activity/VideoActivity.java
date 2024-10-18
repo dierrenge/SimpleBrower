@@ -204,7 +204,7 @@ public class VideoActivity extends AppCompatActivity {
                 //直接横屏
                 orientationUtils.resolveByClick();
                 //第一个true是否需要隐藏actionbar，第二个true是否需要隐藏statusbar
-                // mVideoPlayer.startWindowFullscreen(VideoActivity.this, true, true);
+                mVideoPlayer.startWindowFullscreen(VideoActivity.this, true, true);
 
             }
         });
