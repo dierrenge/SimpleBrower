@@ -333,7 +333,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                setUp(url, mCache, mCachePath, mTitle);
+                                setUp(url, mCache, mCachePath, name);
                                 // setSeekOnStart(currentPosition);
                                 startPlayLogic();
                                 cancelProgressTimer();

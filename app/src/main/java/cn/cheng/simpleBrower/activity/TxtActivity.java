@@ -248,10 +248,10 @@ public class TxtActivity extends AppCompatActivity {
                         mPosY = event.getRawY();
                         break;
                     case MotionEvent.ACTION_UP:
-                        float X = Math.abs(mPosX - event.getRawX());
-                        float Y = Math.abs(mPosY - event.getRawY());
+                        float X = event.getRawX() - mPosX;
+                        float Y = event.getRawY() - mPosY;
                         // 活动判断
-                        if (Y > X) {
+                        if (Math.abs(Y) > Math.abs(X)) {
                             if (Y > DISTANCE) {
                                 // 下滑
                             } else if (Y < -DISTANCE) {
@@ -267,7 +267,7 @@ public class TxtActivity extends AppCompatActivity {
                             }
                         }
                         // 双击判断
-                        if (Y <= DISTANCE && X <= DISTANCE) {
+                        if (Math.abs(Y) <= DISTANCE && Math.abs(X) <= DISTANCE) {
                             if (doubleClick) { // 双击朗读
                                 flagRead = !flagRead;
                                 TxtActivity.this.read(positionBean.getTxt());
