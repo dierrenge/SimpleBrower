@@ -99,13 +99,12 @@ public class VideoActivity extends AppCompatActivity {
     private void initVideoView(List<SwitchVideoModel> videoList, String name) {
 
         //EXOPlayer内核，支持格式更多
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        //PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         //ijk内核，默认模式
         //PlayerFactory.setPlayManager(IjkPlayerManager.class);
 
-
         //exo缓存模式，支持m3u8，只支持exo
-        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        //CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         //代理缓存模式，支持所有模式，不支持m3u8等，默认
         //CacheFactory.setCacheManager(ProxyCacheManager.class);
 
@@ -115,7 +114,7 @@ public class VideoActivity extends AppCompatActivity {
         mVideoPlayer = findViewById(R.id.video_player);
 
         //播放视频
-        boolean setUp = mVideoPlayer.setUp(videoList, true, name);
+        boolean setUp = mVideoPlayer.setUp(videoList, name);
 
         //默认显示比例
         GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_DEFAULT);
@@ -186,6 +185,7 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onProgress(long progress, long secProgress, long currentPosition, long duration) {
                 position = currentPosition;
+                // 初始滑动快进比例设置
                 if (durationAll == 0) {
                     // 根据播放时长 调整触摸滑动快进比例
                     // 大概估算 参数为1时小拖一下 进度1/15
@@ -196,7 +196,13 @@ public class VideoActivity extends AppCompatActivity {
                     durationAll = duration;
                     // System.out.println("=======================" + mVideoPlayer.getSeekRatio());
                     // System.out.println("=======================" + pro);
-                    // System.out.println("=======================" + duration);
+                }
+
+                // 播放完成监听
+                float last = 1F * currentPosition / duration;
+                // System.out.println("==============" + last);
+                if (last  >= 0.999) {
+                    mVideoPlayer.startNext();
                 }
             }
         });

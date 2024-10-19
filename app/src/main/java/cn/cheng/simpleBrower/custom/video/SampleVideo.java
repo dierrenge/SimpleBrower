@@ -12,6 +12,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shuyu.gsyvideoplayer.cache.CacheFactory;
+import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
@@ -26,6 +30,8 @@ import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.SwitchVideoModel;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
+import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
 /**
  * Created by shuyu on 2016/12/7.
@@ -196,11 +202,10 @@ public class SampleVideo extends StandardGSYVideoPlayer {
      * 设置播放URL
      *
      * @param url           播放url
-     * @param cacheWithPlay 是否边播边缓存
      * @param title         title
      * @return
      */
-    public boolean setUp(List<SwitchVideoModel> url, boolean cacheWithPlay, String title) {
+    public boolean setUp(List<SwitchVideoModel> url, String title) {
         mUrlList = url;
         // 根据视频名称 指定播放列表中对应的视频
         for (int i = 0; i < mUrlList.size(); i++) {
@@ -209,11 +214,27 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                 break;
             }
         }
-        boolean flag = cacheWithPlay;
-        if (url.get(mSourcePosition).getUrl().endsWith(".m3u8")) {
-            flag = false;
+
+        String thisUrl = url.get(mSourcePosition).getUrl();
+        return setUp0(thisUrl,  (File) null, title);
+    }
+
+    public boolean setUp0(String url, File cachePath, String title) {
+        boolean cacheWithPlay;
+        if (url.toLowerCase().endsWith(".mp4")) {
+            //ijk内核，默认模式
+            PlayerFactory.setPlayManager(IjkPlayerManager.class);
+            //代理缓存模式，支持所有模式，不支持m3u8等，默认
+            CacheFactory.setCacheManager(ProxyCacheManager.class);
+            cacheWithPlay = true;
+        } else {
+            //EXOPlayer内核，支持格式更多
+            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+            //exo缓存模式，支持m3u8，只支持exo
+            CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+            cacheWithPlay = false;
         }
-        return setUp(url.get(mSourcePosition).getUrl(), flag, title);
+        return setUp(url, cacheWithPlay, cachePath, title);
     }
 
     /**
@@ -326,28 +347,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
             public void onItemClick(int position) {
                 final String name = mUrlList.get(position).getName();
                 if (mSourcePosition != position) {
-                    if ((mCurrentState == GSYVideoPlayer.CURRENT_STATE_PLAYING
-                            || mCurrentState == GSYVideoPlayer.CURRENT_STATE_PAUSE)) {
-                        final String url = mUrlList.get(position).getUrl();
-                        onVideoPause();
-                        final long currentPosition = mCurrentPosition;
-                        getGSYVideoManager().releaseMediaPlayer();
-                        cancelProgressTimer();
-                        hideAllWidget();
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                setUp(url, mCache, mCachePath, name);
-                                // setSeekOnStart(currentPosition);
-                                startPlayLogic();
-                                cancelProgressTimer();
-                                hideAllWidget();
-                            }
-                        }, 500);
-                        mTypeText = name;
-                        // mSwitchSize.setText(name);
-                        mSourcePosition = position;
-                    }
+                    start(position, name);
                 } else {
                     MyToast.getInstance(MyApplication.getActivity(), "当前正在播放").show();
                     // Toast.makeText(getContext(), "已经是 " + name, Toast.LENGTH_LONG).show();
@@ -355,6 +355,43 @@ public class SampleVideo extends StandardGSYVideoPlayer {
             }
         });
         switchVideoTypeDialog.show();
+    }
+
+    private void start(int position, String name) {
+        if ((mCurrentState == GSYVideoPlayer.CURRENT_STATE_PLAYING
+                || mCurrentState == GSYVideoPlayer.CURRENT_STATE_PAUSE)) {
+            final String url = mUrlList.get(position).getUrl();
+            onVideoPause();
+            final long currentPosition = mCurrentPosition;
+            getGSYVideoManager().releaseMediaPlayer();
+            cancelProgressTimer();
+            hideAllWidget();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    setUp0(url, mCachePath, name);
+                    // setSeekOnStart(currentPosition);
+                    startPlayLogic();
+                    cancelProgressTimer();
+                    hideAllWidget();
+                }
+            }, 500);
+            mTypeText = name;
+            // mSwitchSize.setText(name);
+            mSourcePosition = position;
+        }
+    }
+
+    // 播放下一集
+    public void startNext() {
+        if (!mHadPlay) {
+            return;
+        }
+        if (mUrlList.size() > mSourcePosition + 1) {
+            mSourcePosition++;
+            final String name = mUrlList.get(mSourcePosition).getName();
+            start(mSourcePosition, name);
+        }
     }
 
     /**
