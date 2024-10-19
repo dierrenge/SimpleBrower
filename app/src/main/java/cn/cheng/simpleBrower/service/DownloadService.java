@@ -172,6 +172,9 @@ public class DownloadService extends Service {
             if (title == null || "".equals(title)) {
                 title = "test";
             }
+            if (title.contains("/")) {
+                title = title.substring(title.lastIndexOf("/") + 1);
+            }
             // M3u8DownLoader.test(url, myHandler);
             M3u8DownLoader m3u8Download =  new M3u8DownLoader(url, notificationId);
             //设置生成目录
@@ -188,6 +191,9 @@ public class DownloadService extends Service {
             m3u8Download.setRetryCount(8);
             //设置连接超时时间（单位：毫秒）
             m3u8Download.setTimeoutMillisecond(10000L);
+            //m3u8是否转换成MP4
+            m3u8Download.setM3u8ToMp4(false);
+            //开始下载
             m3u8Download.start(myHandler);
         }
         return super.onStartCommand(intent, flags, startId);

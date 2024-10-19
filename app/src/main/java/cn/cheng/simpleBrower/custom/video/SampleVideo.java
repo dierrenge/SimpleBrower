@@ -209,7 +209,11 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                 break;
             }
         }
-        return setUp(url.get(mSourcePosition).getUrl(), cacheWithPlay, title);
+        boolean flag = cacheWithPlay;
+        if (url.get(mSourcePosition).getUrl().endsWith(".m3u8")) {
+            flag = false;
+        }
+        return setUp(url.get(mSourcePosition).getUrl(), flag, title);
     }
 
     /**

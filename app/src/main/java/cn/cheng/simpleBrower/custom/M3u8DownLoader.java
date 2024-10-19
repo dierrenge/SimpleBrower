@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -103,11 +104,21 @@ public class M3u8DownLoader {
     //所有ts片段下载链接
     private Set<String> tsSet = new LinkedHashSet<>();
 
+    //m3u8文本行
+    private ArrayList<String> m3u8Lines = new ArrayList<>();
+
     //解密后的片段
     private Set<File> finishedFiles = new ConcurrentSkipListSet<>(Comparator.comparingInt(o -> Integer.parseInt(o.getName().replace(".xyz", ""))));
 
     //已经下载的文件大小
     private BigDecimal downloadBytes = new BigDecimal(0);
+
+    // m3u8是否转MP4
+    private boolean m3u8ToMp4 = false;
+
+    public void setM3u8ToMp4(boolean m3u8ToMp4) {
+        this.m3u8ToMp4 = m3u8ToMp4;
+    }
 
     public M3u8DownLoader(String m3U8URL, int notificationId) {
         DOWNLOADURL = m3U8URL;
@@ -247,7 +258,8 @@ public class M3u8DownLoader {
         if (StringUtils.isEmpty(keyUrl))
             throw new M3u8Exception("未发现有效链接");
         //获取密钥
-        String key1 = isKey ? getKey(keyUrl, content) : getKey(keyUrl, null);
+        String key1;
+        key1 = isKey ? getKey(keyUrl, content) : getKey(keyUrl, null);
         if (StringUtils.isNotEmpty(key1))
             key = key1;
         else key = null;
@@ -269,6 +281,8 @@ public class M3u8DownLoader {
         if (!urlContent.toString().contains("#EXTM3U"))
             throw new M3u8Exception(DOWNLOADURL + "不是m3u8链接");
         String[] split = urlContent.toString().split("\\n");
+        boolean isTsUrl = false;
+        int n = 0;
         for (String s : split) {
             //如果含有此字段，则获取加密算法以及获取密钥的链接
             if (s.contains("EXT-X-KEY")) {
@@ -281,7 +295,40 @@ public class M3u8DownLoader {
                     if (split1[1].contains("URI"))
                         key = split1[1].split("=", 2)[1];
                 }
+                break;
+            } else if (!m3u8ToMp4)  {
+                // 保存m3u8文本行
+                if (!isTsUrl) {
+                    m3u8Lines.add(s);
+                    if (s.contains("#EXTINF")) {
+                        isTsUrl = true;
+                    }
+                } else {
+                    n++;
+                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".ts");
+                    isTsUrl = false;
+                }
             }
+        }
+        if (!m3u8ToMp4) {
+            // 开始整理m3u8文本
+            new Thread(() -> {
+                File dir = new File(supDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                File file = new File(supDir + "/" + fileName + ".m3u8");
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                    StringBuffer buffer = new StringBuffer();
+                    for (String line : m3u8Lines) {
+                        buffer.append(line + "\n");
+                    }
+                    bw.write(buffer.toString());
+                    bw.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
         String relativeUrl = url.substring(0, url.lastIndexOf("/") + 1);
         String relativeUrl2 = DOWNLOADURL.split("//")[0] + "//" +new URI(DOWNLOADURL).getHost();
@@ -420,7 +467,97 @@ public class M3u8DownLoader {
                 return;
             }
             finishedCount++;
-            System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
+            // System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
+        });
+    }
+
+    /**
+     * 开启下载线程
+     *
+     * @param urls ts片段链接
+     * @param i    ts片段序号
+     * @return 线程
+     */
+    private Thread getThread0(String urls, int i) {
+        return new Thread(() -> {
+            int count = 1;
+            HttpURLConnection httpURLConnection = null;
+            //xy为未解密的ts片段，如果存在，则删除
+            File file2 = new File(supDir + "/m3u8/" + fileName + "/" + i + ".xy");
+            if (file2.exists())
+                file2.delete();
+            String fName = supDir + "/m3u8/" + fileName + "/" + i + ".ts";
+            OutputStream outputStream = null;
+            InputStream inputStream1 = null;
+            FileOutputStream outputStream1 = null;
+            //重试次数判断
+            while (count <= retryCount) {
+                try {
+                    //模拟http请求获取ts片段文件
+                    URL url = new URL(urls);
+                    httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+                    httpURLConnection.setUseCaches(false);
+                    httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+                    httpURLConnection.setDoInput(true);
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    try {
+                        outputStream = new FileOutputStream(file2);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    int len;
+                    byte[] bytes = new byte[1024 * 4];
+                    //将未解密的ts片段写入文件
+                    while ((len = inputStream.read(bytes)) != -1) {
+                        outputStream.write(bytes, 0, len);
+                        synchronized (this) {
+                            downloadBytes = downloadBytes.add(new BigDecimal(len));
+                        }
+                    }
+                    outputStream.flush();
+                    inputStream.close();
+                    inputStream1 = new FileInputStream(file2);
+                    byte[] bytes1 = new byte[inputStream1.available()];
+                    inputStream1.read(bytes1);
+                    File file = new File(fName);
+                    outputStream1 = new FileOutputStream(file);
+                    //开始解密ts片段
+                    outputStream1.write(decrypt(bytes1, key, method));
+                    file2.delete();
+                    break;
+                } catch (Exception e) {
+                    try {
+                        new File(fName).createNewFile();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    System.out.println("第" + count + "获取链接重试！\t" + urls);
+                    count++;
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (inputStream1 != null)
+                            inputStream1.close();
+                        if (outputStream1 != null)
+                            outputStream1.close();
+                        if (outputStream != null)
+                            outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (httpURLConnection != null) {
+                        httpURLConnection.disconnect();
+                    }
+                }
+            }
+            if (count > retryCount) {
+                //自定义异常
+                System.out.println("----------连接超时！-------");
+                return;
+            }
+            finishedCount++;
+            // System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
         });
     }
 
@@ -476,7 +613,7 @@ public class M3u8DownLoader {
                     String flag = sbHexList.get(num-2) + sbHexList.get(num-1) + sbHexList.get(num);
                     flag = flag.toUpperCase();
                     if (flag.equals("FF 47 40 ")) { // ts文件16进制关键标志
-                        System.out.println((num + 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        // System.out.println((num + 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
                         return num + 1;
                     }
                 }
@@ -561,7 +698,7 @@ public class M3u8DownLoader {
                 String[] arr = new String[]{str, id+""};
                 Message msg0 = handler.obtainMessage(3, arr);
                 handler.sendMessage(msg0);
-                System.out.println(str /*+ StringUtils.convertToDownloadSpeed(downloadBytes, 3)*/);
+                // System.out.println(str /*+ StringUtils.convertToDownloadSpeed(downloadBytes, 3)*/);
                 // 开始合并视频
                 mergeTs(bos, bis, raFile);
                 // 下载成功提示
@@ -595,6 +732,69 @@ public class M3u8DownLoader {
     }
 
     /**
+     * 下载视频
+     */
+    private void startDownload0(Handler handler) {
+        // 线程池
+        if (fixedThreadPool == null) {
+            fixedThreadPool = Executors.newFixedThreadPool(threadCount);
+        }
+        int i = 0;
+        // 如果生成目录不存在，则创建
+        File file1 = new File(supDir + "/m3u8/" + fileName);
+        // System.out.println("生成目录==========" + file1.getAbsolutePath());
+        if (!file1.exists())
+            file1.mkdirs();
+        // 执行多线程下载
+        for (String s : tsSet) {
+            i++;
+            fixedThreadPool.execute(getThread0(s, i));
+        }
+        // 关闭线程池
+        fixedThreadPool.shutdown();
+        // 下载过程监视
+        new Thread(() -> {
+            try {
+                int consume = 0;
+                //轮询是否下载成功
+                while (!fixedThreadPool.isTerminated()) {
+                    try {
+                        consume++;
+                        BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
+                        Thread.sleep(1000L);
+                        if (tsSet.size() != 0) {
+                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+""};
+                            Message msg = handler.obtainMessage(3, arr);
+                            handler.sendMessage(msg);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        String[] arr = new String[]{e.getMessage(), id+""};
+                        Message msg= handler.obtainMessage(4, arr);
+                        handler.sendMessage(msg);
+                    }
+                }
+                // 下载成功提示
+                String str = finishedCount + "个ts文件";
+                if (tsSet.size() == finishedCount) {
+                    str = "下载完成！共" + str;
+                } else {
+                    str = "部分下载完成！共" + str + "，实际" + tsSet.size() + "个ts文件";
+                }
+                String[] arr2 = new String[]{str, id+""};
+                Message msg = handler.obtainMessage(2, arr2);
+                handler.sendMessage(msg);
+                System.out.println(str);
+            } catch (Exception e) {
+                e.printStackTrace();
+                String[] arr = new String[]{e.getMessage(), id+""};
+                Message msg= handler.obtainMessage(4, arr);
+                handler.sendMessage(msg);
+            }
+        }).start();
+    }
+
+    /**
      * 开始下载视频
      */
     public void start(Handler handler) {
@@ -608,7 +808,11 @@ public class M3u8DownLoader {
                     if(StringUtils.isEmpty(tsUrl)) {
                         System.out.println("不需要解密");
                     }
-                    startDownload(handler);
+                    if (!m3u8ToMp4) {
+                        startDownload0(handler);
+                    } else {
+                        startDownload(handler);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     String[] arr = new String[]{e.getMessage(), id+""};
@@ -660,7 +864,7 @@ public class M3u8DownLoader {
                 InputStream inputStream = httpURLConnection.getInputStream();
                 // 获取长度
                 int contentLength = httpURLConnection.getContentLength();
-                System.out.println("=======contentLength=====" +contentLength);
+                // System.out.println("=======contentLength=====" +contentLength);
                 // 获取格式
                 String contentType = httpURLConnection.getContentType();
                 String format = CommonUtils.getUrlFormat(DOWNLOADURL);
@@ -679,7 +883,7 @@ public class M3u8DownLoader {
                 if (fileName == null) {
                     fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
                 }
-                System.out.println("+++++++++++++++++++++++++++++++" + supDir + "/" + fileName + format);
+                // System.out.println("+++++++++++++++++++++++++++++++" + supDir + "/" + fileName + format);
                 File file = new File(supDir + "/" + fileName + format);
                 int len, bytesum = 0;
                 byte[] buf = new byte[1024*8];
@@ -756,7 +960,7 @@ public class M3u8DownLoader {
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
             // 获取长度
             float contentLength = httpURLConnection.getContentLength()/1024F/1024F;
-            System.out.println("=======contentLength=====" + contentLength);
+            // System.out.println("=======contentLength=====" + contentLength);
             // 获取格式
             String contentType = httpURLConnection.getContentType();
             String format = CommonUtils.getUrlFormat(downLoadUrl);
@@ -776,7 +980,7 @@ public class M3u8DownLoader {
                 fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
             }
             title = fileName  + format + " / " + String.format("%.2f", contentLength) + "M";
-            System.out.println("+++++++++++++++++++++++++++++++" + title);
+            // System.out.println("+++++++++++++++++++++++++++++++" + title);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

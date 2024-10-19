@@ -45,9 +45,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -293,8 +296,28 @@ public class CommonUtils {
     public static boolean deleteFile(File file) {
         boolean ret = false;
         if (file != null && file.exists()) {
-            ret = file.delete();
-            System.gc();
+            if (file.isFile() || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                ret = file.delete();
+                System.gc();
+            } else {
+                try {
+                    Files.walkFileTree(Paths.get(file.getPath()),new SimpleFileVisitor<Path>(){
+                        //遍历删除文件
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+                        //遍历删除目录
+                        public FileVisitResult postVisitDirectory(Path dir,IOException exc) throws IOException{
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                    ret = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return ret;
     }
