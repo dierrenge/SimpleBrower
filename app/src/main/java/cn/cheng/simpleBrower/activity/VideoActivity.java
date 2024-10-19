@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.cheng.simpleBrower.bean.SwitchVideoModel;
+import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.custom.video.SampleVideo;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.util.AssetsReader;
@@ -51,8 +52,8 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 隐藏状态栏和导航栏
+        try {
+            // 隐藏状态栏和导航栏
         /*View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
@@ -60,40 +61,45 @@ public class VideoActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }*/
-        SysWindowUi.hideStatusNavigationBar(this, true);
+            SysWindowUi.hideStatusNavigationBar(this, true);
 
-        setContentView(R.layout.activity_video);
+            setContentView(R.layout.activity_video);
 
-        Intent intent = this.getIntent();
+            Intent intent = this.getIntent();
 
-        String action = intent.getAction();
-        Uri uri = intent.getData();
-        if (Intent.ACTION_VIEW.equals(action) && uri != null) {
-            // 设置此activity可用于打开 视频文件
-            videoUrl = CommonUtils.correctUrl(uri.getPath());
-        } else {
-            // 获取上个页面传递的信息
-            videoUrl = intent.getStringExtra("videoUrl");
+            String action = intent.getAction();
+            Uri uri = intent.getData();
+            if (Intent.ACTION_VIEW.equals(action) && uri != null) {
+                // 设置此activity可用于打开 视频文件
+                videoUrl = CommonUtils.correctUrl(uri.getPath());
+            } else {
+                // 获取上个页面传递的信息
+                videoUrl = intent.getStringExtra("videoUrl");
+            }
+            CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
+
+            if (videoUrl == null || !videoUrl.contains("/")) {
+                return;
+            }
+            String name = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
+
+            // 获取影音列表
+            List<String> formats = AssetsReader.getList("audioVideo.txt");
+            List<String> videoUrls = new ArrayList<>();
+            List<SwitchVideoModel> videoList = new ArrayList<>();
+            CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
+            for (String url : videoUrls) {
+                SwitchVideoModel switchVideoModel = new SwitchVideoModel(url.substring(url.lastIndexOf("/") + 1), url);
+                videoList.add(switchVideoModel);
+            }
+
+            // 初始化视频设置
+            initVideoView(videoList, name);
+        } catch (Throwable e) {
+            MyToast.getInstance(this, "打开异常咯").show();
+            e.printStackTrace();
+            CommonUtils.saveLog("VideoActivity:" + e.getMessage());
         }
-        CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
-
-        if (videoUrl == null || !videoUrl.contains("/")) {
-            return;
-        }
-        String name = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
-
-        // 获取影音列表
-        List<String> formats = AssetsReader.getList("audioVideo.txt");
-        List<String> videoUrls = new ArrayList<>();
-        List<SwitchVideoModel> videoList = new ArrayList<>();
-        CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
-        for (String url : videoUrls) {
-            SwitchVideoModel switchVideoModel = new SwitchVideoModel(url.substring(url.lastIndexOf("/") + 1), url);
-            videoList.add(switchVideoModel);
-        }
-
-        // 初始化视频设置
-        initVideoView(videoList, name);
     }
 
     private void initVideoView(List<SwitchVideoModel> videoList, String name) {

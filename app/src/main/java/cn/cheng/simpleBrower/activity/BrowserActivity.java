@@ -112,46 +112,51 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            // 忽略强制网络策略: 在主线程中可以访问网络
+            StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
-        // 忽略强制网络策略: 在主线程中可以访问网络
-        StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            // 设置默认导航栏、状态栏样式
+            SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
+            setContentView(R.layout.activity_brower);
 
-        // 设置默认导航栏、状态栏样式
-        SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
-        setContentView(R.layout.activity_brower);
+            SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
+            flagVideo = sysBean.isFlagVideo();
+            flagGif = sysBean.isFlagGif();
 
-        SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
-        flagVideo = sysBean.isFlagVideo();
-        flagGif = sysBean.isFlagGif();
+            // 注册广告过滤器
+            AdBlocker.init(this);
 
-        // 注册广告过滤器
-        AdBlocker.init(this);
+            // MyApplication.clearUrls();
 
-        // MyApplication.clearUrls();
+            initWebView();
 
-        initWebView();
+            initOther();
 
-        initOther();
+            Intent intent = this.getIntent();
 
-        Intent intent = this.getIntent();
-
-        // 设置此activity可用于打开 网络链接
-        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-            Uri uri = intent.getData();
-            if (uri != null) {
-                currentUrl = uri.toString();
+            // 设置此activity可用于打开 网络链接
+            if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+                Uri uri = intent.getData();
+                if (uri != null) {
+                    currentUrl = uri.toString();
+                }
+            } else {
+                // 获取上个页面传过来的网址
+                currentUrl = intent.getStringExtra("webInfo");
             }
-        } else {
-            // 获取上个页面传过来的网址
-            currentUrl = intent.getStringExtra("webInfo");
+            CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
+            url_box.setText(currentUrl);
+            // 记录为历史网址
+            MyApplication.setUrl(currentUrl);
+            // 跳转到该网站
+            loadUrl(currentUrl);
+        } catch (Throwable e) {
+            MyToast.getInstance(this, "打开异常咯").show();
+            e.printStackTrace();
+            CommonUtils.saveLog("BrowserActivity:" + e.getMessage());
         }
-        CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
-        url_box.setText(currentUrl);
-        // 记录为历史网址
-        MyApplication.setUrl(currentUrl);
-        // 跳转到该网站
-        loadUrl(currentUrl);
     }
 
     @Override

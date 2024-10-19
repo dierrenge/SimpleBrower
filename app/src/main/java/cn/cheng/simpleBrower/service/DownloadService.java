@@ -196,6 +196,8 @@ public class DownloadService extends Service {
             //开始下载
             m3u8Download.start(myHandler);
         }
+        Message message2 = myHandler.obtainMessage(0, new String[]{CHANNEL_ID + "-开始下载", ""});
+        myHandler.sendMessage(message2);
         return super.onStartCommand(intent, flags, startId);
     }
 

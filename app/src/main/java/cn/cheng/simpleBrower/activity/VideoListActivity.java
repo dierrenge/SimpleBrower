@@ -225,28 +225,35 @@ public class VideoListActivity extends AppCompatActivity {
                 boolean isDelete = false;
                 try {
                     File file = new File(url);
-                    isDelete = CommonUtils.deleteFile(file);
                     if (url.endsWith(".m3u8")) {
-                        new Handler().post(() -> {
-                            // 删除该m3u8对应的所有ts文件
-                            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-                            File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
-                            CommonUtils.deleteFile(dirFile);
-                        });
+                        // 通知handler 数据删除完成 可以刷新recyclerview
+                        Message message = Message.obtain();
+                        message.what = 1;
+                        message.obj = "删除中，请稍后";
+                        handler.sendMessage(message);
+                        // 删除该m3u8对应的所有ts文件
+                        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+                        File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
+                        isDelete = CommonUtils.deleteFile(dirFile);
+                        if (isDelete) {
+                            isDelete = CommonUtils.deleteFile(file);
+                        }
+                    } else {
+                        isDelete = CommonUtils.deleteFile(file);
                     }
+                    // 通知handler 数据删除完成 可以刷新recyclerview
+                    Message message = Message.obtain();
+                    if (isDelete) {
+                        message.what = 3;
+                        message.obj = new String[]{url, position+""};
+                    } else {
+                        message.what = 1;
+                        message.obj = "删除失败";
+                    }
+                    handler.sendMessage(message);
                 } catch (Exception e) {
                     e.getMessage();
                 }
-                // 通知handler 数据删除完成 可以刷新recyclerview
-                Message message = Message.obtain();
-                if (isDelete) {
-                    message.what = 3;
-                    message.obj = new String[]{url, position+""};
-                } else {
-                    message.what = 1;
-                    message.obj = "删除失败";
-                }
-                handler.sendMessage(message);
             }).start();
         }
     }

@@ -301,7 +301,7 @@ public class CommonUtils {
                 System.gc();
             } else {
                 try {
-                    Files.walkFileTree(Paths.get(file.getPath()),new SimpleFileVisitor<Path>(){
+                    Files.walkFileTree(Paths.get(file.getPath()), new SimpleFileVisitor<Path>(){
                         //遍历删除文件
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                             Files.delete(file);
