@@ -280,7 +280,9 @@ public class VideoListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         initVideoUrls();
-        change(isChange);
+        new Handler().post(() -> {
+            change(isChange);
+        });
         super.onResume();
     }
 }

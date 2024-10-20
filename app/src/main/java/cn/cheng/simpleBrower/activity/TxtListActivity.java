@@ -267,6 +267,9 @@ public class TxtListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         initTxtUrls();
+        new Handler().post(() -> {
+            change(isChange);
+        });
         super.onResume();
     }
 }

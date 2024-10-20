@@ -345,7 +345,9 @@ public class LikeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         getLikeUrls();
-        change(isChange);
+        new Handler().post(() -> {
+            change(isChange);
+        });
         super.onResume();
     }
 }
