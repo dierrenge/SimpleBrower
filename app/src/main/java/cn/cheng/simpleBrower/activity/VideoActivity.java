@@ -43,7 +43,7 @@ public class VideoActivity extends AppCompatActivity {
     private String videoUrl;
 
     // 记录播放进度
-    private long position;
+    private int position;
 
     // 记录播放时长
     private long durationAll = 0;
@@ -190,14 +190,14 @@ public class VideoActivity extends AppCompatActivity {
         // 获取进度
         mVideoPlayer.setGSYVideoProgressListener(new GSYVideoProgressListener() {
             @Override
-            public void onProgress(long progress, long secProgress, long currentPosition, long duration) {
+            public void onProgress(int progress, int secProgress, int currentPosition, int duration) {
                 position = currentPosition;
                 // 初始滑动快进比例设置
                 if (durationAll == 0) {
                     // 根据播放时长 调整触摸滑动快进比例
                     // 大概估算 参数为1时小拖一下 进度1/15
                     // 快进比例 = duration/1000 * 1/15  / 目标小拖动时间
-                    int m = 20; // 目标小拖动时间10秒
+                    int m = 10; // 目标小拖动时间10秒
                     float pro = duration/1000F * 1/15F /m; // 快进比例
                     mVideoPlayer.setSeekRatio(pro);
                     durationAll = duration;
