@@ -305,7 +305,7 @@ public class M3u8DownLoader {
                     }
                 } else {
                     n++;
-                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".ts");
+                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
                     isTsUrl = false;
                 }
             }
@@ -486,7 +486,7 @@ public class M3u8DownLoader {
             File file2 = new File(supDir + "/m3u8/" + fileName + "/" + i + ".xy");
             if (file2.exists())
                 file2.delete();
-            String fName = supDir + "/m3u8/" + fileName + "/" + i + ".ts";
+            String fName = supDir + "/m3u8/" + fileName + "/" + i + ".xyz";
             OutputStream outputStream = null;
             InputStream inputStream1 = null;
             FileOutputStream outputStream1 = null;

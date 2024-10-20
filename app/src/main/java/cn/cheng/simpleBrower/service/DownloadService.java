@@ -58,7 +58,7 @@ public class DownloadService extends Service {
     // 通知id 每次下载通知要不一样
     private int notificationId = 1234;
     // 频道id 每次下载通知要不一样
-    private String CHANNEL_ID = "一口一个大胖子，喜喜";
+    private String CHANNEL_ID = "";
 
     private Map<Integer, ExecutorService> pools = new HashMap<>();
 
@@ -86,6 +86,8 @@ public class DownloadService extends Service {
         String title = intent.getStringExtra("title");
         if (title != null && !"".equals(title)) {
             CHANNEL_ID = title;
+        } else {
+            CHANNEL_ID = System.currentTimeMillis() + "";
         }
         // 高版本通知Notification 必须先定义NotificationChannel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
