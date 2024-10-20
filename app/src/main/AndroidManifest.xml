@@ -63,7 +63,6 @@
         <activity
             android:name=".activity.TxtActivity"
             android:exported="true"
-            android:launchMode="singleInstance"
             tools:ignore="AppLinkUrlError"><!-- android:launchMode="singleInstance" -->
             <!-- 设置此activity可用于打开 txt文件 -->
             <intent-filter>

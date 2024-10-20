@@ -156,6 +156,7 @@ public class BrowserActivity extends AppCompatActivity {
             MyToast.getInstance(this, "打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("BrowserActivity:" + e.getMessage());
+            this.finish();
         }
     }
 

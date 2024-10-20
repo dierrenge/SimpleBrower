@@ -74,6 +74,9 @@ public class TxtActivity extends AppCompatActivity {
     // 滑动距离边界值
     private static final int DISTANCE = 10;
 
+    // 打开方式 标记
+    boolean otherFlag = false;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +109,6 @@ public class TxtActivity extends AppCompatActivity {
 
             String action = intent.getAction();
             Uri uri = intent.getData();
-            boolean otherFlag = false;
             if (Intent.ACTION_VIEW.equals(action) && uri != null) {
                 // 设置此activity可用于打开 txt文件
                 txtUrl = CommonUtils.correctUrl(uri.getPath());
@@ -185,8 +187,10 @@ public class TxtActivity extends AppCompatActivity {
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     TxtActivity.this.startActivity(intent);*/
 
-                        flagRead = !flagRead;
-                        TxtActivity.this.read(positionBean.getTxt());
+                        if (!otherFlag) {
+                            flagRead = !flagRead;
+                            TxtActivity.this.read(positionBean.getTxt());
+                        }
 
                         topDialog.dismiss();
                     }
@@ -272,8 +276,10 @@ public class TxtActivity extends AppCompatActivity {
                             // 双击判断
                             if (Math.abs(Y) <= DISTANCE && Math.abs(X) <= DISTANCE) {
                                 if (doubleClick) { // 双击朗读
-                                    flagRead = !flagRead;
-                                    TxtActivity.this.read(positionBean.getTxt());
+                                    if (!otherFlag) {
+                                        flagRead = !flagRead;
+                                        TxtActivity.this.read(positionBean.getTxt());
+                                    }
                                 } else {
                                     doubleClick = true;
                                     new Handler().postDelayed(() -> {
@@ -320,6 +326,7 @@ public class TxtActivity extends AppCompatActivity {
             MyToast.getInstance(this, "打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("TxtActivity:" + e.getMessage());
+            this.finish();
         }
     }
 
@@ -344,7 +351,9 @@ public class TxtActivity extends AppCompatActivity {
                 CommonUtils.readNextPage(lines, positionBean);
                 n_content.setText(positionBean.getTxt());
 
-                read(positionBean.getTxt());
+                if (!otherFlag) {
+                    read(positionBean.getTxt());
+                }
             });
         }
     }
@@ -394,7 +403,9 @@ public class TxtActivity extends AppCompatActivity {
                         }
                         n_content.setText(positionBean.getTxt());
 
-                        read(positionBean.getTxt());
+                        if (!otherFlag) {
+                            read(positionBean.getTxt());
+                        }
                     });
                 }
             });

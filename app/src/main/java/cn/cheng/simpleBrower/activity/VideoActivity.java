@@ -99,6 +99,7 @@ public class VideoActivity extends AppCompatActivity {
             MyToast.getInstance(this, "打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("VideoActivity:" + e.getMessage());
+            this.finish();
         }
     }
 
