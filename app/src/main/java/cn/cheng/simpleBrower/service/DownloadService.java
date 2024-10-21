@@ -84,11 +84,12 @@ public class DownloadService extends Service {
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         String title = intent.getStringExtra("title");
-        if (title != null && !"".equals(title)) {
-            CHANNEL_ID = title;
-        } else {
-            CHANNEL_ID = System.currentTimeMillis() + "";
+        if (title == null || "".equals(title)) {
+            title = System.currentTimeMillis() + "";
+
         }
+        CHANNEL_ID = title;
+
         // 高版本通知Notification 必须先定义NotificationChannel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID
@@ -170,9 +171,6 @@ public class DownloadService extends Service {
             String dirName = intent.getStringExtra("dirName");
             if (dirName == null || "".equals(dirName)) {
                 dirName = System.currentTimeMillis() + "";
-            }
-            if (title == null || "".equals(title)) {
-                title = "test";
             }
             if (title.contains("/")) {
                 title = title.substring(title.lastIndexOf("/") + 1);

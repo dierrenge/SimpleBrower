@@ -306,11 +306,7 @@ public class M3u8DownLoader {
                     }
                 } else {
                     n++;
-                    if (!s.endsWith("ts")) {
-                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz2");
-                    } else {
-                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
-                    }
+                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
                     isTsUrl = false;
                 }
             }
@@ -495,8 +491,6 @@ public class M3u8DownLoader {
             OutputStream outputStream = null;
             InputStream inputStream1 = null;
             FileOutputStream outputStream1 = null;
-            RandomAccessFile raFile = null;
-            BufferedOutputStream bos = null;
             //重试次数判断
             while (count <= retryCount) {
                 try {
@@ -532,18 +526,6 @@ public class M3u8DownLoader {
                     //开始解密ts片段
                     byte[] decrypt = decrypt(bytes1, key, method);
                     outputStream1.write(decrypt);
-                    // 破解伪装的非ts文件 向后读取获取真正的ts视频文件
-                    if(!urls.endsWith(".ts")) {
-                        int l;
-                        byte[] b = new byte[4096];
-                        bos = new BufferedOutputStream(new FileOutputStream(supDir + "/m3u8/" + fileName + "/" + i + ".xyz2"));
-                        raFile = new RandomAccessFile(file, "rw");
-                        raFile.seek(getTsNum(file));
-                        while ((l = raFile.read(b)) != -1) {
-                            bos.write(b, 0, l);
-                        }
-                        file.delete();
-                    }
                     file2.delete();
                     break;
                 } catch (Exception e) {
@@ -563,10 +545,6 @@ public class M3u8DownLoader {
                             outputStream1.close();
                         if (outputStream != null)
                             outputStream.close();
-                        if (bos != null)
-                            bos.close();
-                        if (raFile != null)
-                            raFile.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
