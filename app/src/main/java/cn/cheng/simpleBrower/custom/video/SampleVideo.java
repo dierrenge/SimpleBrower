@@ -239,7 +239,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
             CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
             cacheWithPlay = false;
             // m3u8格式播放 尝试设置
-            if (url.toLowerCase().endsWith(".m3u8")) {
+            /*if (url.toLowerCase().endsWith(".m3u8")) {
                 VideoOptionModel videoOptionModel =
                         new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "protocol_whitelist", "crypto,file,http,https,tcp,tls,udp");
                 VideoOptionModel videoOptionModel2 =
@@ -248,7 +248,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                 list.add(videoOptionModel);
                 list.add(videoOptionModel2);
                 GSYVideoManager.instance().setOptionModelList(list);
-            }
+            }*/
         }
         return setUp(url, cacheWithPlay, cachePath, title);
     }

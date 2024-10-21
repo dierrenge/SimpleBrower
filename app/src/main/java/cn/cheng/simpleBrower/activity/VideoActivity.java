@@ -208,7 +208,7 @@ public class VideoActivity extends AppCompatActivity {
                 // 播放完成监听
                 float last = 1F * currentPosition / duration;
                 // System.out.println("==============" + last);
-                if (last  >= 0.999) {
+                if (last  >= 0.999 || progress == 100) {
                     mVideoPlayer.startNext();
                 }
             }

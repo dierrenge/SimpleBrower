@@ -12,6 +12,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -305,7 +306,11 @@ public class M3u8DownLoader {
                     }
                 } else {
                     n++;
-                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
+                    if (!s.endsWith("ts")) {
+                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz2");
+                    } else {
+                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
+                    }
                     isTsUrl = false;
                 }
             }
@@ -490,6 +495,8 @@ public class M3u8DownLoader {
             OutputStream outputStream = null;
             InputStream inputStream1 = null;
             FileOutputStream outputStream1 = null;
+            RandomAccessFile raFile = null;
+            BufferedOutputStream bos = null;
             //重试次数判断
             while (count <= retryCount) {
                 try {
@@ -523,7 +530,20 @@ public class M3u8DownLoader {
                     File file = new File(fName);
                     outputStream1 = new FileOutputStream(file);
                     //开始解密ts片段
-                    outputStream1.write(decrypt(bytes1, key, method));
+                    byte[] decrypt = decrypt(bytes1, key, method);
+                    outputStream1.write(decrypt);
+                    // 破解伪装的非ts文件 向后读取获取真正的ts视频文件
+                    if(!urls.endsWith(".ts")) {
+                        int l;
+                        byte[] b = new byte[4096];
+                        bos = new BufferedOutputStream(new FileOutputStream(supDir + "/m3u8/" + fileName + "/" + i + ".xyz2"));
+                        raFile = new RandomAccessFile(file, "rw");
+                        raFile.seek(getTsNum(file));
+                        while ((l = raFile.read(b)) != -1) {
+                            bos.write(b, 0, l);
+                        }
+                        file.delete();
+                    }
                     file2.delete();
                     break;
                 } catch (Exception e) {
@@ -543,6 +563,10 @@ public class M3u8DownLoader {
                             outputStream1.close();
                         if (outputStream != null)
                             outputStream.close();
+                        if (bos != null)
+                            bos.close();
+                        if (raFile != null)
+                            raFile.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -606,6 +630,47 @@ public class M3u8DownLoader {
         InputStream is = null;
         try {
             is = new FileInputStream(file);
+            while ((value = is.read()) != -1) {
+                // 转换16进制字符
+                sbHexList.add(String.format("%02X ", value));
+                if (num >= 2) {
+                    String flag = sbHexList.get(num-2) + sbHexList.get(num-1) + sbHexList.get(num);
+                    flag = flag.toUpperCase();
+                    if (flag.equals("FF 47 40 ")) { // ts文件16进制关键标志
+                        // System.out.println((num + 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        return num + 1;
+                    }
+                }
+                num++;
+                // 兜底 防止一直循环
+                if (num >= 2000) {
+                    break;
+                }
+            }
+            is.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return 0;
+    }
+
+    private int getTsNum(InputStream is) {
+        if (num > 0) {
+            return num;
+        }
+        int value = 0;
+        List<String> sbHexList = new ArrayList<>();
+        try {
             while ((value = is.read()) != -1) {
                 // 转换16进制字符
                 sbHexList.add(String.format("%02X ", value));
