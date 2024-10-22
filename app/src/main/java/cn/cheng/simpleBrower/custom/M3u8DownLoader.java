@@ -306,7 +306,11 @@ public class M3u8DownLoader {
                     }
                 } else {
                     n++;
-                    m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
+                    if (s.endsWith(".ts")) {
+                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
+                    } else {
+                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz2");
+                    }
                     isTsUrl = false;
                 }
             }
@@ -526,6 +530,23 @@ public class M3u8DownLoader {
                     //开始解密ts片段
                     byte[] decrypt = decrypt(bytes1, key, method);
                     outputStream1.write(decrypt);
+
+                    // 破解伪装的非ts文件 向后读取获取真正的ts视频文件
+                    if (!urls.endsWith(".ts")) {
+                        byte[] b = new byte[4096];
+                        int l;
+                        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(supDir + "/m3u8/" + fileName + "/" + i + ".xyz2"));
+                             RandomAccessFile raFile = new RandomAccessFile(file, "rw");) {
+                            raFile.seek(getTsNum(file));
+                            while ((l = raFile.read(b)) != -1) {
+                                bos.write(b, 0, l);
+                            }
+                            file.delete();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     file2.delete();
                     break;
                 } catch (Exception e) {

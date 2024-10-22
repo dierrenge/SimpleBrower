@@ -85,11 +85,16 @@ public class VideoActivity extends AppCompatActivity {
 
             // 获取影音列表
             List<String> formats = AssetsReader.getList("audioVideo.txt");
-            List<String> videoUrls = new ArrayList<>();
             List<SwitchVideoModel> videoList = new ArrayList<>();
-            CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
-            for (String url : videoUrls) {
-                SwitchVideoModel switchVideoModel = new SwitchVideoModel(url.substring(url.lastIndexOf("/") + 1), url);
+            if (formats.contains(videoUrl.substring(videoUrl.lastIndexOf(".") + 1))) { // 已知格式文件
+                List<String> videoUrls = new ArrayList<>();
+                CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
+                for (String url : videoUrls) {
+                    SwitchVideoModel switchVideoModel = new SwitchVideoModel(url.substring(url.lastIndexOf("/") + 1), url);
+                    videoList.add(switchVideoModel);
+                }
+            } else { // 未知格式文件
+                SwitchVideoModel switchVideoModel = new SwitchVideoModel(videoUrl.substring(videoUrl.lastIndexOf("/") + 1), videoUrl);
                 videoList.add(switchVideoModel);
             }
 
