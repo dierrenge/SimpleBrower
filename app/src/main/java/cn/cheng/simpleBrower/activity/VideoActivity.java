@@ -82,11 +82,14 @@ public class VideoActivity extends AppCompatActivity {
                 return;
             }
             String name = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
-
             // 获取影音列表
             List<String> formats = AssetsReader.getList("audioVideo.txt");
             List<SwitchVideoModel> videoList = new ArrayList<>();
-            if (formats.contains(videoUrl.substring(videoUrl.lastIndexOf(".") + 1))) { // 已知格式文件
+            if (name.contains(".")) {
+                String format = name.substring(name.lastIndexOf("."));
+                if (!formats.contains(format)) {
+                    formats.add(format);
+                }
                 List<String> videoUrls = new ArrayList<>();
                 CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
                 for (String url : videoUrls) {

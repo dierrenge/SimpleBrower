@@ -210,7 +210,7 @@ public class TxtListActivity extends AppCompatActivity {
                 CommonUtils.fileWalk(dir, formats, txtUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
-            }, 400);
+            }, 0);
         }
     }
 

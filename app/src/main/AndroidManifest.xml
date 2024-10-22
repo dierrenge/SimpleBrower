@@ -108,6 +108,7 @@
             android:name=".activity.VideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
+            android:hardwareAccelerated="true"
             android:screenOrientation="portrait"
             tools:ignore="AppLinkUrlError">
             <!-- 设置此activity可用于打开 视频文件 -->

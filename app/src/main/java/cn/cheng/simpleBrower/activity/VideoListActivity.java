@@ -214,7 +214,7 @@ public class VideoListActivity extends AppCompatActivity {
                 CommonUtils.fileWalk(dir, formats, videoUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
-            }, 400);
+            }, 0);
         }
     }
 
@@ -225,7 +225,7 @@ public class VideoListActivity extends AppCompatActivity {
                 boolean isDelete = false;
                 try {
                     File file = new File(url);
-                    if (url.endsWith(".m3u8")) {
+                    if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
                         // 通知handler 数据删除完成 可以刷新recyclerview
                         Message message = Message.obtain();
                         message.what = 1;
