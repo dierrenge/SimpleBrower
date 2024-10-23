@@ -148,14 +148,18 @@ public class TxtListActivity extends AppCompatActivity {
             }
 
             public void click(String txtUrl) {
-                if (isChange) {
-                    isChange = !isChange;
-                    change(isChange);
+                try {
+                    if (isChange) {
+                        isChange = !isChange;
+                        change(isChange);
+                    }
+                    // 跳转该网址
+                    Intent intent = new Intent(TxtListActivity.this, TxtActivity.class);
+                    intent.putExtra("txtUrl", txtUrl);
+                    TxtListActivity.this.startActivity(intent);
+                } catch (Exception e) {
+                    CommonUtils.saveLog("TxtListActivity-click:" + e.getMessage());
                 }
-                // 跳转该网址
-                Intent intent = new Intent(TxtListActivity.this, TxtActivity.class);
-                intent.putExtra("txtUrl", txtUrl);
-                TxtListActivity.this.startActivity(intent);
             }
         });
 

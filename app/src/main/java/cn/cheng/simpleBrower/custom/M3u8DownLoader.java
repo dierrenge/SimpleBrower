@@ -62,6 +62,10 @@ public class M3u8DownLoader {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    // ts文件16进制关键标志
+    // private static final String TS_FLAG = "FF 47 40 ";
+    // private static final String TS_FLAG = "82 47 40 ";
+    private static final String TS_FLAG = "47 40 ";
 
     //要下载的m3u8链接
     private final String DOWNLOADURL;
@@ -632,12 +636,12 @@ public class M3u8DownLoader {
             while ((value = is.read()) != -1) {
                 // 转换16进制字符
                 sbHexList.add(String.format("%02X ", value));
-                if (num >= 2) {
-                    String flag = sbHexList.get(num-2) + sbHexList.get(num-1) + sbHexList.get(num);
+                if (num >= 1) {
+                    String flag = sbHexList.get(num-1) + sbHexList.get(num);
                     flag = flag.toUpperCase();
-                    if (flag.equals("FF 47 40 ")) { // ts文件16进制关键标志
-                        // System.out.println((num + 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
-                        return num + 1;
+                    if (flag.equals(TS_FLAG)) { // ts文件16进制关键标志
+                        System.out.println((num - TS_FLAG.length()/3) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        return num - TS_FLAG.length()/3;
                     }
                 }
                 num++;
