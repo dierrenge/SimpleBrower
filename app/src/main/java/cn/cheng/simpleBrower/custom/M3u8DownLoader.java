@@ -588,6 +588,103 @@ public class M3u8DownLoader {
         });
     }
 
+    private void getThread1(String urls, int i) {
+        int count = 1;
+        HttpURLConnection httpURLConnection = null;
+        //xy为未解密的ts片段，如果存在，则删除
+        File file2 = new File(supDir + "/m3u8/" + fileName + "/" + i + ".xy");
+        if (file2.exists())
+            file2.delete();
+        String fName = supDir + "/m3u8/" + fileName + "/" + i + ".xyz";
+        OutputStream outputStream = null;
+        InputStream inputStream1 = null;
+        FileOutputStream outputStream1 = null;
+        //重试次数判断
+        while (count <= retryCount) {
+            try {
+                //模拟http请求获取ts片段文件
+                URL url = new URL(urls);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+                httpURLConnection.setUseCaches(false);
+                httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+                httpURLConnection.setDoInput(true);
+                InputStream inputStream = httpURLConnection.getInputStream();
+                try {
+                    outputStream = new FileOutputStream(file2);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                int len;
+                byte[] bytes = new byte[1024 * 4];
+                //将未解密的ts片段写入文件
+                while ((len = inputStream.read(bytes)) != -1) {
+                    outputStream.write(bytes, 0, len);
+                    downloadBytes = downloadBytes.add(new BigDecimal(len));
+                }
+                outputStream.flush();
+                inputStream.close();
+                inputStream1 = new FileInputStream(file2);
+                byte[] bytes1 = new byte[inputStream1.available()];
+                inputStream1.read(bytes1);
+                File file = new File(fName);
+                outputStream1 = new FileOutputStream(file);
+                //开始解密ts片段
+                byte[] decrypt = decrypt(bytes1, key, method);
+                outputStream1.write(decrypt);
+
+                // 破解伪装的非ts文件 向后读取获取真正的ts视频文件
+                if (!urls.endsWith(".ts")) {
+                    byte[] b = new byte[4096];
+                    int l;
+                    try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(supDir + "/m3u8/" + fileName + "/" + i + ".xyz2"));
+                         RandomAccessFile raFile = new RandomAccessFile(file, "rw");) {
+                        raFile.seek(getTsNum(file));
+                        while ((l = raFile.read(b)) != -1) {
+                            bos.write(b, 0, l);
+                        }
+                        file.delete();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                file2.delete();
+                break;
+            } catch (Exception e) {
+                try {
+                    new File(fName).createNewFile();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                System.out.println("第" + count + "获取链接重试！\t" + urls);
+                count++;
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (inputStream1 != null)
+                        inputStream1.close();
+                    if (outputStream1 != null)
+                        outputStream1.close();
+                    if (outputStream != null)
+                        outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (httpURLConnection != null) {
+                    httpURLConnection.disconnect();
+                }
+            }
+        }
+        if (count > retryCount) {
+            //自定义异常
+            System.out.println("----------连接超时！-------");
+            return;
+        }
+        finishedCount++;
+        // System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
+    }
+
     /**
      * 合并下载好的ts片段
      */
@@ -637,52 +734,11 @@ public class M3u8DownLoader {
                 // 转换16进制字符
                 sbHexList.add(String.format("%02X ", value));
                 if (num >= 1) {
-                    String flag = sbHexList.get(num-1) + sbHexList.get(num);
+                    String flag = sbHexList.get(num - 1) + sbHexList.get(num);
                     flag = flag.toUpperCase();
                     if (flag.equals(TS_FLAG)) { // ts文件16进制关键标志
-                        System.out.println((num - TS_FLAG.length()/3) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
-                        return num - TS_FLAG.length()/3;
-                    }
-                }
-                num++;
-                // 兜底 防止一直循环
-                if (num >= 2000) {
-                    break;
-                }
-            }
-            is.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return 0;
-    }
-
-    private int getTsNum(InputStream is) {
-        if (num > 0) {
-            return num;
-        }
-        int value = 0;
-        List<String> sbHexList = new ArrayList<>();
-        try {
-            while ((value = is.read()) != -1) {
-                // 转换16进制字符
-                sbHexList.add(String.format("%02X ", value));
-                if (num >= 2) {
-                    String flag = sbHexList.get(num-2) + sbHexList.get(num-1) + sbHexList.get(num);
-                    flag = flag.toUpperCase();
-                    if (flag.equals("FF 47 40 ")) { // ts文件16进制关键标志
-                        // System.out.println((num + 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
-                        return num + 1;
+                        // System.out.println((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        return num - 1;
                     }
                 }
                 num++;
@@ -816,7 +872,11 @@ public class M3u8DownLoader {
         // 执行多线程下载
         for (String s : tsSet) {
             i++;
-            fixedThreadPool.execute(getThread0(s, i));
+            if (i == 1) {
+                getThread1(s, i);
+            } else {
+                fixedThreadPool.execute(getThread0(s, i));
+            }
         }
         // 关闭线程池
         fixedThreadPool.shutdown();

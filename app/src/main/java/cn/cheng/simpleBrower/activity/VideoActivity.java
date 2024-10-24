@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.view.View;
 
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
@@ -20,6 +22,7 @@ import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,13 +57,13 @@ public class VideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             // 隐藏状态栏和导航栏
-        /*View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
-        ActionBar actionBar = getActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }*/
+            /*View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+            ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                actionBar.hide();
+            }*/
             SysWindowUi.hideStatusNavigationBar(this, true);
 
             setContentView(R.layout.activity_video);
@@ -85,11 +88,13 @@ public class VideoActivity extends AppCompatActivity {
             // 获取影音列表
             List<String> formats = AssetsReader.getList("audioVideo.txt");
             List<SwitchVideoModel> videoList = new ArrayList<>();
-            if (name.contains(".")) {
-                String format = name.substring(name.lastIndexOf("."));
-                if (!formats.contains(format)) {
-                    formats.add(format);
-                }
+            if (name.contains(".") && formats.contains(name.substring(name.lastIndexOf(".")))) {
+                // 测试用2
+                /*if (name.contains(".m3u8")) {
+                    new Handler().post(() -> {
+                        CommonUtils.setTsNumLog(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower/m3u8/" + name.replace(".m3u8", "") + "/1.xyz2"));
+                    });
+                }*/
                 List<String> videoUrls = new ArrayList<>();
                 CommonUtils.fileWalk(videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1), formats, videoUrls, 1);
                 for (String url : videoUrls) {
@@ -97,6 +102,12 @@ public class VideoActivity extends AppCompatActivity {
                     videoList.add(switchVideoModel);
                 }
             } else { // 未知格式文件
+                // 测试用1
+                if (name.contains(".xyz")) {
+                    new Handler().post(() -> {
+                        CommonUtils.setTsNumLog(new File(videoUrl));
+                    });
+                }
                 SwitchVideoModel switchVideoModel = new SwitchVideoModel(videoUrl.substring(videoUrl.lastIndexOf("/") + 1), videoUrl);
                 videoList.add(switchVideoModel);
             }

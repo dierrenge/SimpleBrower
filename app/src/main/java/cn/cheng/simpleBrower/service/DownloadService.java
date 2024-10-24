@@ -25,7 +25,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
+import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
  * 下载Service （目前仅用于下载m3u8）
@@ -56,7 +59,7 @@ public class DownloadService extends Service {
     // 通知提示视图
     private RemoteViews views;
     // 通知id 每次下载通知要不一样
-    private int notificationId = 1234;
+    private int notificationId = 0;
     // 频道id 每次下载通知要不一样
     private String CHANNEL_ID = "";
 
@@ -105,17 +108,18 @@ public class DownloadService extends Service {
                         }
                     }
                 }
-                notificationId ++;
             }
             nm.createNotificationChannel(channel);
         }
+
+        notificationId = CommonUtils.randomNum();
 
         // 创建一个Notification对象
         NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
         // 设置打开该通知，该通知自动消失
         nBuilder.setAutoCancel(false);
         // 设置通知的图标
-        nBuilder.setSmallIcon(R.drawable.btn_like);
+        nBuilder.setSmallIcon(R.mipmap.app_logo);
         // 设置通知内容的标题
         // nBuilder.setContentTitle("下载中");
         // 设置通知内容
@@ -156,6 +160,8 @@ public class DownloadService extends Service {
         //设置任务栏中下载进程显示的views
         views = new RemoteViews(getPackageName(), R.layout.notification_download);
         notification.contentView = views;
+        //标题
+        views.setTextViewText(R.id.task_name, title);
         //将下载任务添加到任务栏中
         nm.notify(notificationId, notification);
 
@@ -196,8 +202,8 @@ public class DownloadService extends Service {
             //开始下载
             m3u8Download.start(myHandler);
         }
-        Message message2 = myHandler.obtainMessage(0, new String[]{CHANNEL_ID + "-开始下载", ""});
-        myHandler.sendMessage(message2);
+        // Message message2 = myHandler.obtainMessage(0, new String[]{CHANNEL_ID + "-开始下载", ""});
+        // myHandler.sendMessage(message2);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -222,6 +228,7 @@ public class DownloadService extends Service {
                 switch (msg.what) {
                     case 0:
                         MyToast.getInstance(context, arr[0]).show();
+                        break;
                     case 1:
                         break;
                     case 2:
@@ -235,8 +242,10 @@ public class DownloadService extends Service {
                     case 3:
                         // 获取记录的删除项
                         List<Integer> nums = MyApplication.getNums();
-                        if (nums.contains(Integer.parseInt(arr[1]))) {
-                            pools.get(Integer.parseInt(arr[1])).shutdownNow();
+                        int n = Integer.parseInt(arr[1]);
+                        if (nums.contains(n)) {
+                            pools.get(n).shutdownNow();
+                            MyApplication.removeNum(n);
                             return;
                         }
                         String str = arr[0];

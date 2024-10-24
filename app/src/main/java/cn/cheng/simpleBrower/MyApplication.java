@@ -6,6 +6,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class MyApplication extends Application {
 
     private static Activity activity;
 
-    private static List<Integer> nums = new ArrayList<>();
+    private static List<Integer> nums = new LinkedList<>();
 
     // 存放 当前网页 路径
     private static List<String> urls = new ArrayList<>();
@@ -48,6 +49,10 @@ public class MyApplication extends Application {
 
     public static void setNum(int num) {
         nums.add(num);
+    }
+
+    public static void removeNum(int num) {
+        nums.remove(num);
     }
 
     public static List<Integer> getNums() {

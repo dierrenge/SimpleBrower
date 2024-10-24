@@ -935,4 +935,60 @@ public class CommonUtils {
     public static String SysTime() {
        return new SimpleDateFormat("HH:mm").format(new Date());
     }
+
+    public static int setTsNumLog(File file) {
+        int num = 0;
+        String TS_FLAG = "47 40 ";
+        int value = 0;
+        List<String> sbHexList = new ArrayList<>();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            while ((value = is.read()) != -1) {
+                // 转换16进制字符
+                // System.out.println(String.format("%02X ", value) + "============" + num);
+                saveLog(String.format("%02X ", value) + "============" + num);
+                sbHexList.add(String.format("%02X ", value));
+                if (num >= 1) {
+                    String flag = sbHexList.get(num - 1) + sbHexList.get(num);
+                    flag = flag.toUpperCase();
+                    if (flag.equals(TS_FLAG)) { // ts文件16进制关键标志
+                        // System.out.println((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        saveLog((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        return num - 1;
+                    }
+                }
+                num++;
+                // 兜底 防止一直循环
+                if (num >= 1600) {
+                    break;
+                }
+            }
+            is.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return 0;
+    }
+
+    public static int randomNum() {
+        int num = 0;
+        try {
+            String timeStr = new SimpleDateFormat("MMddHHmmss").format(new Date());
+            num = Integer.parseInt(timeStr);
+        } catch (Exception e) {
+            saveLog("randomNum:" + e.getMessage());
+        }
+        return num;
+    }
 }
