@@ -160,13 +160,11 @@ public class DownloadService extends Service {
         //设置任务栏中下载进程显示的views
         views = new RemoteViews(getPackageName(), R.layout.notification_download);
         notification.contentView = views;
-        //标题
-        views.setTextViewText(R.id.task_name, title);
         //将下载任务添加到任务栏中
         nm.notify(notificationId, notification);
 
         //初始化下载任务内容views
-        String[] arr = new String[]{"0", notificationId+""};
+        String[] arr = new String[]{"0", notificationId+"", title};
         Message message = myHandler.obtainMessage(3, arr);
         myHandler.sendMessage(message);
 
@@ -224,7 +222,7 @@ public class DownloadService extends Service {
                 return;
             }
             String[] arr = (String[]) msg.obj;
-            if (arr.length == 2) {
+            if (arr.length >= 2) {
                 switch (msg.what) {
                     case 0:
                         MyToast.getInstance(context, arr[0]).show();
@@ -254,6 +252,9 @@ public class DownloadService extends Service {
                             str = "已下载" + str + "%";
                         }
                         //更新状态栏上的下载进度信息
+                        if (arr.length >= 3) {
+                            views.setTextViewText(R.id.task_name, arr[2]);
+                        }
                         views.setTextViewText(R.id.tvProcess, str);
                         views.setProgressBar(R.id.pbDownload, 100, download_precent, false);
                         notification.contentView = views;

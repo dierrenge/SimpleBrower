@@ -946,14 +946,14 @@ public class CommonUtils {
             is = new FileInputStream(file);
             while ((value = is.read()) != -1) {
                 // 转换16进制字符
-                // System.out.println(String.format("%02X ", value) + "============" + num);
+                System.out.println(String.format("%02X ", value) + "============" + num);
                 saveLog(String.format("%02X ", value) + "============" + num);
                 sbHexList.add(String.format("%02X ", value));
                 if (num >= 1) {
                     String flag = sbHexList.get(num - 1) + sbHexList.get(num);
                     flag = flag.toUpperCase();
                     if (flag.equals(TS_FLAG)) { // ts文件16进制关键标志
-                        // System.out.println((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
+                        System.out.println((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
                         saveLog((num - 1) + "----------获取伪png这种ts文件实际字节开始下标--------" + flag);
                         return num - 1;
                     }
