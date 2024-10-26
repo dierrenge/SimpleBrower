@@ -25,6 +25,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +49,8 @@ import cn.cheng.simpleBrower.util.CommonUtils;
  */
 public class DownloadService extends Service {
 
+    // 文件总目录
+    String supDir = "";
     // 通知管理器
     private NotificationManager nm;
     // 消息通知
@@ -64,6 +67,8 @@ public class DownloadService extends Service {
     private String CHANNEL_ID = "";
 
     private Map<Integer, ExecutorService> pools = new HashMap<>();
+
+    private Map<Integer, Notification> notificationMap = new HashMap<>();
 
     public DownloadService() {
     }
@@ -89,8 +94,11 @@ public class DownloadService extends Service {
         String title = intent.getStringExtra("title");
         if (title == null || "".equals(title)) {
             title = System.currentTimeMillis() + "";
-
         }
+        if (title.contains("/")) {
+            title = title.substring(title.lastIndexOf("/") + 1);
+        }
+        supDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower";
         CHANNEL_ID = title;
 
         // 高版本通知Notification 必须先定义NotificationChannel
@@ -108,6 +116,12 @@ public class DownloadService extends Service {
                         }
                     }
                 }
+            }
+            File file = new File(supDir + "/" + title + ".m3u8");
+            if (file.exists()) {
+                Message message = myHandler.obtainMessage(0, new String[]{"该视频已在影音列表中", ""});
+                myHandler.sendMessage(message);
+                return super.onStartCommand(intent, flags, startId);
             }
             nm.createNotificationChannel(channel);
         }
@@ -147,21 +161,15 @@ public class DownloadService extends Service {
         Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
         intentCancel.setAction("notification_cancelled");
         intentCancel.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
-        PendingIntent pendingIntentCancel;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            pendingIntentCancel = PendingIntent.getBroadcast(this, 0, intentCancel, PendingIntent.FLAG_IMMUTABLE);
-        } else {
-            pendingIntentCancel = PendingIntent.getBroadcast(this, 0, intentCancel, PendingIntent.FLAG_ONE_SHOT);
-        }
+        // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+        int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(this, notificationId, intentCancel, flag);
         nBuilder.setDeleteIntent(pendingIntentCancel);
 
         // 创建通知
         notification = nBuilder.build();
-        //设置任务栏中下载进程显示的views
-        views = new RemoteViews(getPackageName(), R.layout.notification_download);
-        notification.contentView = views;
-        //将下载任务添加到任务栏中
-        nm.notify(notificationId, notification);
+        // 将通知id与通知 以键值对方式存下来
+        notificationMap.put(notificationId, notification);
 
         //初始化下载任务内容views
         String[] arr = new String[]{"0", notificationId+"", title};
@@ -176,14 +184,10 @@ public class DownloadService extends Service {
             if (dirName == null || "".equals(dirName)) {
                 dirName = System.currentTimeMillis() + "";
             }
-            if (title.contains("/")) {
-                title = title.substring(title.lastIndexOf("/") + 1);
-            }
             // M3u8DownLoader.test(url, myHandler);
             M3u8DownLoader m3u8Download =  new M3u8DownLoader(url, notificationId);
             //设置生成目录
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-            m3u8Download.setDir(dir + "/SimpleBrower/" + dirName, dir + "/SimpleBrower");
+            m3u8Download.setDir(supDir + "/" + dirName, supDir);
             //设置视频名称
             m3u8Download.setFileName(title);
             //设置线程数
@@ -239,26 +243,31 @@ public class DownloadService extends Service {
                         break;
                     case 3:
                         // 获取记录的删除项
-                        List<Integer> nums = MyApplication.getNums();
                         int n = Integer.parseInt(arr[1]);
+                        List<Integer> nums = MyApplication.getNums();
                         if (nums.contains(n)) {
                             pools.get(n).shutdownNow();
-                            MyApplication.removeNum(n);
+                            File file = new File(supDir + "/" + arr[2] + ".m3u8");
+                            if (file.exists()) {
+                                file.delete();
+                            }
                             return;
                         }
+                        // 获取进度信息
                         String str = arr[0];
                         if (str.matches("^(([1-9]\\d*)(\\.\\d+)?)$|^((0)(\\.\\d+)?)$")) { // 判断数字
                             download_precent = (int) Float.parseFloat(str);
                             str = "已下载" + str + "%";
                         }
-                        //更新状态栏上的下载进度信息
-                        if (arr.length >= 3) {
-                            views.setTextViewText(R.id.task_name, arr[2]);
-                        }
+                        // 根据 notificationId 获取 notification
+                        Notification notificationX = notificationMap.get(n);
+                        // 添加或更新状态栏上的下载进度等信息
+                        views = new RemoteViews(getPackageName(), R.layout.notification_download);
+                        views.setTextViewText(R.id.task_name, arr[2]);
                         views.setTextViewText(R.id.tvProcess, str);
                         views.setProgressBar(R.id.pbDownload, 100, download_precent, false);
-                        notification.contentView = views;
-                        nm.notify(Integer.parseInt(arr[1]), notification);
+                        notificationX.contentView = views;
+                        nm.notify(n, notificationX);
                         break;
                     case 4:
                         nm.cancel(Integer.parseInt(arr[1]));

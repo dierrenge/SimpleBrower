@@ -32,6 +32,8 @@
                 android:textColor="@color/gray2"
                 android:text="自制浏览器下载任务"
                 android:textSize="14dp"
+                android:ellipsize="end"
+                android:singleLine="true"
                 android:textStyle="bold"/>
             <ProgressBar
                 android:id="@+id/pbDownload"

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import cn.cheng.simpleBrower.MyApplication;
+import cn.cheng.simpleBrower.util.CommonUtils;
 
 // 用于接受下载完成提示的广播接收者
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
@@ -27,8 +28,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         }
 
         if (action.equals("notification_cancelled")) {
-            //处理滑动清除和点击删除事件
-
             // 记录的删除项
             MyApplication.setNum(type);
         }

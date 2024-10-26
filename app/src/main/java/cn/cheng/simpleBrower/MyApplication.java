@@ -48,7 +48,9 @@ public class MyApplication extends Application {
     }
 
     public static void setNum(int num) {
-        nums.add(num);
+        if (!nums.contains(num)) {
+            nums.add(num);
+        }
     }
 
     public static void removeNum(int num) {

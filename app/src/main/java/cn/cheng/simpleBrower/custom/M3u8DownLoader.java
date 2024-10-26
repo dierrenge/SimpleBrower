@@ -46,6 +46,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
@@ -404,6 +405,10 @@ public class M3u8DownLoader {
      */
     private Thread getThread(String urls, int i) {
         return new Thread(() -> {
+            // 标记为关闭的线程不再执行了
+            if (closed()) {
+                return;
+            }
             int count = 1;
             HttpURLConnection httpURLConnection = null;
             //xy为未解密的ts片段，如果存在，则删除
@@ -415,6 +420,10 @@ public class M3u8DownLoader {
             FileOutputStream outputStream1 = null;
             //重试次数判断
             while (count <= retryCount) {
+                // 标记为关闭的线程不再执行了
+                if (closed()) {
+                    return;
+                }
                 try {
                     //模拟http请求获取ts片段文件
                     URL url = new URL(urls);
@@ -489,6 +498,10 @@ public class M3u8DownLoader {
      */
     private Thread getThread0(String urls, int i) {
         return new Thread(() -> {
+            // 标记为关闭的线程不再执行了
+            if (closed()) {
+                return;
+            }
             int count = 1;
             HttpURLConnection httpURLConnection = null;
             //xy为未解密的ts片段，如果存在，则删除
@@ -501,6 +514,10 @@ public class M3u8DownLoader {
             FileOutputStream outputStream1 = null;
             //重试次数判断
             while (count <= retryCount) {
+                // 标记为关闭的线程不再执行了
+                if (closed()) {
+                    return;
+                }
                 try {
                     //模拟http请求获取ts片段文件
                     URL url = new URL(urls);
@@ -686,6 +703,10 @@ public class M3u8DownLoader {
             file1.mkdirs();
         // 执行多线程下载
         for (String s : tsSet) {
+            // 标记为关闭的线程不再执行了
+            if (closed()) {
+                return;
+            }
             i++;
             fixedThreadPool.execute(getThread(s, i));
         }
@@ -700,12 +721,16 @@ public class M3u8DownLoader {
                 int consume = 0;
                 //轮询是否下载成功
                 while (!fixedThreadPool.isTerminated()) {
+                    // 标记为关闭的线程不再执行了
+                    if (closed()) {
+                        return;
+                    }
                     try {
                         consume++;
                         BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
                         if (tsSet.size() != 0) {
-                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+""};
+                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                             Message msg = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg);
                         }
@@ -725,7 +750,7 @@ public class M3u8DownLoader {
                 } else {
                     str = "部分下载完成，正在合并文件！共" + str + "，实际" + tsSet.size() + "个ts文件";
                 }
-                String[] arr = new String[]{str, id+""};
+                String[] arr = new String[]{str, id+"", fileName};
                 Message msg0 = handler.obtainMessage(3, arr);
                 handler.sendMessage(msg0);
                 // System.out.println(str /*+ StringUtils.convertToDownloadSpeed(downloadBytes, 3)*/);
@@ -777,6 +802,10 @@ public class M3u8DownLoader {
             file1.mkdirs();
         // 执行多线程下载
         for (String s : tsSet) {
+            // 标记为关闭的线程不再执行了
+            if (closed()) {
+                return;
+            }
             i++;
             fixedThreadPool.execute(getThread0(s, i));
         }
@@ -789,11 +818,15 @@ public class M3u8DownLoader {
                 //轮询是否下载成功
                 while (!fixedThreadPool.isTerminated()) {
                     try {
+                        // 标记为关闭的线程不再执行了
+                        if (closed()) {
+                            return;
+                        }
                         consume++;
                         BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
                         if (tsSet.size() != 0) {
-                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+""};
+                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                             Message msg = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg);
                         }
@@ -928,7 +961,7 @@ public class M3u8DownLoader {
                         String index = String.format("%.2f", bytesum * 100F / contentLength);
                         if (len > 0 && System.currentTimeMillis() - time > 1000) {
                             time = System.currentTimeMillis();
-                            String[] arr = new String[]{index, id+""};
+                            String[] arr = new String[]{index, id+"", fileName};
                             Message msg0 = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg0);
                         }
@@ -1038,6 +1071,11 @@ public class M3u8DownLoader {
         public M3u8Exception(String message) {
             super(message);
         }
+    }
+
+    // 判断是否已标记为通知删除项
+    private boolean closed() {
+        return MyApplication.getNums().contains(id);
     }
 
 }
