@@ -689,6 +689,9 @@ public class CommonUtils {
                         return lineTxt;
                     }
                 }
+                if (lineTxt.contains(".") && lineTxt.split("\\.")[0].matches("\\d+")) {
+                    return lineTxt;
+                }
             }
         }
         return "";
