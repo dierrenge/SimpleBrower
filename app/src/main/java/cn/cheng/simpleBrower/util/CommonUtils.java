@@ -684,6 +684,11 @@ public class CommonUtils {
                         return lineTxt;
                     }
                 }
+                if (lineTxt.contains("【") && lineTxt.contains("】")) {
+                    if (lineTxt.split("【")[1].split("】")[0].matches("\\d+")) {
+                        return lineTxt;
+                    }
+                }
             }
         }
         return "";
