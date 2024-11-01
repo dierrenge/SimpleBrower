@@ -188,6 +188,10 @@ public class M3u8DownLoader {
                 httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
                 // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
                 httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
+
+                // 模拟 防盗链设置
+                httpURLConnection.addRequestProperty("Referer", urls);
+
                 String line;
                 inputStream = httpURLConnection.getInputStream();
                 bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
