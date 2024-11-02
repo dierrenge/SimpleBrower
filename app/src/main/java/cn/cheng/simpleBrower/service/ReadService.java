@@ -80,7 +80,7 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
                 public void onDone(String s) {
                     // reader.read();
                     //发送Action为com.example.communication.RECEIVER的广播
-                    intent.putExtra("progress", 0);
+                    intent.putExtra("txtUrl", txtUrl);
                     sendBroadcast(intent);
                 }
 

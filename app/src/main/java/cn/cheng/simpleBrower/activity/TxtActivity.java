@@ -316,7 +316,7 @@ public class TxtActivity extends AppCompatActivity {
             handler = new Handler(new Handler.Callback() {
                 @Override
                 public boolean handleMessage(@NonNull Message message) {
-                    if (message.what == 0) {
+                    if (message.what == 0 && txtUrl.equals((String) message.obj)) {
                         setNextPosition();
                     }
                     return false;
@@ -451,9 +451,10 @@ public class TxtActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            int progress = intent.getIntExtra("progress", 0);
+            String url = intent.getStringExtra("txtUrl");
             Message message = handler.obtainMessage();
             message.what = 0;
+            message.obj = url;
             handler.sendMessage(message);
         }
 
