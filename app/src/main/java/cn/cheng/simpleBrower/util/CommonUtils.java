@@ -174,7 +174,7 @@ public class CommonUtils {
      */
     public static void fileWalk(String dir, List<String> formats, List<String> fileList, int maxDepth) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            try (Stream<Path> paths = Files.walk(Paths.get(dir), maxDepth)) { // 递归两层目录
+            try (Stream<Path> paths = Files.walk(Paths.get(dir), maxDepth)) { // 递归指定层数目录
                 paths.map(path -> path.toString()).filter(path -> {
                     if (path.contains("/") && !path.endsWith("/")) {
                         String name = path.substring(path.lastIndexOf("/") + 1);
@@ -200,19 +200,64 @@ public class CommonUtils {
         Collections.sort(fileList, new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
-                return o1.length() != o2.length() ? o1.length() - o2.length() : (int) (getNum(o1) - getNum(o2));
+                // 获取字符串包含的数字 并 获取去除数字后的字符串
+                List<String> nums1 = getNums(o1);
+                String o1X = o1;
+                for (String s : nums1) {
+                    o1X = o1X.replace(s, "");
+                }
+                List<String> nums2 = getNums(o2);
+                String o2X = o2;
+                for (String s : nums2) {
+                    o2X = o2X.replace(s, "");
+                }
+                // 比较去除数字后的字符串长度
+                if (o1X.length() == o2X.length()) {
+                    // 去除数字后的字符串长度 相同时
+                    if (nums1.size() == nums2.size() && nums1.size() == 0) {
+                        return 0;
+                    } else {
+                        if (nums1.size() == 0 || nums2.size() == 0) {
+                            return nums1.size() - nums2.size();
+                        } else {
+                            for (int i = 0; i < nums1.size(); i++) {
+                                if (nums2.size() > i) {
+                                    String numStr1 =  nums1.get(i);
+                                    String numStr2 =  nums2.get(i);
+                                    if (!numStr1.equals(numStr2)) {
+                                        double num1 = 0;
+                                        double num2 = 0;
+                                        if (!numStr1.matches("(([1-9]\\d*)(\\.\\d+)?)|((0)(\\.\\d+)?)")) {
+                                            numStr1 = getIntegerByNumberStr(numStr1) + "";
+                                        }
+                                        if (!numStr2.matches("(([1-9]\\d*)(\\.\\d+)?)|((0)(\\.\\d+)?)")) {
+                                            numStr2 = getIntegerByNumberStr(numStr2) + "";
+                                        }
+                                        num1 = Double.parseDouble(numStr1);
+                                        num2 = Double.parseDouble(numStr2);
+                                        return (int) Math.ceil(num1 - num2);
+                                    }
+                                }
+                            }
+                            return 0;
+                        }
+                    }
+                } else {
+                    // 去除数字后的字符串长度 不同时
+                    return o1X.length() - o2X.length();
+                }
             }
         });
     }
 
     /**
-     * 获取字符串中的数字
+     * 获取字符串中首次出现的阿拉伯数字
      *
      * @param str
      * @return
      */
-    public static double getNum(String str) {
-        double ret = 999999;
+    public static String getNumStr(String str) {
+        String ret = "";
         if (str != null) {
             if (str.contains("/")) {
                 str = str.substring(str.lastIndexOf("/"));
@@ -220,10 +265,182 @@ public class CommonUtils {
             Pattern pattern = Pattern.compile("(([1-9]\\d*)(\\.\\d+)?)|((0)(\\.\\d+)?)");
             Matcher matcher = pattern.matcher(str);
             if (matcher.find()) {
-                ret = Double.parseDouble(matcher.group());
+                ret = matcher.group();
             }
         }
         return ret;
+    }
+
+    /**
+     * 获取字符串中首次出现的中文数字
+     *
+     * @param str
+     * @return
+     */
+    public static String getZWNumStr(String str) {
+        String ret = "";
+        if (str != null) {
+            if (str.contains("/")) {
+                str = str.substring(str.lastIndexOf("/"));
+            }
+            Pattern pattern = Pattern.compile("[一二三四五六七八九十百千万亿]+");
+            Matcher matcher = pattern.matcher(str);
+            if (matcher.find()) {
+                ret = matcher.group();
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 获取字符串中的数字集合
+     *
+     * @param str
+     * @return
+     */
+    public static List<String> getNums(String str) {
+        List<String> nums = new ArrayList<>();
+        String num = "no";
+        String strX = str;
+        while (!"".equals(num)) {
+            String numN = getNumStr(strX);
+            String numZ = getZWNumStr(strX);
+            if (!"".equals(numN) && "".equals(numZ)) {
+                nums.add(numN);
+            }
+            if ("".equals(numN) && !"".equals(numZ)) {
+                nums.add(numZ);
+            }
+            if (!"".equals(numN) && !"".equals(numZ)) {
+                if (strX.indexOf(numN) < strX.indexOf(numZ)) {
+                    nums.add(numN);
+                    nums.add(numZ);
+                } else {
+                    nums.add(numZ);
+                    nums.add(numN);
+                }
+            }
+            num = "".equals(numN) ? numZ : numN;
+            if (!"".equals(num)) {
+                strX = strX.replaceFirst(numN, "").replaceFirst(numZ, "");
+            }
+        }
+        return nums;
+    }
+
+    /**
+     * 中文数字转阿拉伯数字 支持到12位
+     *
+     * @param numberStr 中文数字
+     * @return int 数字
+     */
+    public static int getIntegerByNumberStr(String numberStr) {
+
+        // 返回结果
+        int sum = 0;
+
+        // null或空串直接返回
+        if (numberStr == null || ("").equals(numberStr)) {
+            return sum;
+        }
+
+        // 过亿的数字处理
+        if (numberStr.indexOf("亿") > 0) {
+            String currentNumberStr = numberStr.substring(0, numberStr.indexOf("亿"));
+            int currentNumber = testA(currentNumberStr);
+            sum += currentNumber * Math.pow(10, 8);
+            numberStr = numberStr.substring(numberStr.indexOf("亿") + 1);
+        }
+
+        // 过万的数字处理
+        if (numberStr.indexOf("万") > 0) {
+            String currentNumberStr = numberStr.substring(0, numberStr.indexOf("万"));
+            int currentNumber = testA(currentNumberStr);
+            sum += currentNumber * Math.pow(10, 4);
+            numberStr = numberStr.substring(numberStr.indexOf("万") + 1);
+        }
+
+        // 小于万的数字处理
+        if (!("").equals(numberStr)) {
+            int currentNumber = testA(numberStr);
+            sum += currentNumber;
+        }
+
+        return sum;
+    }
+
+    /**
+     * 把亿、万分开每4位一个单元，解析并获取到数据
+     * @param testNumber
+     * @return
+     */
+    public static int testA(String testNumber) {
+        // 返回结果
+        int sum = 0;
+
+        // null或空串直接返回
+        if(testNumber == null || ("").equals(testNumber)){
+            return sum;
+        }
+
+        // 获取到千位数
+        if (testNumber.indexOf("千") > 0) {
+            String currentNumberStr = testNumber.substring(0, testNumber.indexOf("千"));
+            sum += testB(currentNumberStr) * Math.pow(10, 3);
+            testNumber = testNumber.substring(testNumber.indexOf("千") + 1);
+        }
+
+        // 获取到百位数
+        if (testNumber.indexOf("百") > 0) {
+            String currentNumberStr = testNumber.substring(0, testNumber.indexOf("百"));
+            sum += testB(currentNumberStr) * Math.pow(10, 2);
+            testNumber = testNumber.substring(testNumber.indexOf("百") + 1);
+        }
+
+        // 对于特殊情况处理 比如10-19是个数字，十五转化为一十五，然后再进行处理
+        if (testNumber.indexOf("十") == 0) {
+            testNumber = "一" + testNumber;
+        }
+
+        // 获取到十位数
+        if (testNumber.indexOf("十") > 0) {
+            String currentNumberStr = testNumber.substring(0, testNumber.indexOf("十"));
+            sum += testB(currentNumberStr) * Math.pow(10, 1);
+            testNumber = testNumber.substring(testNumber.indexOf("十") + 1);
+        }
+
+        // 获取到个位数
+        if(!("").equals(testNumber)){
+            sum += testB(testNumber.replaceAll("零",""));
+        }
+
+        return sum;
+    }
+    public static int testB(String replaceNumber) {
+        switch (replaceNumber) {
+            case "一":
+                return 1;
+            case "二":
+                return 2;
+            case "三":
+                return 3;
+            case "四":
+                return 4;
+            case "五":
+                return 5;
+            case "六":
+                return 6;
+            case "七":
+                return 7;
+            case "八":
+                return 8;
+            case "九":
+                return 9;
+            case "零":
+                return 0;
+            default:
+                return 0;
+        }
     }
 
     /**
