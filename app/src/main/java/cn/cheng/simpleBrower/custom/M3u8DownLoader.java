@@ -306,25 +306,28 @@ public class M3u8DownLoader {
                         key = split1[1].split("=", 2)[1];
                 }
                 break;
-            } else if (!m3u8ToMp4)  {
-                // 保存m3u8文本行
-                if (!isTsUrl) {
-                    m3u8Lines.add(s);
-                    if (s.contains("#EXTINF")) {
-                        isTsUrl = true;
-                    }
-                } else {
-                    n++;
-                    if (s.endsWith(".ts")) {
-                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
-                    } else {
-                        m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz2");
-                    }
-                    isTsUrl = false;
-                }
             }
         }
         if (!m3u8ToMp4) {
+            for (String s : split) {
+                if (!s.contains("EXT-X-KEY"))  {
+                    // 保存m3u8文本行
+                    if (!isTsUrl) {
+                        m3u8Lines.add(s);
+                        if (s.contains("#EXTINF")) {
+                            isTsUrl = true;
+                        }
+                    } else {
+                        n++;
+                        if (s.endsWith(".ts")) {
+                            m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz");
+                        } else {
+                            m3u8Lines.add(supDir + "/m3u8/" + fileName + "/" + n + ".xyz2");
+                        }
+                        isTsUrl = false;
+                    }
+                }
+            }
             // 开始整理m3u8文本
             new Thread(() -> {
                 File dir = new File(supDir);
