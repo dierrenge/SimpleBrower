@@ -109,6 +109,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
 
+    private boolean hasAudioVideo = true; // 页面中有视频或音频
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -633,18 +635,16 @@ public class BrowserActivity extends AppCompatActivity {
             view.loadUrl(fun);
             super.onPageFinished(view, url);
 
-            webView.evaluateJavascript(
-                    "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();",
-                    new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String html) {
-                            String[] split = html.split("u003C");
-                            for (String s : split) {
-                                // 在这里处理获取到的HTML源码
-                                // System.out.println("<" + s.replace("\\t", "").replace("\\n", "").replace("\\", ""));
-                            }
-                        }
-                    });
+            /*webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String html) {
+                    String[] split = html.split("u003C");
+                    for (String s : split) {
+                        // 在这里处理获取到的HTML源码
+                        System.out.println("<" + s.replace("\\t", "").replace("\\n", "").replace("\\", ""));
+                    }
+                }
+            });*/
         }
 
         // 网址 过滤
@@ -659,37 +659,55 @@ public class BrowserActivity extends AppCompatActivity {
             if (isAd(url, urlOrg)) {
                 return AdBlocker.createEmptyResource();
             }
-
             view.post(() -> {
-                // 判断视频请求
-                if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                        url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
-                    if (!url.contains(".m3u8")) {
-                        Message msg = Message.obtain();
-                        String[] arr = new String[]{view.getTitle(), urlOrg};
-                        msg.obj = arr;
-                        msg.what = 2;
-                        handler.sendMessage(msg);
-                    } else {
-                        if (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?")) { // 链接中只包含一个m3u8
-                            // System.out.println("==============---=======" + view.getTitle() + "\n" + urlOrg);
-                            Message msg = Message.obtain();
-                            String[] arr = new String[]{view.getTitle(), urlOrg};
-                            msg.obj = arr;
-                            msg.what = 2;
-                            handler.sendMessage(msg);
+                webView.evaluateJavascript("(function() { return document.getElementsByTagName('video').length || document.getElementsByTagName('audio').length; })();", new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        int num = 0;
+                        try {
+                            num = Integer.parseInt(value);
+                        } catch (Exception e) {}
+                        if (num > 0) {
+                            // 页面中有视频或音频
+                            hasAudioVideo = true;
+                        } else {
+                            // 页面中没有视频或音频
+                            hasAudioVideo = false;
+                        }
+                        // 该页面有影音才执行
+                        if (hasAudioVideo) {
+                            // 判断视频请求
+                            if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
+                                    url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                                if (!url.contains(".m3u8")) {
+                                    Message msg = Message.obtain();
+                                    String[] arr = new String[]{view.getTitle(), urlOrg};
+                                    msg.obj = arr;
+                                    msg.what = 2;
+                                    handler.sendMessage(msg);
+                                } else {
+                                    if (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?")) { // 链接中只包含一个m3u8
+                                        // System.out.println("==============---=======" + view.getTitle() + "\n" + urlOrg);
+                                        Message msg = Message.obtain();
+                                        String[] arr = new String[]{view.getTitle(), urlOrg};
+                                        msg.obj = arr;
+                                        msg.what = 2;
+                                        handler.sendMessage(msg);
+                                    }
+                                }
+                            }
+                            // 判断音频请求
+                            if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                                    || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
+                                Message msg = Message.obtain();
+                                String[] arr = new String[]{view.getTitle(), urlOrg};
+                                msg.obj = arr;
+                                msg.what = 3;
+                                handler.sendMessage(msg);
+                            }
                         }
                     }
-                }
-                // 判断音频请求
-                if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
-                        || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                    Message msg = Message.obtain();
-                    String[] arr = new String[]{view.getTitle(), urlOrg};
-                    msg.obj = arr;
-                    msg.what = 3;
-                    handler.sendMessage(msg);
-                }
+                });
             });
             // super.shouldInterceptRequest(view, request).getData();
             return super.shouldInterceptRequest(view, request);
@@ -706,7 +724,7 @@ public class BrowserActivity extends AppCompatActivity {
                     MyApplication.setUrl(cUrl); // 记录为历史网址
 
                     // 防止统一网页重复加载
-                    List<String> historyUrls = MyApplication.getUrls();
+                    /*List<String> historyUrls = MyApplication.getUrls();
                     int size = historyUrls.size();
                     if (size >= 3) {
                         String url1 = historyUrls.get(size - 1).replace("https", "").replace("http", "");
@@ -723,7 +741,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 return true;
                             }
                         }
-                    }
+                    }*/
 
                     // 广告过滤
                     if (isAd(cUrl)) {
