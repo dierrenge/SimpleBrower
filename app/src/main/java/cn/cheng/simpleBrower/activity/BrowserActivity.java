@@ -263,20 +263,25 @@ public class BrowserActivity extends AppCompatActivity {
                 Message msg = Message.obtain();
                 String name = CommonUtils.getUrlName(url);
                 new Thread(() -> {
-                    String title = name;
-                    try {
-                        title = URLDecoder.decode(title, "utf-8");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    title = title.length() > 22 ? title.substring(0, 19) + "..." + title.substring(title.length() - 2) : title;
-                    title = M3u8DownLoader.getUrlContentFileSize(url, title);
+                    // 用到的权限
+                    if (CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
+                        String title = name;
+                        try {
+                            title = URLDecoder.decode(title, "utf-8");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        title = title.length() > 22 ? title.substring(0, 19) + "..." + title.substring(title.length() - 2) : title;
+                        title = M3u8DownLoader.getUrlContentFileSize(url, title);
 
-                    if (!title.contains(".html;")) {
-                        String[] arr = new String[]{name, url, title};
-                        msg.obj = arr;
-                        msg.what = 4;
-                        handler.sendMessage(msg);
+                        if (!title.contains(".html;")) {
+                            String[] arr = new String[]{name, url, title};
+                            msg.obj = arr;
+                            msg.what = 4;
+                            handler.sendMessage(msg);
+                        }
+                    } else {
+                        CommonUtils.requestStoragePermissions(BrowserActivity.this);
                     }
                 }).start();
             }
@@ -294,6 +299,11 @@ public class BrowserActivity extends AppCompatActivity {
         // flagBtn按钮
         flagBtn = findViewById(R.id.flagBtn);
         flagBtn.setOnClickListener(view -> {
+            // 会用到的权限
+            if (!flagVideo && !CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
+                CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                return;
+            }
             flagVideo = !flagVideo;
             String msg = "影音下载监测已开启";
             if (!flagVideo) {
@@ -426,51 +436,46 @@ public class BrowserActivity extends AppCompatActivity {
             @Override
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what != 1) {
-                    // 页面跳转后会用到的权限
-                    if (CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
-                        String type = "";
-                        if (message.what == 2) {
-                            type = "视频：";
-                        }
-                        if (message.what == 3) {
-                            type = "音频：";
-                        }
-                        String[] arr = (String[]) message.obj;
-                        String title = arr[0];
-                        String url = arr[1];
+                    String type = "";
+                    if (message.what == 2) {
+                        type = "视频：";
+                    }
+                    if (message.what == 3) {
+                        type = "音频：";
+                    }
+                    String[] arr = (String[]) message.obj;
+                    String title = arr[0];
+                    String url = arr[1];
 
-                        String oldText = urlText.getText().toString();
-                        urlText.setText(oldText + "\n" + type + url);
+                    String oldText = urlText.getText().toString();
+                    urlText.setText(oldText + "\n" + type + url);
 
-                        // 弹框选择
-                        if (flag && (feetDialog == null || !feetDialog.isShowing())) {
-                            if (message.what == 4 && !url.contains(".m3u8")) {
-                                String title2 = arr[2];
-                                feetDialog = new FeetDialog(BrowserActivity.this, "下载", title2, "下载", "取消");
-                            } else {
-                                feetDialog = new FeetDialog(BrowserActivity.this);
-                            }
-                            if (message.what == 4 || flagVideo) {
-                                feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
-                                    @Override
-                                    public void close() {
-                                        flag = true;
-                                        feetDialog.dismiss();
-                                    }
-
-                                    @Override
-                                    public void ok() {
-                                        flag = true;
-                                        download(url, title);
-                                        feetDialog.dismiss();
-                                    }
-                                });
-                                flag = false;
-                                feetDialog.show();
-                            }
+                    // 弹框选择
+                    if (flag && (feetDialog == null || !feetDialog.isShowing())) {
+                        if (message.what == 4 && !url.contains(".m3u8")) {
+                            String title2 = arr[2];
+                            feetDialog = new FeetDialog(BrowserActivity.this, "下载", title2, "下载", "取消");
+                        } else {
+                            feetDialog = new FeetDialog(BrowserActivity.this);
                         }
-                    } else {
-                        CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                        if (message.what == 4 || flagVideo) {
+                            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                @Override
+                                public void close() {
+                                    flag = true;
+                                    feetDialog.dismiss();
+                                }
+
+                                @Override
+                                public void ok() {
+                                    flag = true;
+                                    download(url, title);
+                                    feetDialog.dismiss();
+                                }
+                            });
+                            flag = false;
+                            feetDialog.show();
+                        }
                     }
                 } else {
                     MyToast.getInstance(BrowserActivity.this, message.obj + "").show();
@@ -726,7 +731,7 @@ public class BrowserActivity extends AppCompatActivity {
                     }
 
                     if (!startUrl.equals(cUrl)) { // 重定向时，防止系统记录重定向前的地址
-                        if (cUrl.contains("https://m.baidu.com") && cUrl.contains("title=")) {
+                        /*if (cUrl.contains("https://m.baidu.com") && cUrl.contains("title=")) {
                             String[] split = cUrl.split("title=");
                             String txt = split[1];
                             if (txt.contains("&")) {
@@ -738,7 +743,7 @@ public class BrowserActivity extends AppCompatActivity {
                             if (txt.contains("&")) {
                                 cUrl = "https://www.baidu.com/s?wd=" + txt.split("&")[0];
                             }
-                        }
+                        }*/
                         view.loadUrl(cUrl);
                         rtn = false;
                     } else {

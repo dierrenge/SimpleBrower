@@ -114,6 +114,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 boolean checked = downLoadTip.isChecked();
+                // 会用到的权限
+                if (!checked && !CommonUtils.hasStoragePermissions(MainActivity.this)) {
+                    CommonUtils.requestStoragePermissions(MainActivity.this);
+                    return;
+                }
                 SysBean sysBean = new SysBean();
                 if (checked) {
                     downLoadTip.setChecked(false);
