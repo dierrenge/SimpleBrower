@@ -660,13 +660,16 @@ public class BrowserActivity extends AppCompatActivity {
                 return AdBlocker.createEmptyResource();
             }
             view.post(() -> {
-                webView.evaluateJavascript("(function() { return document.getElementsByTagName('video').length || document.getElementsByTagName('audio').length; })();", new ValueCallback<String>() {
+                webView.evaluateJavascript("(function() { return document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('" + url.substring(url.lastIndexOf("/") + 1) + "') ? 1 : 0) ; })();", new ValueCallback<String>() {
                     @Override
                     public void onReceiveValue(String value) {
                         int num = 0;
                         try {
                             num = Integer.parseInt(value);
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                            CommonUtils.saveLog("判断是否有视频失败:" + e.getMessage());
+                            System.out.println("判断是否有视频失败" + e.getMessage());
+                        }
                         if (num > 0) {
                             // 页面中有视频或音频
                             hasAudioVideo = true;
