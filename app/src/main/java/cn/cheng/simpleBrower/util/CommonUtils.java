@@ -1018,12 +1018,12 @@ public class CommonUtils {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(1200);
-            conn.setReadTimeout(1200);
+            conn.setConnectTimeout(100);
+            conn.setReadTimeout(100);
             conn.connect();
             mimeType = conn.getContentType();
         } catch (Throwable e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         // Long timeEnd = System.currentTimeMillis();
         // System.out.println("耗时：" + (timeEnd - timeStart)/1000F + "秒");

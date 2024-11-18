@@ -612,31 +612,32 @@ public class BrowserActivity extends AppCompatActivity {
             startUrl = url;
             url_box.setText(url);
             currentUrl = url; // 记录当前网址
-            System.out.println("=============================================" + url);
             // System.out.println(MyApplication.getUrls());
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+
             // 去广告
-            String fun="javascript:" +
+            /*String fun="javascript:" +
                     "function hideStyle(){" +
                     //"try { document.getElementById('header').previousSibling.previousSibling.style.display=\"none\"; } catch (error) {}" +
                     "try { document.querySelector('a[href=\"https://WIP2000.com\"]').parentElement.parentElement.parentElement.style.display=\"none\"; } catch (error) {}" +
-                    "try { document.querySelector('.ad').style.display=\"none\"; } catch (error) {}" +
-                    "try { document.querySelector('.ads').style.display=\"none\"; } catch (error) {}" +
-                    "try { document.querySelector('#divOyYSJd').style.display=\"none\"; } catch (error) {}" +
-                    "try { document.querySelector('.g').style.display=\"none\"; } catch (error) {}" +
+                    "try { document.querySelectorAll('.g').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                    "try { document.querySelectorAll('.ad').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                    "try { document.querySelectorAll('.ads').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                    "try { document.querySelectorAll('#divOyYSJd').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
                     "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').nextSibling; dom.remove(); } } catch (error) {}" +
                     "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
                     "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
                     "}" +
                     "hideStyle();";
-            view.loadUrl(fun);
-            super.onPageFinished(view, url);
+            view.loadUrl(fun);*/
 
-            /*webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
+            // 打印网页源码
+            webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
                 @Override
                 public void onReceiveValue(String html) {
                     String[] split = html.split("u003C");
@@ -645,7 +646,7 @@ public class BrowserActivity extends AppCompatActivity {
                         System.out.println("<" + s.replace("\\t", "").replace("\\n", "").replace("\\", ""));
                     }
                 }
-            });*/
+            });
         }
 
         // 网址 过滤
@@ -661,6 +662,25 @@ public class BrowserActivity extends AppCompatActivity {
                 return AdBlocker.createEmptyResource();
             }
             view.post(() -> {
+                // 去广告
+                String fun = "(function() {" +
+                        "try { document.querySelector('a[href=\"https://WIP2000.com\"]').parentElement.parentElement.parentElement.style.display=\"none\"; } catch (error) {}" +
+                        "try { document.querySelectorAll('.g').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                        "try { document.querySelectorAll('.ad').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                        "try { document.querySelectorAll('.ads').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                        "try { document.querySelectorAll('#divOyYSJd').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').nextSibling; dom.remove(); } } catch (error) {}" +
+                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
+                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
+                        // "try { document.querySelectorAll('[style=\"line-height:0px;position:relative!important;padding:0;\"]').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                        "})();";
+                try {
+                    webView.evaluateJavascript(fun, new ValueCallback<String>() {
+                        @Override
+                        public void onReceiveValue(String ret) {}
+                    });
+                } catch (Throwable e) {}
+
                 // 影音文件格式
                 List<String> formats = AssetsReader.getList("audioVideo.txt");
                 for (String format : formats) {
@@ -733,7 +753,6 @@ public class BrowserActivity extends AppCompatActivity {
                 boolean rtn = true;
                 if (cUrl.startsWith("https:") || cUrl.startsWith("http:")) {
                     MyApplication.setUrl(cUrl); // 记录为历史网址
-
                     // 防止统一网页重复加载
                     /*List<String> historyUrls = MyApplication.getUrls();
                     int size = historyUrls.size();
