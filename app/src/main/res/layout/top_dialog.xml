@@ -10,15 +10,14 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:orientation="horizontal"
-        android:paddingTop="10dp">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:orientation="horizontal">
         <Button
             android:id="@+id/catalogBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
             android:background="@drawable/btn_bg1"
             android:textColor="@color/blackGray"
             android:text="目录"/>
@@ -27,7 +26,6 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
             android:background="@drawable/btn_bg1"
             android:textColor="@color/blackGray"
             android:text="朗读"/>
@@ -36,7 +34,6 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
             android:background="@drawable/btn_bg1"
             android:textColor="@color/blackGray"
             android:text="引擎"/>
@@ -46,10 +43,28 @@
             android:layout_width="70dp"
             android:layout_height="40dp"
             android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
             android:background="@drawable/btn_bg1"
             android:textColor="@color/blackGray"
             android:text="省电策略"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:textColor="@color/gray3"
+            android:text="* 双击屏幕亦可朗读/停止"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:textColor="@color/gray3"
+            android:text="* 若省电策略之无限制无效，可尝试清除缓存"/>
     </LinearLayout>
 
 </LinearLayout>

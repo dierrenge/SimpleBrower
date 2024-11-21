@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                     gifTip.setChecked(true);
                     sysBean.setFlagGif(true);
                 }
-                sysBean.setFlagGif(downLoadTip.isChecked());
+                sysBean.setFlagVideo(downLoadTip.isChecked());
                 CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
             }
         });
