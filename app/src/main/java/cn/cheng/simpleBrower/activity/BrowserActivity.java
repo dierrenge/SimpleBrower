@@ -637,7 +637,7 @@ public class BrowserActivity extends AppCompatActivity {
             view.loadUrl(fun);*/
 
             // 打印网页源码
-            webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
+            /*webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
                 @Override
                 public void onReceiveValue(String html) {
                     String[] split = html.split("u003C");
@@ -646,7 +646,7 @@ public class BrowserActivity extends AppCompatActivity {
                         System.out.println("<" + s.replace("\\t", "").replace("\\n", "").replace("\\", ""));
                     }
                 }
-            });
+            });*/
         }
 
         // 网址 过滤
@@ -685,7 +685,7 @@ public class BrowserActivity extends AppCompatActivity {
                 List<String> formats = AssetsReader.getList("audioVideo.txt");
                 for (String format : formats) {
                     if (url.contains(format)) {
-                        webView.evaluateJavascript("(function() { return document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
+                        webView.evaluateJavascript("(function() { return document.getElementsByTagName('iframe').length + document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
                             @Override
                             public void onReceiveValue(String value) {
                                 int num = 0;
