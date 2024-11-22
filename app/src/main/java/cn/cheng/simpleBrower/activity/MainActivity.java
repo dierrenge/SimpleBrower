@@ -24,6 +24,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -43,6 +44,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.custom.SettingDialog;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.service.ReadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
@@ -50,6 +52,7 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class MainActivity extends AppCompatActivity {
 
+    private ImageView settingBtn;
     private RadioButton downLoadTip;
     private RadioButton gifTip;
     private RadioGroup downLoadGroup;
@@ -108,48 +111,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
         // 初始化控件 并绑定事件
-        downLoadGroup = findViewById(R.id.downLoadGroup);
-        downLoadTip = findViewById(R.id.downLoadTip);
-        downLoadTip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean checked = downLoadTip.isChecked();
-                // 会用到的权限
-                if (!checked && !CommonUtils.hasStoragePermissions(MainActivity.this)) {
-                    CommonUtils.requestStoragePermissions(MainActivity.this);
-                    return;
-                }
-                SysBean sysBean = new SysBean();
-                if (checked) {
-                    downLoadTip.setChecked(false);
-                    sysBean.setFlagVideo(false);
-                } else {
-                    downLoadGroup.clearCheck();
-                    downLoadTip.setChecked(true);
-                    sysBean.setFlagVideo(true);
-                }
-                sysBean.setFlagGif(gifTip.isChecked());
-                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
-            }
-        });
-        gifGroup = findViewById(R.id.gifGroup);
-        gifTip = findViewById(R.id.gifTip);
-        gifTip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean checked = gifTip.isChecked();
-                SysBean sysBean = new SysBean();
-                if (checked) {
-                    gifTip.setChecked(false);
-                    sysBean.setFlagGif(false);
-                } else {
-                    gifGroup.clearCheck();
-                    gifTip.setChecked(true);
-                    sysBean.setFlagGif(true);
-                }
-                sysBean.setFlagVideo(downLoadTip.isChecked());
-                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
-            }
+        settingBtn = findViewById(R.id.settingBtn);
+        settingBtn.setOnClickListener(view -> {
+            SettingDialog dialog = new SettingDialog(MainActivity.this);
+            dialog.show();
         });
         if (!isInit) {
             new Handler().post(() -> {
