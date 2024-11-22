@@ -103,11 +103,11 @@ public class VideoActivity extends AppCompatActivity {
                 }
             } else { // 未知格式文件
                 // 测试用1
-                if (name.contains(".xyz")) {
+                /*if (name.contains(".xyz")) {
                     new Handler().post(() -> {
                         CommonUtils.setTsNumLog(new File(videoUrl));
                     });
-                }
+                }*/
                 SwitchVideoModel switchVideoModel = new SwitchVideoModel(videoUrl.substring(videoUrl.lastIndexOf("/") + 1), videoUrl);
                 videoList.add(switchVideoModel);
             }
