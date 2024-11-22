@@ -909,6 +909,9 @@ public class CommonUtils {
                 if (lineTxt.contains(".") && lineTxt.split("\\.")[0].matches("\\d+")) {
                     return lineTxt;
                 }
+                if (lineTxt.startsWith("第") && lineTxt.contains("章") && lineTxt.substring(0, lineTxt.indexOf("章")).replace("第", "").matches("\\d+")) {
+                    return lineTxt;
+                }
             }
         }
         return "";
