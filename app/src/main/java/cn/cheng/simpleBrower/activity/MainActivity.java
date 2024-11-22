@@ -49,14 +49,11 @@ import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.service.ReadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class MainActivity extends AppCompatActivity {
 
     private ImageView settingBtn;
-    private RadioButton downLoadTip;
-    private RadioButton gifTip;
-    private RadioGroup downLoadGroup;
-    private RadioGroup gifGroup;
     private Button jumpBtn;
     private Button txtBtn;
     private Button exitBtn;
@@ -66,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     private ConstraintLayout editLayout;
     private boolean isExit = false; // 退出 标记
     private final static String BAIDU = "https://www.baidu.com";
-    private boolean isInit = false;
     // private final static String BAIDU = "https://www.czys.top/v_play/bXZfMTg0MzQtbm1fMTQ=.html";
     // 测试m3u8视频（伪png这种ts文件的）
     // private final static String BAIDU = "https://yundunm3.czys.art:88/hls/qingyunian/2/01.m3u8";
@@ -76,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 状态栏设置透明
+        SysWindowUi.hideStatusNavigationBar(this, false);
+
         setContentView(R.layout.activity_main);
 
         MyApplication.setActivity(this);
@@ -116,12 +115,6 @@ public class MainActivity extends AppCompatActivity {
             SettingDialog dialog = new SettingDialog(MainActivity.this);
             dialog.show();
         });
-        if (!isInit) {
-            new Handler().post(() -> {
-                setSys();
-                isInit = true;
-            });
-        }
 
         editLayout = this.findViewById(R.id.editLayout);
         editLayout.setOnTouchListener((View view, MotionEvent motionEvent) -> {
@@ -242,37 +235,10 @@ public class MainActivity extends AppCompatActivity {
         long downLoadId = downloadManager.enqueue(request);
     }
 
-    private void setSys() {
-        SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
-        if (sysBean != null) {
-            boolean flagVideo = sysBean.isFlagVideo();
-            boolean flagGif = sysBean.isFlagGif();
-            if (downLoadTip != null && downLoadGroup != null) {
-                if (!flagVideo) {
-                    downLoadTip.setChecked(flagVideo);
-                } else {
-                    downLoadGroup.clearCheck();
-                    downLoadTip.setChecked(true);
-                }
-            }
-            if (gifTip != null && gifGroup != null) {
-                if (!flagGif) {
-                    gifTip.setChecked(flagGif);
-                } else {
-                    gifGroup.clearCheck();
-                    gifTip.setChecked(true);
-                }
-            }
-        }
-    }
-
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
         super.onResume();
-        if (isInit) {
-            setSys();
-        }
         // 有读写权限后只执行一次
         if (CommonUtils.hasStoragePermissions(this) && !CommonUtils.onlySet(this, "onlyLike")) {
             new Handler().post(() -> {

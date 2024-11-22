@@ -90,18 +90,43 @@ public class SettingDialog extends Dialog {
                 CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
             }
         });
+        setSys();
 
         // view窗口显示设置
         Window window = this.getWindow();
-        window.setGravity(Gravity.TOP);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        window.setGravity(Gravity.TOP | Gravity.RIGHT);
+        // window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         WindowManager.LayoutParams params = window.getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.x = 0;
-        params.y = 160;
+        params.x = 70;
+        params.y = 90;
         params.dimAmount = 0.3F;
         window.setAttributes(params);
+    }
+
+    private void setSys() {
+        SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
+        if (sysBean != null) {
+            boolean flagVideo = sysBean.isFlagVideo();
+            boolean flagGif = sysBean.isFlagGif();
+            if (downLoadTip != null && downLoadGroup != null) {
+                if (!flagVideo) {
+                    downLoadTip.setChecked(flagVideo);
+                } else {
+                    downLoadGroup.clearCheck();
+                    downLoadTip.setChecked(true);
+                }
+            }
+            if (gifTip != null && gifGroup != null) {
+                if (!flagGif) {
+                    gifTip.setChecked(flagGif);
+                } else {
+                    gifGroup.clearCheck();
+                    gifTip.setChecked(true);
+                }
+            }
+        }
     }
 
     @Override

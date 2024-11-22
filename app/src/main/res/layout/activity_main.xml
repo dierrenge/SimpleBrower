@@ -18,14 +18,14 @@
 
     <ImageView
         android:id="@+id/settingBtn"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_marginRight="12dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginRight="16dp"
         android:scaleType="centerInside"
         android:src="@drawable/setting"
         app:layout_constraintRight_toRightOf="parent"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteY="24dp" />
+        tools:layout_editor_absoluteY="44dp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/editBox"
