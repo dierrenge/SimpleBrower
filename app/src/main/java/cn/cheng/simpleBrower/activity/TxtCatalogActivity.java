@@ -28,6 +28,7 @@ import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class TxtCatalogActivity extends AppCompatActivity {
 
@@ -47,6 +48,9 @@ public class TxtCatalogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 状态栏设置透明
+        SysWindowUi.hideStatusNavigationBar(this, false);
+
         setContentView(R.layout.activity_txt_catalog);
 
         // 获取上一界面传过来的数据

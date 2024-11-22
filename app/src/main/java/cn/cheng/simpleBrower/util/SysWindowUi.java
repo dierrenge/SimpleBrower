@@ -92,12 +92,17 @@ public class SysWindowUi {
         if (activity == null || style == 0) return;
         Window window = activity.getWindow();
         if (style == NO_STATE__NO_STATE) {
-            int uiFlags = View.SYSTEM_UI_FLAG_VISIBLE; // 状态栏和Activity共存，Activity不全屏显示。也就是应用平常的显示画面
+            int uiFlags = View.SYSTEM_UI_FLAG_VISIBLE // 状态栏和Activity共存，Activity不全屏显示。也就是应用平常的显示画面
+                    | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR; // 状态栏字体颜色设置为黑色这个是Android 6.0才出现的属性   默认是白色
             window.getDecorView().setSystemUiVisibility(uiFlags);
             // 导航栏半透明 关闭
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             // 状态栏半透明 关闭
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            // 需要设置这个 flag 才能调用 setStatusBarColor 来设置状态栏颜色
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            // 将状态栏设置成透明色
+            window.setStatusBarColor(Color.TRANSPARENT);
         } else {
             if (Build.VERSION.SDK_INT < 16) {
                 window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);

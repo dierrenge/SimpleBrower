@@ -42,6 +42,7 @@ import cn.cheng.simpleBrower.custom.ReadView;
 import cn.cheng.simpleBrower.custom.TopDialog;
 import cn.cheng.simpleBrower.service.ReadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class TxtActivity extends AppCompatActivity {
 
@@ -81,6 +82,9 @@ public class TxtActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 状态栏设置透明
+        SysWindowUi.hideStatusNavigationBar(this, false);
+
         setContentView(R.layout.activity_txt);
         txtActivity = this;
         try {

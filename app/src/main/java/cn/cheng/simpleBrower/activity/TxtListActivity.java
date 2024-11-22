@@ -31,6 +31,7 @@ import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class TxtListActivity extends AppCompatActivity {
 
@@ -52,6 +53,9 @@ public class TxtListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 状态栏设置透明
+        SysWindowUi.hideStatusNavigationBar(this, false);
+
         setContentView(R.layout.activity_txt_list);
 
         // 返回
