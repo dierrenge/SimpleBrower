@@ -919,15 +919,15 @@ public class CommonUtils {
 
     // 匹配纯数字
     public static boolean hasNum(String str) {
-        if (str.matches("\\d+")) {
-            return true;
-        }
         boolean ret = false;
         if (str != null) {
+            if (str.matches("\\d+")) {
+                return true;
+            }
             String s = str;
-            String[] nums = new String[]{"一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千", "万", "亿"};
+            String[] nums = new String[]{"十", "百", "千", "一", "二", "三", "四", "五", "六", "七", "八", "九", "万", "亿"};
             for (String num : nums) {
-                s = str.replace(num, "");
+                s = s.replace(num, "");
                 if ("".equals(s.trim())) {
                     return true;
                 }
