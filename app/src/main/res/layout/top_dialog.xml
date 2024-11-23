@@ -1,70 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
-    android:background="@drawable/feet_dialog_bg"
-    android:gravity="center|top"
+    android:layout_width="350dp"
+    android:layout_height="180dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/translucent"
+    android:gravity="center"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="35dp"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/catalogBtn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="30dp"
-            android:background="@drawable/btn_bg1"
-            android:textColor="@color/blackGray"
-            android:text="目录"/>
-        <Button
-            android:id="@+id/readBtn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="30dp"
-            android:background="@drawable/btn_bg1"
-            android:textColor="@color/blackGray"
-            android:text="朗读"/>
-        <Button
-            android:id="@+id/readSetBtn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="30dp"
-            android:background="@drawable/btn_bg1"
-            android:textColor="@color/blackGray"
-            android:text="引擎"/>
+    <androidx.cardview.widget.CardView
+        android:layout_width="320dp"
+        android:layout_height="150dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp">
 
-        <Button
-            android:id="@+id/powerSetBtn"
-            android:layout_width="70dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="30dp"
-            android:background="@drawable/btn_bg1"
-            android:textColor="@color/blackGray"
-            android:text="省电策略"/>
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="vertical">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:textColor="@color/gray3"
-            android:text="* 双击屏幕亦可朗读/停止"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:textColor="@color/gray3"
-            android:text="* 若省电策略之无限制无效，可尝试清除缓存"/>
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/catalogBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="25dp"
+                    android:background="@drawable/btn_bg1"
+                    android:textColor="@color/blackGray"
+                    android:textSize="16dp"
+                    android:text="目录"/>
+                <Button
+                    android:id="@+id/readBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="25dp"
+                    android:background="@drawable/btn_bg1"
+                    android:textColor="@color/blackGray"
+                    android:textSize="16dp"
+                    android:text="朗读"/>
+                <Button
+                    android:id="@+id/readSetBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="25dp"
+                    android:background="@drawable/btn_bg1"
+                    android:textColor="@color/blackGray"
+                    android:textSize="16dp"
+                    android:text="引擎"/>
+
+                <Button
+                    android:id="@+id/powerSetBtn"
+                    android:layout_width="75dp"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="25dp"
+                    android:background="@drawable/btn_bg1"
+                    android:textColor="@color/blackGray"
+                    android:textSize="16dp"
+                    android:text="省电策略"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="25dp"
+                    android:textColor="@color/gray3"
+                    android:text="* 双击屏幕亦可朗读/停止"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="25dp"
+                    android:textColor="@color/gray3"
+                    android:text="* 若省电策略之无限制无效，可尝试清除缓存"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

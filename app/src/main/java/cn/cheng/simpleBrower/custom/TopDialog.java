@@ -25,9 +25,11 @@ public class TopDialog extends Dialog {
     private Button readSetBtn;
     private Button powerSetBtn;
     private TouchListener touchListener;
+    private boolean flagRead;
 
-    public TopDialog(@NonNull Context context) {
+    public TopDialog(@NonNull Context context, boolean flagRead) {
         super(context, R.style.dialog);
+        this.flagRead = flagRead;
     }
 
     @SuppressLint("MissingInflatedId")
@@ -44,18 +46,23 @@ public class TopDialog extends Dialog {
         // 初始化控件
         catalogBtn = findViewById(R.id.catalogBtn);
         readBtn = findViewById(R.id.readBtn);
+        if (flagRead) {
+            readBtn.setText("停止");
+        } else {
+            readBtn.setText("朗读");
+        }
         readSetBtn = findViewById(R.id.readSetBtn);
         powerSetBtn = findViewById(R.id.powerSetBtn);
 
         // view窗口显示设置
         Window window = this.getWindow();
-        window.setGravity(Gravity.TOP);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        window.setGravity(Gravity.TOP | Gravity.CENTER);
+        // window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         WindowManager.LayoutParams params = window.getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
         params.x = 0;
-        params.y = 160;
+        params.y = 100;
         params.dimAmount = 0.3F;
         window.setAttributes(params);
 

@@ -165,7 +165,7 @@ public class TxtActivity extends AppCompatActivity {
             // 更多
             n_change = findViewById(R.id.n_change);
             n_change.setOnClickListener(view -> {
-                TopDialog topDialog = new TopDialog(TxtActivity.this);
+                TopDialog topDialog = new TopDialog(TxtActivity.this, flagRead);
                 topDialog.setOnTouchListener(new TopDialog.TouchListener() {
                     @Override
                     public void close() {
