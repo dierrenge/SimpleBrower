@@ -909,12 +909,32 @@ public class CommonUtils {
                 if (lineTxt.contains(".") && lineTxt.split("\\.")[0].matches("\\d+")) {
                     return lineTxt;
                 }
-                if (lineTxt.startsWith("第") && lineTxt.contains("章") && lineTxt.substring(0, lineTxt.indexOf("章")).replace("第", "").matches("\\d+")) {
+                if (lineTxt.startsWith("第") && lineTxt.contains("章") && hasNum(lineTxt.substring(0, lineTxt.indexOf("章")).replace("第", ""))) {
                     return lineTxt;
                 }
             }
         }
         return "";
+    }
+
+    // 匹配纯数字
+    public static boolean hasNum(String str) {
+        if (str.matches("\\d+")) {
+            return true;
+        }
+        boolean ret = false;
+        if (str != null) {
+            String s = str;
+            String[] nums = new String[]{"一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千", "万", "亿"};
+            for (String num : nums) {
+                s = str.replace(num, "");
+                if ("".equals(s.trim())) {
+                    return true;
+                }
+            }
+            ret = "".equals(s.trim());
+        }
+        return ret;
     }
 
     /**
