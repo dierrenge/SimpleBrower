@@ -681,10 +681,11 @@ public class BrowserActivity extends AppCompatActivity {
                     });
                 } catch (Throwable e) {}
 
+                String name = url.substring(url.lastIndexOf("/") + 1);
                 // 影音文件格式
                 List<String> formats = AssetsReader.getList("audioVideo.txt");
                 for (String format : formats) {
-                    if (url.contains(format)) {
+                    if (url.contains(format) || !name.contains(".")) {
                         webView.evaluateJavascript("(function() { return document.getElementsByTagName('iframe').length + document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
                             @Override
                             public void onReceiveValue(String value) {
@@ -706,7 +707,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 if (hasAudioVideo) {
                                     // 判断视频请求
                                     if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")|| !name.contains(".")) {
                                         if (!url.contains(".m3u8")) {
                                             Message msg = Message.obtain();
                                             String[] arr = new String[]{view.getTitle(), urlOrg};
