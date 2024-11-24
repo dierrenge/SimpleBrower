@@ -15,6 +15,7 @@ import android.os.Bundle;
 
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.Editable;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -43,6 +44,7 @@ import java.util.List;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.SysBean;
+import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.custom.SettingDialog;
 import cn.cheng.simpleBrower.service.DownloadService;
@@ -272,5 +274,49 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
+    // 第一次授权提示拒绝后，再次授权
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case CommonUtils.STORAGE_PERMISSION_REQUEST_CODE:
+                if (permissions.length > 0) {
+                    for (int i = 0; i < permissions.length; i++) {
+                        if (grantResults.length > 0 && grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                            // 权限授权失败
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
+                                // 返回 true，Toast 提示
+                                MyToast.getInstance(MainActivity.this, "无法访问该权限").show();
+                            } else {
+                                // 返回 false，需要显示对话框引导跳转到设置手动授权
+                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");
+                                feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                    @Override
+                                    public void close() {
+                                        feetDialog.dismiss();
+                                    }
+                                    @Override
+                                    public void ok() {
+                                        Intent intent = new Intent();
+                                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        intent.setData(Uri.parse("package:" + MainActivity.this.getPackageName()));
+                                        MainActivity.this.startActivityForResult(intent, 100);
+                                        feetDialog.dismiss();
+                                    }
+                                });
+                                feetDialog.show();
+                            }
+                            return;
+                        }
+                    }
+
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
 
 }

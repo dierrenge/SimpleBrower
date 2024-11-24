@@ -48,7 +48,7 @@
 
             <Button
                 android:id="@+id/dialog_close"
-                android:layout_width="150dp"
+                android:layout_width="145dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="8dp"
@@ -70,7 +70,7 @@
 
             <Button
                 android:id="@+id/dialog_set_ok"
-                android:layout_width="150dp"
+                android:layout_width="145dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"

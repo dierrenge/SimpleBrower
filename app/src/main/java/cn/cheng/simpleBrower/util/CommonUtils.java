@@ -70,7 +70,7 @@ import cn.cheng.simpleBrower.custom.FeetDialog;
 
 public class CommonUtils {
 
-    private static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
+    public static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
 
     /**
      * 删除List集合 指定角标元素

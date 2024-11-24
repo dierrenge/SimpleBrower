@@ -24,6 +24,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -260,6 +261,11 @@ public class BrowserActivity extends AppCompatActivity {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
+                // 会用到的权限
+                if (!flagVideo && !CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
+                    CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                    return;
+                }
                 // 调用系统下载处理
                 // downloadBySystem(url, disposition, mimetype);
                 // 使用自定义下载
@@ -1006,6 +1012,49 @@ public class BrowserActivity extends AppCompatActivity {
         webView.setWebViewClient(null);
         webView.destroy();
         webView = null;
+    }
+
+    // 第一次授权提示拒绝后，再次授权
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case CommonUtils.STORAGE_PERMISSION_REQUEST_CODE:
+                if (permissions.length > 0) {
+                    for (int i = 0; i < permissions.length; i++) {
+                        if (grantResults.length > 0 && grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                            // 权限授权失败
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(BrowserActivity.this, permissions[i])) {
+                                // 返回 true，Toast 提示
+                                MyToast.getInstance(BrowserActivity.this, "无法访问该权限").show();
+                            } else {
+                                // 返回 false，需要显示对话框引导跳转到设置手动授权
+                                FeetDialog feetDialog = new FeetDialog(BrowserActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");
+                                feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                    @Override
+                                    public void close() {
+                                        feetDialog.dismiss();
+                                    }
+                                    @Override
+                                    public void ok() {
+                                        Intent intent = new Intent();
+                                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        intent.setData(Uri.parse("package:" + BrowserActivity.this.getPackageName()));
+                                        BrowserActivity.this.startActivityForResult(intent, 100);
+                                        feetDialog.dismiss();
+                                    }
+                                });
+                                feetDialog.show();
+                            }
+                            return;
+                        }
+                    }
+
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
    /* @Override
