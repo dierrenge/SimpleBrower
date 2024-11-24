@@ -1033,20 +1033,42 @@ public class CommonUtils {
     /**
      * 网络文件格式
      * @param url
+     * @timeoutMillisecond 链接连接超时时间（单位：毫秒）
      * @return
      */
-    public static String getNetFileType(String url) {
+    public static String getNetFileType(String url, int timeoutMillisecond) {
         String mimeType = "未知格式";
         // Long timeStart = System.currentTimeMillis();
+        HttpURLConnection httpURLConnection = null;
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(100);
-            conn.setReadTimeout(100);
-            conn.connect();
-            mimeType = conn.getContentType();
+            URL url2 = new URL(url);
+            httpURLConnection = (HttpURLConnection) url2.openConnection();
+            httpURLConnection.setConnectTimeout(timeoutMillisecond);
+            httpURLConnection.setReadTimeout(timeoutMillisecond);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setDoInput(true);
+            // 模拟电脑请求
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            // 跨域设置相关
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
+            //* 代办允许所有方法
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Methods", "*");
+            // Access-Control-Max-Age 用于 CORS 相关配置的缓存
+            httpURLConnection.setRequestProperty("Access-Control-Max-Age", "3600");
+            // 提示OPTIONS预检时，后端需要设置的两个常用自定义头
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
+            // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
+            // 以识别各种格式
+            httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+            // 获取格式
+            mimeType = httpURLConnection.getContentType();
         } catch (Throwable e) {
-            // e.printStackTrace();
+            e.printStackTrace();
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
+            }
         }
         // Long timeEnd = System.currentTimeMillis();
         // System.out.println("耗时：" + (timeEnd - timeStart)/1000F + "秒");

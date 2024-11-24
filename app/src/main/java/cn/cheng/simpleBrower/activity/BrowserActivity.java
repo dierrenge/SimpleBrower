@@ -439,19 +439,30 @@ public class BrowserActivity extends AppCompatActivity {
             @Override
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what != 1) {
-                    String type = "";
-                    if (message.what == 2) {
-                        type = "视频：";
-                    }
-                    if (message.what == 3) {
-                        type = "音频：";
-                    }
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
                     String url = arr[1];
 
+                    // 更新日志框内容
                     String oldText = urlText.getText().toString();
-                    urlText.setText(oldText + "\n" + type + url);
+                    urlText.setText(oldText + "\n下载链接：" + url);
+
+                    // 无格式链接 判断格式
+                    if (message.what == 9) {
+                        String fileType = CommonUtils.getNetFileType(url, 1000);
+                        if (fileType == null) {
+                            return false;
+                        }
+                        if (fileType.contains("/")) {
+                            fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                        }
+                        // System.out.println(url + "*******************1***********************" + fileType);
+                        // 影音文件格式
+                        List<String> formats = AssetsReader.getList("audioVideo.txt");
+                        if (!formats.contains(fileType)) {
+                            return false;
+                        }
+                    }
 
                     // 弹框选择
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
@@ -472,7 +483,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 @Override
                                 public void ok() {
                                     flag = true;
-                                    download(url, title);
+                                    download(url, title, message.what);
                                     feetDialog.dismiss();
                                 }
                             });
@@ -496,7 +507,7 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     // 下载
-    private void download(String url, String titleO) {
+    private void download(String url, String titleO, int what) {
         CommonUtils.requestNotificationPermissions(this); // 通知
         String title = titleO;
         try {
@@ -504,7 +515,7 @@ public class BrowserActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (url.contains(".m3u8") || true) {
+        if (what != 4 || true) {
             MyApplication.setActivity(BrowserActivity.this);
             Intent intent = new Intent(BrowserActivity.this, DownloadService.class);
             intent.putExtra("url", url);
@@ -705,33 +716,27 @@ public class BrowserActivity extends AppCompatActivity {
                                 }
                                 // 该页面有影音才执行
                                 if (hasAudioVideo) {
+                                    Message msg = Message.obtain();
+                                    String[] arr = new String[]{view.getTitle(), urlOrg};
+                                    msg.obj = arr;
                                     // 判断视频请求
                                     if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")|| !name.contains(".")) {
-                                        if (!url.contains(".m3u8")) {
-                                            Message msg = Message.obtain();
-                                            String[] arr = new String[]{view.getTitle(), urlOrg};
-                                            msg.obj = arr;
+                                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                                        // 非m3u8链接 或者 链接中只包含一个m3u8
+                                        if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
                                             msg.what = 2;
                                             handler.sendMessage(msg);
-                                        } else {
-                                            if (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?")) { // 链接中只包含一个m3u8
-                                                // System.out.println("==============---=======" + view.getTitle() + "\n" + urlOrg);
-                                                Message msg = Message.obtain();
-                                                String[] arr = new String[]{view.getTitle(), urlOrg};
-                                                msg.obj = arr;
-                                                msg.what = 2;
-                                                handler.sendMessage(msg);
-                                            }
                                         }
                                     }
                                     // 判断音频请求
-                                    if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                                    else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
                                             || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                                        Message msg = Message.obtain();
-                                        String[] arr = new String[]{view.getTitle(), urlOrg};
-                                        msg.obj = arr;
                                         msg.what = 3;
+                                        handler.sendMessage(msg);
+                                    }
+                                    // 判断无格式的情况
+                                    else if (!name.contains(".")) {
+                                        msg.what = 9;
                                         handler.sendMessage(msg);
                                     }
                                 }
@@ -864,7 +869,7 @@ public class BrowserActivity extends AppCompatActivity {
             url = url.replace(".js", "").trim();
             ad = url.endsWith(".gif") || url.endsWith(".webp") || ad;
             if (!ad && (url.endsWith("jpg") || url.endsWith("png"))) {
-                String type = CommonUtils.getNetFileType(oUrl);
+                String type = CommonUtils.getNetFileType(oUrl, 300);
                 if (type != null && (type.contains("gif") || type.contains("webp"))) {
                     return true;
                 }

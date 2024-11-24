@@ -952,6 +952,7 @@ public class M3u8DownLoader {
                 }
                 if (fileName == null) {
                     fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
+                    format = "";
                 }
                 // System.out.println("+++++++++++++++++++++++++++++++" + supDir + "/" + fileName + format);
                 File file = new File(supDir + "/" + fileName + format);
@@ -1048,6 +1049,7 @@ public class M3u8DownLoader {
             }
             if (fileName == null) {
                 fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
+                format = "";
             }
             title = fileName  + format + " / " + String.format("%.2f", contentLength) + "M";
             // System.out.println("+++++++++++++++++++++++++++++++" + title);
