@@ -1146,6 +1146,9 @@ public class CommonUtils {
                     }
                 }
                 List<String> list = AssetsReader.getList("like.txt");
+                if (list == null) {
+                    list = AssetsReader.getList(MyApplication.getContext(), "like.txt");
+                }
                 for (String currentUrl : list) {
                     String likeUrl = currentUrl + "\n";
                     if (!likes.contains(currentUrl)) {
@@ -1157,6 +1160,7 @@ public class CommonUtils {
                 e.printStackTrace();
             }
         } catch (Exception e) {
+            CommonUtils.saveLog("有读写权限后只执行一次" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1191,12 +1195,17 @@ public class CommonUtils {
 
     // 手机目录文件url修正
     public static String correctUrl(String txtUrl) {
+        // 红米手机
         if (txtUrl.contains("Android/data")) {
             // 访问沙盒目录时
             txtUrl = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + txtUrl.substring(txtUrl.indexOf("Android/data"));
         } else if (txtUrl.contains("/external_files")) {
             // 访问正常SD卡目录时
             txtUrl = txtUrl.replace("/external_files", Environment.getExternalStorageDirectory().getAbsolutePath());
+        }
+        // 荣耀手机
+        if (txtUrl.startsWith("/root")) {
+            txtUrl = txtUrl.substring(5);
         }
         return txtUrl;
     }

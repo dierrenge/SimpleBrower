@@ -62,4 +62,21 @@ public class AssetsReader {
         return map.get(key);
     }
 
+    public static List<String> getList(Context context, String key) throws IOException {
+        InputStream stream = context.getAssets().open(key);
+        InputStreamReader inputStreamReader = new InputStreamReader(stream);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String line;
+        List<String> list = new ArrayList<>();
+        while ((line = bufferedReader.readLine()) != null) {
+            if (!key.contains(line)) {
+                list.add(line);
+            }
+        }
+        bufferedReader.close();
+        inputStreamReader.close();
+        stream.close();
+        return list;
+    }
+
 }
