@@ -606,7 +606,7 @@ public class BrowserActivity extends AppCompatActivity {
         String fileName = URLUtil.guessFileName(url, disposition, mimetype);
         request.setTitle(URLDecoder.decode(fileName));
         // 设置下载中通知栏描述 为 文件名
-        request.setDescription("自制浏览器文件下载");
+        request.setDescription("彼黍浏览器文件下载");
         // 获取SD卡的读取权限（Android6.0以上需获取相应权限）
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             // 没有写入外部存储权限 时 申请该权限

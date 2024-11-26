@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/gray2"
-                android:text="自制浏览器下载任务"
+                android:text="彼黍浏览器下载任务"
                 android:textSize="14dp"
                 android:ellipsize="end"
                 android:singleLine="true"

@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         String fileName = URLUtil.guessFileName(url, disposition, mimetype);
         request.setTitle(URLDecoder.decode(fileName));
         // 设置下载中通知栏描述 为 文件名
-        request.setDescription("自制浏览器文件下载");
+        request.setDescription("彼黍浏览器文件下载");
         // 设置下载文件保存的路径
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
         // 获取系统下载管理器
