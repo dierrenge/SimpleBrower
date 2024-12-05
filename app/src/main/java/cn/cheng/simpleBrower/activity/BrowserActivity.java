@@ -541,15 +541,15 @@ public class BrowserActivity extends AppCompatActivity {
             int index = urlList.lastIndexOf(currentUrl);
             String that = currentUrl;
             webView.goBackOrForward(-1);
-            // 解决重定向
-            new Handler().postDelayed(() -> {
+            // 解决重定向 貌似有问题 会干扰正常的返回
+            /*new Handler().postDelayed(() -> {
                 String urlStrNow = url_box.getText().toString().replace("https://", "").replace("http://", "");
                 if (urlStrNow.equals(that.replace("https://", "").replace("http://", ""))) {
                     if (index - 2 >= 0) {
                         webView.goBackOrForward(-2);
                     }
                 }
-            }, 400);
+            }, 400);*/
         } else {
             BrowserActivity.super.onBackPressed();
         }
