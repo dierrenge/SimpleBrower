@@ -1,6 +1,5 @@
 package cn.cheng.simpleBrower.custom;
 
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.webkit.URLUtil;
@@ -12,7 +11,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,8 +26,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.ArrayList;
@@ -42,7 +38,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -108,7 +103,7 @@ public class M3u8DownLoader {
     private String key = "";
 
     //所有ts片段下载链接
-    private Set<String> tsSet = new LinkedHashSet<>();
+    private List<String> tsList = new ArrayList<>();
 
     //m3u8文本行
     private ArrayList<String> m3u8Lines = new ArrayList<>();
@@ -355,12 +350,12 @@ public class M3u8DownLoader {
             if (s.contains("#EXTINF")) {
                 String ts = split[++i];
                 if (ts.startsWith("http://") || ts.startsWith("https://")) {
-                    tsSet.add(ts);
+                    tsList.add(ts);
                 } else {
                     if (ts.startsWith("/")) {
-                        tsSet.add(relativeUrl2 + ts);
+                        tsList.add(relativeUrl2 + ts);
                     } else {
-                        tsSet.add(relativeUrl + ts);
+                        tsList.add(relativeUrl + ts);
                     }
                 }
             }
@@ -624,7 +619,7 @@ public class M3u8DownLoader {
         byte[] b = new byte[4096];
         for (File f : finishedFiles) {
             int len;
-            if (!tsSet.iterator().next().endsWith(".ts")) {
+            if (!tsList.iterator().next().endsWith(".ts")) {
                 // 破解伪装的非ts文件 向后读取获取真正的ts视频文件
                 raFile = new RandomAccessFile(f, "rw");
                 raFile.seek(getTsNum(f));
@@ -709,7 +704,7 @@ public class M3u8DownLoader {
         if (!file1.exists())
             file1.mkdirs();
         // 执行多线程下载
-        for (String s : tsSet) {
+        for (String s : tsList) {
             // 标记为关闭的线程不再执行了
             if (closed()) {
                 return;
@@ -736,8 +731,8 @@ public class M3u8DownLoader {
                         consume++;
                         BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
-                        if (tsSet.size() != 0) {
-                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
+                        if (tsList.size() != 0) {
+                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                             Message msg = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg);
                         }
@@ -752,10 +747,10 @@ public class M3u8DownLoader {
                     }
                 }
                 String str = finishedFiles.size() + "个ts文件";
-                if (tsSet.size() == finishedFiles.size()) {
+                if (tsList.size() == finishedFiles.size()) {
                     str = "下载完成，正在合并文件！共" + str;
                 } else {
-                    str = "部分下载完成，正在合并文件！共" + str + "，实际" + tsSet.size() + "个ts文件";
+                    str = "部分下载完成，正在合并文件！共" + str + "，实际" + tsList.size() + "个ts文件";
                 }
                 String[] arr = new String[]{str, id+"", fileName};
                 Message msg0 = handler.obtainMessage(3, arr);
@@ -808,7 +803,7 @@ public class M3u8DownLoader {
         if (!file1.exists())
             file1.mkdirs();
         // 执行多线程下载
-        for (String s : tsSet) {
+        for (String s : tsList) {
             // 标记为关闭的线程不再执行了
             if (closed()) {
                 return;
@@ -832,8 +827,8 @@ public class M3u8DownLoader {
                         consume++;
                         BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
-                        if (tsSet.size() != 0) {
-                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
+                        if (tsList.size() != 0) {
+                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                             Message msg = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg);
                         }
@@ -846,10 +841,10 @@ public class M3u8DownLoader {
                 }
                 // 下载成功提示
                 String str = finishedCount + "个ts文件";
-                if (tsSet.size() == finishedCount) {
+                if (tsList.size() == finishedCount) {
                     str = "下载完成！共" + str;
                 } else {
-                    str = "部分下载完成！共" + str + "，实际" + tsSet.size() + "个ts文件";
+                    str = "部分下载完成！共" + str + "，实际" + tsList.size() + "个ts文件";
                 }
                 String[] arr2 = new String[]{str, id+""};
                 Message msg = handler.obtainMessage(2, arr2);
