@@ -1,7 +1,5 @@
 package cn.cheng.simpleBrower.custom.video;
 
-import static android.text.util.Linkify.ALL;
-
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
@@ -239,16 +237,18 @@ public class SampleVideo extends StandardGSYVideoPlayer {
             CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
             cacheWithPlay = false;
             // m3u8格式播放 尝试设置
-            /*if (url.toLowerCase().endsWith(".m3u8")) {
-                VideoOptionModel videoOptionModel =
+            if (url.toLowerCase().endsWith(".m3u8")) {
+                VideoOptionModel videoOptionModel0 = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
+                VideoOptionModel videoOptionModel1 =
                         new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "protocol_whitelist", "crypto,file,http,https,tcp,tls,udp");
                 VideoOptionModel videoOptionModel2 =
-                        new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_extensions", ALL);
+                        new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_extensions", "ALL");
                 List<VideoOptionModel> list = new ArrayList<>();
-                list.add(videoOptionModel);
+                list.add(videoOptionModel0);
+                list.add(videoOptionModel1);
                 list.add(videoOptionModel2);
                 GSYVideoManager.instance().setOptionModelList(list);
-            }*/
+            }
         }
         return setUp(url, cacheWithPlay, cachePath, title);
     }

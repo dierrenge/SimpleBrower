@@ -11,7 +11,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode 3
-        versionName "6.0.0"
+        versionName "6.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,20 +49,24 @@ dependencies {
     // android.enableJetifier=true //是否将引入的第三方库中的android.support强制转为androidx
     // implementation "com.jaeger.statusbarutil:library:1.5.1"
 
-    // 视频播放框架  新版本9.0.0感觉有些问题，先使用8.1.7版本
+    /**
+     * 视频播放框架
+     * 使用版本：v8.1.7-release-jitpack、v9.0.0-release-jitpack
+     */
     // 完整版引入
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.1.7-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
     // 部分引入
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v8.1.7-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v9.0.0-release-jitpack'
     // 是否需要ExoPlayer模式 支持格式更多
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2:v8.1.7-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2:v9.0.0-release-jitpack'
     // 是否需要AliPlayer模式
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v8.1.7-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v9.0.0-release-jitpack'
     // 根据你的需求ijk模式的so
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-arm64:v8.1.7-release-jitpack'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a:v8.1.7-release-jitpack'
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5:v8.1.7-release-jitpack'
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86:v8.1.7-release-jitpack'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v8.1.7-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-arm64:v9.0.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a:v9.0.0-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5:v9.0.0-release-jitpack'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86:v9.0.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'
+
 
 }

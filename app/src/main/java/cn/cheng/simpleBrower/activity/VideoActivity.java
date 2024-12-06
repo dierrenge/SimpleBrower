@@ -46,7 +46,7 @@ public class VideoActivity extends AppCompatActivity {
     private String videoUrl;
 
     // 记录播放进度
-    private int position;
+    private long position;
 
     // 记录播放时长
     private long durationAll = 0;
@@ -209,7 +209,7 @@ public class VideoActivity extends AppCompatActivity {
         // 获取进度
         mVideoPlayer.setGSYVideoProgressListener(new GSYVideoProgressListener() {
             @Override
-            public void onProgress(int progress, int secProgress, int currentPosition, int duration) {
+            public void onProgress(long progress, long secProgress, long currentPosition, long duration) {
                 position = currentPosition;
                 // 初始滑动快进比例设置
                 if (durationAll == 0) {

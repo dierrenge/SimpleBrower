@@ -210,7 +210,7 @@ public class BrowserActivity extends AppCompatActivity {
         webSettings.setLoadWithOverviewMode(true);
         //是否使用缓存
         //webSettings.setAppCacheEnabled(true);
-        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT); // Android 13 平替 setAppCacheEnabled(true)
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); // Android 13 平替 setAppCacheEnabled(true)
         //开启本地DOM存储
         webSettings.setDomStorageEnabled(true);
         // 加载图片
