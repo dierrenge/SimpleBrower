@@ -152,8 +152,6 @@ public class BrowserActivity extends AppCompatActivity {
             }
             CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
             url_box.setText(currentUrl);
-            // 记录为历史网址
-            MyApplication.setUrl(currentUrl);
             // 跳转到该网站
             loadUrl(currentUrl);
         } catch (Throwable e) {
@@ -539,17 +537,14 @@ public class BrowserActivity extends AppCompatActivity {
         List urlList = getUrls();
         if (urlList.size() > 0) {
             int index = urlList.lastIndexOf(currentUrl);
-            String that = currentUrl;
-            webView.goBackOrForward(-1);
-            // 解决重定向 貌似有问题 会干扰正常的返回
-            /*new Handler().postDelayed(() -> {
-                String urlStrNow = url_box.getText().toString().replace("https://", "").replace("http://", "");
-                if (urlStrNow.equals(that.replace("https://", "").replace("http://", ""))) {
-                    if (index - 2 >= 0) {
-                        webView.goBackOrForward(-2);
-                    }
+            if (index - 2 >= 0) {
+                // 解决重定向
+                if (!MyApplication.getUrls().contains(urlList.get(index - 1).toString())) {
+                    webView.goBackOrForward(-2);
+                    return;
                 }
-            }, 400);*/
+            }
+            webView.goBackOrForward(-1);
         } else {
             BrowserActivity.super.onBackPressed();
         }
@@ -635,6 +630,7 @@ public class BrowserActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            MyApplication.setUrl(url); // 记录为历史网址 (onPageFinished方法不会有重定向的网页链接)
             super.onPageFinished(view, url);
 
             // 去广告
@@ -764,7 +760,6 @@ public class BrowserActivity extends AppCompatActivity {
                 String cUrl = uri.toString();
                 boolean rtn = true;
                 if (cUrl.startsWith("https:") || cUrl.startsWith("http:")) {
-                    MyApplication.setUrl(cUrl); // 记录为历史网址
                     // 防止统一网页重复加载
                     /*List<String> historyUrls = MyApplication.getUrls();
                     int size = historyUrls.size();
@@ -867,16 +862,16 @@ public class BrowserActivity extends AppCompatActivity {
         } else {
             ad = loadedUrls.get(url);
         }
-        // gif、webp图片多为广告，直接过滤了
+        // gif图片多为广告，直接过滤了
         if (flagGif) {
             if (url.contains("?")) {
                 url = url.split("\\?")[0];
             }
             url = url.replace(".js", "").trim();
-            ad = url.endsWith(".gif") || url.endsWith(".webp") || ad;
-            if (!ad && (url.endsWith("jpg") || url.endsWith("png"))) {
+            ad = url.endsWith(".gif") || ad;
+            if (!ad && (url.endsWith("jpg") || url.endsWith("png") || url.endsWith(".webp"))) {
                 String type = CommonUtils.getNetFileType(oUrl, 300);
-                if (type != null && (type.contains("gif") || type.contains("webp"))) {
+                if (type != null && (type.contains("gif"))) {
                     return true;
                 }
             }
