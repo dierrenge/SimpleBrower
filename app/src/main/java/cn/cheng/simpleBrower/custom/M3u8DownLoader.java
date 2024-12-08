@@ -975,7 +975,7 @@ public class M3u8DownLoader {
                     handler.sendMessage(msg);
                 } catch (Exception e) {
                    e.printStackTrace();
-                    String[]  arr = new String[]{"", id+""};
+                    String[] arr = new String[]{"", id+""};
                     Message msg= handler.obtainMessage(4, arr);
                     handler.sendMessage(msg);
                 }
@@ -1027,26 +1027,30 @@ public class M3u8DownLoader {
             // 获取长度
             float contentLength = httpURLConnection.getContentLength()/1024F/1024F;
             // System.out.println("=======contentLength=====" + contentLength);
-            // 获取格式
-            String contentType = httpURLConnection.getContentType();
-            String format = CommonUtils.getUrlFormat(downLoadUrl);
-            if ("".equals(format)) {
-                if (contentType.contains("text/plain")) {
-                    format = ".txt";
-                } else {
-                    String[] s = contentType.split("/");
-                    if (s.length > 0) {
-                        format = "." + s[s.length - 1];
+            if (title.contains(".")) {
+                title += " / " + String.format("%.2f", contentLength) + "M";
+            } else {
+                // 获取格式
+                String contentType = httpURLConnection.getContentType();
+                String format = CommonUtils.getUrlFormat(downLoadUrl);
+                if ("".equals(format)) {
+                    if (contentType.contains("text/plain")) {
+                        format = ".txt";
                     } else {
-                        format = ".未知格式";
+                        String[] s = contentType.split("/");
+                        if (s.length > 0) {
+                            format = "." + s[s.length - 1];
+                        } else {
+                            format = ".未知格式";
+                        }
                     }
                 }
+                if (fileName == null) {
+                    fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
+                    format = "";
+                }
+                title = fileName + format + " / " + String.format("%.2f", contentLength) + "M";
             }
-            if (fileName == null) {
-                fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
-                format = "";
-            }
-            title = fileName  + format + " / " + String.format("%.2f", contentLength) + "M";
             // System.out.println("+++++++++++++++++++++++++++++++" + title);
         } catch (Exception e) {
             e.printStackTrace();

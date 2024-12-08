@@ -52,6 +52,8 @@ import android.widget.TextView;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -268,11 +270,15 @@ public class BrowserActivity extends AppCompatActivity {
                 // downloadBySystem(url, disposition, mimetype);
                 // 使用自定义下载
                 Message msg = Message.obtain();
-                String name = CommonUtils.getUrlName(url);
+                String name = URLUtil.guessFileName(url, disposition, mimetype);;
+                if (StringUtils.isEmpty(name)) {
+                    name = CommonUtils.getUrlName(url);
+                }
+                String finalName = name;
                 new Thread(() -> {
                     // 用到的权限
                     if (CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
-                        String title = name;
+                        String title = finalName;
                         try {
                             title = URLDecoder.decode(title, "utf-8");
                         } catch (Exception e) {
@@ -282,7 +288,7 @@ public class BrowserActivity extends AppCompatActivity {
                         title = M3u8DownLoader.getUrlContentFileSize(url, title);
 
                         if (!title.contains(".html;")) {
-                            String[] arr = new String[]{name, url, title};
+                            String[] arr = new String[]{finalName, url, title};
                             msg.obj = arr;
                             msg.what = 4;
                             handler.sendMessage(msg);
