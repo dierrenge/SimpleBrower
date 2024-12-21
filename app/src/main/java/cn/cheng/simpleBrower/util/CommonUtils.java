@@ -732,53 +732,68 @@ public class CommonUtils {
      * @param positionBean
      */
     public static void readNextPage(ArrayList<String> lines, PositionBean positionBean) {
-        int size = positionBean.getSize();
-        int endLine = positionBean.getEndLine();
-        int endNum = positionBean.getEndNum();
-        positionBean.setStartLine(endLine);
-        positionBean.setStartNum(endNum);
-        String txt = "";
-        if (endLine >= 0 && lines.get(endLine).length() >= endNum) {
-            txt = lines.get(endLine).substring(endNum);
-        }
-        for (int i = endLine + 1; i < lines.size(); i++) {
-            txt = txt + lines.get(i);
-            positionBean.setEndLine(i);
+        try {
+            int size = positionBean.getSize();
+            int endLine = positionBean.getEndLine();
+            int endNum = positionBean.getEndNum();
+            positionBean.setStartLine(endLine);
+            positionBean.setStartNum(endNum);
+            String txt = "";
+            if (endLine >= 0 && lines.get(endLine).length() >= endNum) {
+                txt = lines.get(endLine).substring(endNum);
+            }
             if (txt.length() >= size) {
-                int num = lines.get(i).length() - (txt.length() - size);
+                // 当前行剩余字数还比整页能展示的数据多的情况
+                positionBean.setEndLine(endLine);
                 txt = txt.substring(0, size);
-                positionBean.setEndNum(num);
-                break;
-            } else if (lines.size() - 1 == endLine + 1) { // 到最后一行 txt长度不及size时
-                positionBean.setEndNum(lines.get(i).length());
-            }
-        }
-        // 只有最后一行时
-        if (lines.size() - 1 == endLine) {
-            positionBean.setEndLine(lines.size() - 1);
-            if (txt.length() <= size) {
-                positionBean.setEndNum(lines.get(lines.size() - 1).length());
+                positionBean.setEndNum(endNum + size);
             } else {
-                positionBean.setEndNum(size);
+                for (int i = endLine + 1; i < lines.size(); i++) {
+                    txt = txt + lines.get(i);
+                    positionBean.setEndLine(i);
+                    if (txt.length() >= size) {
+                        int num = lines.get(i).length() - (txt.length() - size);
+                        txt = txt.substring(0, size);
+                        positionBean.setEndNum(num);
+                        break;
+                    } else if (lines.size() - 1 == endLine + 1) { // 到最后一行 txt长度不及size时
+                        positionBean.setEndNum(lines.get(i).length());
+                    }
+                }
             }
+            // 只有最后一行时
+            if (lines.size() - 1 == endLine) {
+                positionBean.setEndLine(lines.size() - 1);
+                if (txt.length() <= size) {
+                    positionBean.setEndNum(lines.get(lines.size() - 1).length());
+                } else {
+                    positionBean.setEndNum(size);
+                }
+            }
+            positionBean.setTxt(txt);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("readNextPage：" + e.getMessage());
         }
-        positionBean.setTxt(txt);
     }
     public static void readNextPageDef(ArrayList<String> lines, PositionBean positionBean) {
-        int size = positionBean.getSize();
-        int endLine = positionBean.getEndLine();
-        int endNum = positionBean.getEndNum();
-        String txt = "";
-        if (endLine >= 0 && lines.get(endLine).length() >= endNum) {
-            txt = lines.get(endLine).substring(endNum);
-        }
-        for (int i = endLine + 1; i < lines.size(); i++) {
-            txt = txt + lines.get(i);
-            if (txt.length() >= size) {
-                break;
+        try {
+            int size = positionBean.getSize();
+            int endLine = positionBean.getEndLine();
+            int endNum = positionBean.getEndNum();
+            String txt = "";
+            if (endLine >= 0 && lines.get(endLine).length() >= endNum) {
+                txt = lines.get(endLine).substring(endNum);
             }
+            for (int i = endLine + 1; i < lines.size(); i++) {
+                txt = txt + lines.get(i);
+                if (txt.length() >= size) {
+                    break;
+                }
+            }
+            positionBean.setTxt(txt);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("readNextPageDef：" + e.getMessage());
         }
-        positionBean.setTxt(txt);
     }
 
 
@@ -788,53 +803,69 @@ public class CommonUtils {
      * @param positionBean
      */
     public static void readPreviousPage(ArrayList<String> lines, PositionBean positionBean, Handler msgHandler) {
-        int size = positionBean.getSize();
-        int startLine = positionBean.getStartLine();
-        int startNum = positionBean.getStartNum();
-        positionBean.setEndLine(startLine);
-        positionBean.setEndNum(startNum);
-        String txt = "";
-        if (startLine >= 0 && startNum > 0 && lines.get(startLine).length() > startNum) {
-            txt = lines.get(startLine).substring(0, startNum);
-        }
-        for (int i = startLine - 1; i >= 0; i--) {
-            txt = lines.get(i) + txt;
-            // txt = txt + lines.get(i); // 先从下往上排版 好统计字数
-            positionBean.setStartLine(i);
+        try {
+            int size = positionBean.getSize();
+            int startLine = positionBean.getStartLine();
+            int startNum = positionBean.getStartNum();
+            positionBean.setEndLine(startLine);
+            positionBean.setEndNum(startNum);
+            String txt = "";
+            if (startLine >= 0 && startNum > 0 && lines.get(startLine).length() >= startNum) {
+                txt = lines.get(startLine).substring(0, startNum);
+            }
             if (txt.length() >= size) {
-                int num = txt.length() - size;
+                // 当前行剩余字数还比整页能展示的数据多的情况
+                positionBean.setStartLine(startLine);
                 txt = txt.substring(txt.length() - size);
-                positionBean.setStartNum(num);
-                break;
-            } else if (startLine - 1 == 0) { // 到第一行，txt的长度不及size时
-                positionBean.setStartNum(0);
-            }
-        }
-        // 只有第一行时
-        if (startLine == 0) {
-            positionBean.setStartLine(0);
-            positionBean.setStartNum(0);
-            if (txt.length() > size) {
                 positionBean.setStartNum(txt.length() - size);
+            } else {
+                for (int i = startLine - 1; i >= 0; i--) {
+                    txt = lines.get(i) + txt;
+                    // txt = txt + lines.get(i); // 先从下往上排版 好统计字数
+                    positionBean.setStartLine(i);
+                    if (txt.length() >= size) {
+                        int num = txt.length() - size;
+                        txt = txt.substring(txt.length() - size);
+                        positionBean.setStartNum(num);
+                        break;
+                    } else if (startLine - 1 == 0) { // 到第一行，txt的长度不及size时
+                        positionBean.setStartNum(0);
+                    }
+                }
             }
+            // 只有第一行时
+            if (startLine == 0) {
+                positionBean.setStartLine(0);
+                positionBean.setStartNum(0);
+                if (txt.length() > size) {
+                    positionBean.setStartNum(txt.length() - size);
+                }
+            }
+            positionBean.setTxt(txt);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("readPreviousPage：" + e.getMessage());
         }
-        positionBean.setTxt(txt);
+
     }
     public static void readPreviousPageDef(ArrayList<String> lines, PositionBean positionBean) {
-        int size = positionBean.getSize();
-        int startLine = positionBean.getStartLine();
-        int startNum = positionBean.getStartNum();
-        String txt = "";
-        if (startLine >= 0 && startNum > 0 && lines.get(startLine).length() > startNum) {
-            txt = lines.get(startLine).substring(0, startNum);
-        }
-        for (int i = startLine - 1; i >= 0; i--) {
-            txt = txt + lines.get(i); // 先从下往上排版 好统计字数
-            if (txt.length() >= size) {
-                break;
+        try {
+            int size = positionBean.getSize();
+            int startLine = positionBean.getStartLine();
+            int startNum = positionBean.getStartNum();
+            String txt = "";
+            if (startLine >= 0 && startNum > 0 && lines.get(startLine).length() >= startNum) {
+                txt = lines.get(startLine).substring(0, startNum);
             }
+            for (int i = startLine - 1; i >= 0; i--) {
+                txt = txt + lines.get(i); // 先从下往上排版 好统计字数
+                if (txt.length() >= size) {
+                    break;
+                }
+            }
+            positionBean.setTxt(txt);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("readPreviousPageDef：" + e.getMessage());
         }
-        positionBean.setTxt(txt);
     }
 
     // 获取章节名
