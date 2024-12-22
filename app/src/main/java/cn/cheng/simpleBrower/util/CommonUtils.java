@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.webkit.URLUtil;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -817,7 +818,7 @@ public class CommonUtils {
                 // 当前行剩余字数还比整页能展示的数据多的情况
                 positionBean.setStartLine(startLine);
                 txt = txt.substring(txt.length() - size);
-                positionBean.setStartNum(txt.length() - size);
+                positionBean.setStartNum(startNum - size);
             } else {
                 for (int i = startLine - 1; i >= 0; i--) {
                     txt = lines.get(i) + txt;

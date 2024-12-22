@@ -31,7 +31,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
@@ -221,6 +223,9 @@ public class BrowserActivity extends AppCompatActivity {
         webSettings.setAllowFileAccess(true);
         // 设置WebView是否支持多窗口。如果设置为true，主程序要实现onCreateWindow(WebView, boolean, boolean, Message)，默认false
         //webSettings.setSupportMultipleWindows(true);
+        // 允许JavaScript跨域执行
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
 
         //处理http和https混合的问题(https加载的网页中用http去获取图片了；原因就是安卓5.0以后做了限制，解决方法就一行代码)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -299,6 +304,20 @@ public class BrowserActivity extends AppCompatActivity {
                 }).start();
             }
         });
+
+        // js 向 java 传递数据
+        webView.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void postMessage(String message) {
+                System.out.println("postMessage       666666666666\n" + message);
+                // 这里你可以处理传递过来的参数
+                /*Message msg = Message.obtain();
+                String[] arr = new String[]{"", message};
+                msg.obj = arr;
+                msg.what = 10;
+                handler.sendMessage(msg);*/
+            }
+        }, "Android");
 
         /*** 视频播放相关的方法 **/
         video_fullView = (FrameLayout) findViewById(R.id.video_fullView);
@@ -960,6 +979,25 @@ public class BrowserActivity extends AppCompatActivity {
         public void onProgressChanged(WebView view, int newProgress) {
             //System.out.println("=================" + newProgress);
             super.onProgressChanged(view, newProgress);
+        }
+
+        @Override
+        public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+            super.onConsoleMessage(consoleMessage);
+            // 捕获JavaScript输出 console.log
+            // System.out.println(consoleMessage.message() + "         ///////////////////////////");
+            /*
+            if ("iframe loaded".equals(consoleMessage.message())) {
+                return true;
+            }*/
+            if (consoleMessage.message().contains("blob:")) {
+                String url = consoleMessage.message().split("blob:")[1];
+                // System.out.println("++++++++++++++++" + url);
+                // 打印网页源码
+                webView.evaluateJavascript("(function() { fetch('"+url+"').then(response => response.text()).then(text => { Android.postMessage(text); console.log(text); }).catch(error => console.error(error)); })();", null);
+                return true;
+            }
+            return false;
         }
     }
 

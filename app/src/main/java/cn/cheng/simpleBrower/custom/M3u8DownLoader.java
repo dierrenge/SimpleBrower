@@ -930,27 +930,32 @@ public class M3u8DownLoader {
                 // 获取长度
                 int contentLength = httpURLConnection.getContentLength();
                 // System.out.println("=======contentLength=====" +contentLength);
-                // 获取格式
-                String contentType = httpURLConnection.getContentType();
-                String format = CommonUtils.getUrlFormat(DOWNLOADURL);
-                if ("".equals(format)) {
-                    if (contentType.contains("text/plain")) {
-                        format = ".txt";
-                    } else {
-                        String[] s = contentType.split("/");
-                        if (s.length > 0) {
-                            format = "." + s[s.length - 1];
+                // 保存文件的绝对路径
+                String absolutePath = supDir + "/" + fileName;
+                if (!fileName.contains(".")) {
+                    // 获取格式
+                    String contentType = httpURLConnection.getContentType();
+                    String format = CommonUtils.getUrlFormat(DOWNLOADURL);
+                    if ("".equals(format)) {
+                        if (contentType.contains("text/plain")) {
+                            format = ".txt";
                         } else {
-                            format = ".未知格式";
+                            String[] s = contentType.split("/");
+                            if (s.length > 0) {
+                                format = "." + s[s.length - 1];
+                            } else {
+                                format = ".未知格式";
+                            }
                         }
                     }
+                    if (fileName == null) {
+                        fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
+                        format = "";
+                    }
+                    absolutePath = supDir + "/" + fileName + format;
                 }
-                if (fileName == null) {
-                    fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
-                    format = "";
-                }
-                // System.out.println("+++++++++++++++++++++++++++++++" + supDir + "/" + fileName + format);
-                File file = new File(supDir + "/" + fileName + format);
+                // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
+                File file = new File(absolutePath);
                 int len, bytesum = 0;
                 byte[] buf = new byte[1024*8];
                 try (BufferedInputStream bis = new BufferedInputStream(inputStream);

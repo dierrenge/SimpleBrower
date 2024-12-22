@@ -391,7 +391,6 @@ public class TxtActivity extends AppCompatActivity {
                         int lineStart = layout.getLineStart(i);
                         int lineEnd = layout.getLineEnd(i);
                         String lastTxt = n_content.getText().subSequence(lineStart, lineEnd).toString();
-                        CommonUtils.saveLog("=======1==startLine" + positionBean.getStartLine() + ", startNum" + positionBean.getStartNum());
                         // 但不是实际最后一行时
                         if (!positionBean.getTxt().endsWith(lastTxt)) {
                             lineStart = layout.getLineStart(0);
@@ -405,7 +404,6 @@ public class TxtActivity extends AppCompatActivity {
                             } else {
                                 positionBean.setStartLine(line + 1);
                             }
-                            CommonUtils.saveLog("===3======startLine" + positionBean.getStartLine() + ", startNum" + positionBean.getStartNum());
                         }
                         n_content.setText(positionBean.getTxt());
 
