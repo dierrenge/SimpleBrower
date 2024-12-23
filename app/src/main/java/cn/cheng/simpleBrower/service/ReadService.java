@@ -2,6 +2,8 @@ package cn.cheng.simpleBrower.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -12,12 +14,13 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import cn.cheng.simpleBrower.bean.PositionBean;
+import cn.cheng.simpleBrower.receiver.HeadphoneReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class ReadService extends Service implements TextToSpeech.OnInitListener {
 
     public TextToSpeech textToSpeech;
-
+    private final HeadphoneReceiver receiver = new HeadphoneReceiver();
     private String txtUrl = "";
     private ArrayList<String> lines;
     private PositionBean positionBean;
@@ -30,6 +33,10 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
     @Override
     public void onCreate() {
         textToSpeech = new TextToSpeech(this, this);
+        // 注册广播接收器 接收器监听噪音ACTION_AUDIO_BECOMING_NOISY（可判断耳机断开链接）
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        registerReceiver(receiver, intentFilter);
         super.onCreate();
     }
 
