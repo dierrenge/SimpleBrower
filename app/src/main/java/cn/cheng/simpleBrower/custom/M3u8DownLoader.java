@@ -58,6 +58,8 @@ public class M3u8DownLoader {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private int what; // 区分点击下载和监测下载 （what为4的时候是点击下载）
+
     // ts文件16进制关键标志
     // private static final String TS_FLAG = "FF 47 40 ";
     // private static final String TS_FLAG = "82 47 40 ";
@@ -149,6 +151,10 @@ public class M3u8DownLoader {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void setWhat(int what) {
+        this.what = what;
     }
 
     /**
@@ -932,7 +938,7 @@ public class M3u8DownLoader {
                 // System.out.println("=======contentLength=====" +contentLength);
                 // 保存文件的绝对路径
                 String absolutePath = supDir + "/" + fileName;
-                if (!fileName.contains(".")) {
+                if (!fileName.contains(".") || what != 4) {
                     // 获取格式
                     String contentType = httpURLConnection.getContentType();
                     String format = CommonUtils.getUrlFormat(DOWNLOADURL);

@@ -65,6 +65,8 @@ public class DownloadService extends Service {
     private int notificationId = 0;
     // 频道id 每次下载通知要不一样
     private String CHANNEL_ID = "";
+    // 分隔符
+    private static final String F = "<\"\"\"\"￥";
 
     private Map<Integer, ExecutorService> pools = new HashMap<>();
 
@@ -91,7 +93,10 @@ public class DownloadService extends Service {
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
+        int what = intent.getIntExtra("what", 0);
         String title = intent.getStringExtra("title");
+        String url = intent.getStringExtra("url");
+        String urlName = url.substring(url.lastIndexOf("/") + 1);
         if (title == null || "".equals(title)) {
             title = System.currentTimeMillis() + "";
         }
@@ -99,24 +104,32 @@ public class DownloadService extends Service {
             title = title.substring(title.lastIndexOf("/") + 1);
         }
         supDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower";
-        CHANNEL_ID = title;
+        CHANNEL_ID = title + F + urlName;
 
         // 高版本通知Notification 必须先定义NotificationChannel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID
-                    , "name", NotificationManager.IMPORTANCE_DEFAULT);
             if (nm.getActiveNotifications().length > 0) {
                 for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
                     if (activeNotification.getNotification() != null) {
                         String channelId = activeNotification.getNotification().getChannelId();
-                        if (CHANNEL_ID.equals(channelId)) {
+                        String[] split = channelId.split(F);
+                        if (CHANNEL_ID.equals(channelId) || channelId.equals(title + F + urlName)) {
                             Message message = myHandler.obtainMessage(0, new String[]{"该网页已存在一个下载任务", ""});
                             myHandler.sendMessage(message);
                             return super.onStartCommand(intent, flags, startId);
+                        } else {
+                            if (title.equals(split[0]) && !urlName.equals(split[1]) && what != 4) {
+                                title += "I";
+                            }
                         }
                     }
                 }
+                if (what != 4) {
+                    CHANNEL_ID = title + F + urlName;
+                }
             }
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID
+                    , "name", NotificationManager.IMPORTANCE_DEFAULT);
             File file = new File(supDir + "/" + title + ".m3u8");
             if (file.exists()) {
                 Message message = myHandler.obtainMessage(0, new String[]{"该视频已在影音列表中", ""});
@@ -179,13 +192,13 @@ public class DownloadService extends Service {
         //启动线程开始执行下载任务
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             //启动线程开始执行下载任务
-            String url = intent.getStringExtra("url");
             String dirName = intent.getStringExtra("dirName");
             if (dirName == null || "".equals(dirName)) {
                 dirName = System.currentTimeMillis() + "";
             }
             // M3u8DownLoader.test(url, myHandler);
             M3u8DownLoader m3u8Download =  new M3u8DownLoader(url, notificationId);
+            m3u8Download.setWhat(what);
             //设置生成目录
             m3u8Download.setDir(supDir + "/" + dirName, supDir);
             //设置视频名称

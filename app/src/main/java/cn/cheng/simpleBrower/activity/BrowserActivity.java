@@ -289,7 +289,7 @@ public class BrowserActivity extends AppCompatActivity {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        title = title.length() > 22 ? title.substring(0, 19) + "..." + title.substring(title.length() - 2) : title;
+                        // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
                         title = M3u8DownLoader.getUrlContentFileSize(url, title);
 
                         if (!title.contains(".html;")) {
@@ -547,8 +547,9 @@ public class BrowserActivity extends AppCompatActivity {
         if (what != 4 || true) {
             MyApplication.setActivity(BrowserActivity.this);
             Intent intent = new Intent(BrowserActivity.this, DownloadService.class);
+            intent.putExtra("what", what);
             intent.putExtra("url", url);
-            intent.putExtra("title", title.length() > 22 ? title.substring(0, 19) + "..." + title.substring(title.length() - 2) : title);
+            intent.putExtra("title", title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title);
             BrowserActivity.this.startService(intent);
         } else {
             String[] split = url.split("\\.");
