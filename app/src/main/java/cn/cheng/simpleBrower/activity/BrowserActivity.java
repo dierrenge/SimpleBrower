@@ -724,7 +724,7 @@ public class BrowserActivity extends AppCompatActivity {
                 List<String> formats = AssetsReader.getList("audioVideo.txt");
                 for (String format : formats) {
                     if (url.contains(format) || !name.contains(".")) {
-                        webView.evaluateJavascript("(function() { return document.getElementsByTagName('iframe').length + document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
+                        /*webView.evaluateJavascript("(function() { return document.getElementsByTagName('iframe').length + document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
                             @Override
                             public void onReceiveValue(String value) {
                                 int num = 0;
@@ -743,32 +743,33 @@ public class BrowserActivity extends AppCompatActivity {
                                 }
                                 // 该页面有影音才执行
                                 if (hasAudioVideo) {
-                                    Message msg = Message.obtain();
-                                    String[] arr = new String[]{view.getTitle(), urlOrg};
-                                    msg.obj = arr;
-                                    // 判断视频请求
-                                    if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
-                                        // 非m3u8链接 或者 链接中只包含一个m3u8
-                                        if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
-                                            msg.what = 2;
-                                            handler.sendMessage(msg);
-                                        }
-                                    }
-                                    // 判断音频请求
-                                    else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
-                                            || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                                        msg.what = 3;
-                                        handler.sendMessage(msg);
-                                    }
-                                    // 判断无格式的情况
-                                    else if (!name.contains(".")) {
-                                        msg.what = 9;
-                                        handler.sendMessage(msg);
-                                    }
+
                                 }
                             }
-                        });
+                        });*/
+                        Message msg = Message.obtain();
+                        String[] arr = new String[]{view.getTitle(), urlOrg};
+                        msg.obj = arr;
+                        // 判断视频请求
+                        if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
+                                url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                            // 非m3u8链接 或者 链接中只包含一个m3u8
+                            if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
+                                msg.what = 2;
+                                handler.sendMessage(msg);
+                            }
+                        }
+                        // 判断音频请求
+                        else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                                || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
+                            msg.what = 3;
+                            handler.sendMessage(msg);
+                        }
+                        // 判断无格式的情况
+                        else if (!name.contains(".")) {
+                            msg.what = 9;
+                            handler.sendMessage(msg);
+                        }
                         break;
                     }
                 }
@@ -990,13 +991,13 @@ public class BrowserActivity extends AppCompatActivity {
             if ("iframe loaded".equals(consoleMessage.message())) {
                 return true;
             }*/
-            if (consoleMessage.message().contains("blob:")) {
+            /*if (consoleMessage.message().contains("blob:")) {
                 String url = consoleMessage.message().split("blob:")[1];
                 // System.out.println("++++++++++++++++" + url);
                 // 打印网页源码
                 webView.evaluateJavascript("(function() { fetch('"+url+"').then(response => response.text()).then(text => { Android.postMessage(text); console.log(text); }).catch(error => console.error(error)); })();", null);
                 return true;
-            }
+            }*/
             return false;
         }
     }
