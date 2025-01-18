@@ -117,6 +117,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean hasAudioVideo = true; // 页面中有视频或音频
 
+    @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,8 +131,10 @@ public class BrowserActivity extends AppCompatActivity {
             setContentView(R.layout.activity_brower);
 
             SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
-            flagVideo = sysBean.isFlagVideo();
-            flagGif = sysBean.isFlagGif();
+            if (sysBean != null) {
+                flagVideo = sysBean.isFlagVideo();
+                flagGif = sysBean.isFlagGif();
+            }
 
             // 注册广告过滤器
             AdBlocker.init(this);
@@ -467,7 +470,8 @@ public class BrowserActivity extends AppCompatActivity {
         handler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message message) {
-                if (message.what != 1) {
+                int what = message.what;
+                if (what != 1) {
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
                     String url = arr[1];
@@ -477,7 +481,7 @@ public class BrowserActivity extends AppCompatActivity {
                     urlText.setText(oldText + "\n下载链接：" + url);
 
                     // 无格式链接 判断格式
-                    if (message.what == 9) {
+                    if (what == 9) {
                         String fileType = CommonUtils.getNetFileType(url, 1000);
                         if (fileType == null) {
                             return false;
@@ -495,13 +499,13 @@ public class BrowserActivity extends AppCompatActivity {
 
                     // 弹框选择
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
-                        if (message.what == 4 && !url.contains(".m3u8")) {
+                        if (what == 4 && !url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(BrowserActivity.this, "下载", title2, "下载", "取消");
                         } else {
                             feetDialog = new FeetDialog(BrowserActivity.this);
                         }
-                        if (message.what == 4 || flagVideo) {
+                        if (what == 4 || flagVideo) {
                             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                                 @Override
                                 public void close() {
@@ -512,7 +516,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 @Override
                                 public void ok() {
                                     flag = true;
-                                    download(url, title, message.what);
+                                    download(url, title, what);
                                     feetDialog.dismiss();
                                 }
                             });
@@ -708,9 +712,9 @@ public class BrowserActivity extends AppCompatActivity {
                         "try { document.querySelectorAll('.ad').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
                         "try { document.querySelectorAll('.ads').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
                         "try { document.querySelectorAll('#divOyYSJd').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
-                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').nextSibling; dom.remove(); } } catch (error) {}" +
-                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
-                        "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
+                        // "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').nextSibling; dom.remove(); } } catch (error) {}" +
+                        // "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
+                        // "try { for (var i = 0; i < 50; i++) { var dom = document.querySelector('.gotop').parentNode.parentNode.nextSibling; dom.remove(); } } catch (error) {}" +
                         // "try { document.querySelectorAll('[style=\"line-height:0px;position:relative!important;padding:0;\"]').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
                         "})();";
                 try {
@@ -721,58 +725,29 @@ public class BrowserActivity extends AppCompatActivity {
                 } catch (Throwable e) {}
 
                 String name = url.substring(url.lastIndexOf("/") + 1);
-                // 影音文件格式
-                List<String> formats = AssetsReader.getList("audioVideo.txt");
-                for (String format : formats) {
-                    if (url.contains(format) || !name.contains(".")) {
-                        /*webView.evaluateJavascript("(function() { return document.getElementsByTagName('iframe').length + document.getElementsByTagName('video').length + document.getElementsByTagName('audio').length + (document.body.textContent.includes('player') ? 1 : 0) ; })();", new ValueCallback<String>() {
-                            @Override
-                            public void onReceiveValue(String value) {
-                                int num = 0;
-                                try {
-                                    num = Integer.parseInt(value);
-                                } catch (Exception e) {
-                                    CommonUtils.saveLog("判断是否有视频失败:" + e.getMessage());
-                                    System.out.println("判断是否有视频失败" + e.getMessage());
-                                }
-                                if (num > 0) {
-                                    // 页面中有视频或音频
-                                    hasAudioVideo = true;
-                                } else {
-                                    // 页面中没有视频或音频
-                                    hasAudioVideo = false;
-                                }
-                                // 该页面有影音才执行
-                                if (hasAudioVideo) {
-
-                                }
-                            }
-                        });*/
-                        Message msg = Message.obtain();
-                        String[] arr = new String[]{view.getTitle(), urlOrg};
-                        msg.obj = arr;
-                        // 判断视频请求
-                        if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                                url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
-                            // 非m3u8链接 或者 链接中只包含一个m3u8
-                            if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
-                                msg.what = 2;
-                                handler.sendMessage(msg);
-                            }
-                        }
-                        // 判断音频请求
-                        else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
-                                || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                            msg.what = 3;
-                            handler.sendMessage(msg);
-                        }
-                        // 判断无格式的情况
-                        else if (!name.contains(".")) {
-                            msg.what = 9;
-                            handler.sendMessage(msg);
-                        }
-                        break;
+                Message msg = Message.obtain();
+                String[] arr = new String[]{view.getTitle(), urlOrg};
+                msg.obj = arr;
+                
+                // 判断视频请求
+                if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
+                        url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                    // 非m3u8链接 或者 链接中只包含一个m3u8
+                    if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
+                        msg.what = 2;
+                        handler.sendMessage(msg);
                     }
+                }
+                // 判断音频请求
+                else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                        || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
+                    msg.what = 3;
+                    handler.sendMessage(msg);
+                }
+                // 判断无格式的情况
+                else if (!name.contains(".")) {
+                    msg.what = 9;
+                    handler.sendMessage(msg);
                 }
             });
             // super.shouldInterceptRequest(view, request).getData();
@@ -780,6 +755,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
 
         // 设置网页页面拦截
+        @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri uri = request.getUrl();
