@@ -728,7 +728,7 @@ public class BrowserActivity extends AppCompatActivity {
                 Message msg = Message.obtain();
                 String[] arr = new String[]{view.getTitle(), urlOrg};
                 msg.obj = arr;
-                
+
                 // 判断视频请求
                 if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
                         url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
