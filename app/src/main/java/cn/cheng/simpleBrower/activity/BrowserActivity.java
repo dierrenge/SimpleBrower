@@ -250,8 +250,8 @@ public class BrowserActivity extends AppCompatActivity {
             }
         }
 
-        // 修复一些机型webview无法点击
-        webView.requestFocus(View.FOCUS_DOWN);
+        // 修复一些机型webview无法点击  但这个会导致网页文本无法复制
+        /*webView.requestFocus(View.FOCUS_DOWN);
         webView.setOnTouchListener((View v, MotionEvent event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -262,7 +262,8 @@ public class BrowserActivity extends AppCompatActivity {
                     break;
             }
             return false;
-        });
+        });*/
+
         // 浏览处理
         webView.setWebViewClient(myClient);
         // 设置下载监听
