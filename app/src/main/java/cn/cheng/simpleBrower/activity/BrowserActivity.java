@@ -117,14 +117,13 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean hasAudioVideo = true; // 页面中有视频或音频
 
-    @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             // 忽略强制网络策略: 在主线程中可以访问网络
-            StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
+            /*StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);*/
 
             // 设置默认导航栏、状态栏样式
             SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
@@ -250,8 +249,8 @@ public class BrowserActivity extends AppCompatActivity {
             }
         }
 
-        // 修复一些机型webview无法点击
-        webView.requestFocus(View.FOCUS_DOWN);
+        // 修复一些机型webview无法点击  但这个会导致网页文本无法复制
+        /*webView.requestFocus(View.FOCUS_DOWN);
         webView.setOnTouchListener((View v, MotionEvent event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -262,7 +261,8 @@ public class BrowserActivity extends AppCompatActivity {
                     break;
             }
             return false;
-        });
+        });*/
+
         // 浏览处理
         webView.setWebViewClient(myClient);
         // 设置下载监听
@@ -693,7 +693,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
 
         // 网址 过滤
-        @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
+        // @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
         @Nullable
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -755,7 +755,6 @@ public class BrowserActivity extends AppCompatActivity {
         }
 
         // 设置网页页面拦截
-        @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri uri = request.getUrl();
@@ -872,12 +871,12 @@ public class BrowserActivity extends AppCompatActivity {
             }
             url = url.replace(".js", "").trim();
             ad = url.endsWith(".gif") || ad;
-            if (!ad && (url.endsWith("jpg") || url.endsWith("png") || url.endsWith(".webp"))) {
+            /*if (!ad && (url.endsWith("jpg") || url.endsWith("png") || url.endsWith(".webp"))) {
                 String type = CommonUtils.getNetFileType(oUrl, 300);
                 if (type != null && (type.contains("gif"))) {
                     return true;
                 }
-            }
+            }*/
         }
         return ad;
     }
