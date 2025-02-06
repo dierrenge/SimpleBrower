@@ -55,6 +55,8 @@ import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -117,13 +119,18 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean hasAudioVideo = true; // 页面中有视频或音频
 
+    private int scrollY = 0;
+    private String dynamicContentState = "";
+
+    private Map<String, Map<String, String>> savaMaps = new HashMap();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             // 忽略强制网络策略: 在主线程中可以访问网络
-            /*StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);*/
+            StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
             // 设置默认导航栏、状态栏样式
             SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
@@ -567,14 +574,26 @@ public class BrowserActivity extends AppCompatActivity {
         List urlList = getUrls();
         if (urlList.size() > 0) {
             int index = urlList.lastIndexOf(currentUrl);
+            String previousUrl = urlList.get(index - 1).toString();
             if (index - 2 >= 0) {
                 // 解决重定向
-                if (!MyApplication.getUrls().contains(urlList.get(index - 1).toString())) {
+                if (!MyApplication.getUrls().contains(previousUrl)) {
                     webView.goBackOrForward(-2);
                     return;
                 }
             }
             webView.goBackOrForward(-1);
+
+            // 恢复浏览位置（主要针对动态加载的页面）
+            Map<String, String> savaMap = savaMaps.get(previousUrl);
+            if (savaMap != null) {
+                webView.postDelayed(() -> {
+                    // 使用 JavaScript 恢复动态内容状态
+                    webView.evaluateJavascript("document.body.innerHTML = " + JSONObject.quote(savaMap.get("dynamicContentState")) + ";", null);
+                    // 使用 JavaScript 恢复滚动位置
+                    webView.evaluateJavascript("window.scrollTo(0, " + Integer.parseInt(savaMap.get("scrollY")) + ");", null);
+                }, 1000);
+            }
         } else {
             BrowserActivity.super.onBackPressed();
         }
@@ -582,9 +601,33 @@ public class BrowserActivity extends AppCompatActivity {
 
     //访问url
     private void loadUrl(String url) {
+        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
         if (webView != null) {
             webView.loadUrl(url);
         }
+    }
+    private void loadUrl(WebView view, String url) {
+        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
+        view.loadUrl(url);
+    }
+
+    // 保存浏览位置（主要针对动态加载的页面）
+    private void saveY(String url) {
+        // 使用 JavaScript 获取滚动位置和动态内容状态
+        webView.evaluateJavascript("(function() { return { scrollY: window.scrollY, content: document.body.innerHTML }; })();", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String value) {
+                try {
+                    JSONObject state = new JSONObject(value);
+                    Map<String, String> savaMap = new HashMap<>();
+                    savaMap.put("scrollY", state.getInt("scrollY") + ""); // 保存滚动位置
+                    savaMap.put("dynamicContentState", state.getString("content")); // 保存动态内容状态
+                    savaMaps.put(url, savaMap);
+                } catch (JSONException e) {
+                    CommonUtils.saveLog("=======保存浏览位置异常：" + e.getMessage());
+                }
+            }
+        });
     }
 
     // 获取栈内存在的URL
@@ -801,7 +844,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 cUrl = "https://www.baidu.com/s?wd=" + txt.split("&")[0];
                             }
                         }*/
-                        view.loadUrl(cUrl);
+                        loadUrl(view, cUrl);
                         rtn = false;
                     } else {
                         return super.shouldOverrideUrlLoading(view, request);
