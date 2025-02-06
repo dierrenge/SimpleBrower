@@ -1000,7 +1000,6 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        super.onResume();
         webView.onResume();
         webView.resumeTimers();
         /**
