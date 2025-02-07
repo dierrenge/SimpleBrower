@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
                     android:textColor="@color/gray3"
-                    android:text="* 若省电策略之无限制无效，可尝试清除缓存"/>
+                    android:text="* 省电策略之无限制，设置后需稍等策略生效"/>
             </LinearLayout>
 
         </LinearLayout>

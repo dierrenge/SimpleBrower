@@ -120,6 +120,7 @@ public class BrowserActivity extends AppCompatActivity {
     private boolean hasAudioVideo = true; // 页面中有视频或音频
 
     private Map<String, Map<String, String>> savaMaps = new HashMap(); // 记录浏览位置（主要针对动态加载的页面）
+    private String flagUrl = ""; // 前进或后退的网址
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -432,8 +433,8 @@ public class BrowserActivity extends AppCompatActivity {
                     String nextUrl = urlList.get(index + 1).toString();
                     webView.goForward();
 
-                    // 恢复浏览位置（主要针对动态加载的页面）
-                    reloadY(nextUrl);
+                    // 标记前进或后退的网址
+                    flagUrl = nextUrl + "前进";
                 }
             }
         });
@@ -592,8 +593,8 @@ public class BrowserActivity extends AppCompatActivity {
             }
             webView.goBackOrForward(-1);
 
-            // 恢复浏览位置（主要针对动态加载的页面）
-            reloadY(previousUrl);
+            // 标记前进或后退的网址
+            flagUrl = previousUrl;
         } else {
             BrowserActivity.super.onBackPressed();
         }
@@ -631,15 +632,23 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     // 恢复浏览位置（主要针对动态加载的页面）
-    private void reloadY(String url) {
+    private void reloadY(WebView view, String url) {
+        int time = 0;
+        if (url.contains("前进")) {
+            time = 1000;
+            url = url.replace("前进","");
+        }
         Map<String, String> savaMap = savaMaps.get(url);
         if (savaMap != null) {
-            webView.postDelayed(() -> {
-                // 使用 JavaScript 恢复动态内容状态
-                webView.evaluateJavascript("document.body.innerHTML = " + JSONObject.quote(savaMap.get("dynamicContentState")) + ";", null);
-                // 使用 JavaScript 恢复滚动位置
-                webView.evaluateJavascript("window.scrollTo(0, " + Integer.parseInt(savaMap.get("scrollY")) + ");", null);
-            }, 1000);
+            view.postDelayed(() -> {
+                // 使用 JavaScript 恢复动态内容状态 、 恢复滚动位置
+                String dynamicContentState = JSONObject.quote(savaMap.get("dynamicContentState"));
+                int scrollY = Integer.parseInt(savaMap.get("scrollY"));
+                view.evaluateJavascript("(function() { " +
+                        "document.body.innerHTML = " + dynamicContentState + "; " +
+                        "window.scrollTo(0, " + scrollY + "); " +
+                        "})();", null);
+            }, time);
         }
     }
 
@@ -718,6 +727,12 @@ public class BrowserActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             MyApplication.setUrl(url); // 记录为历史网址 (onPageFinished方法不会有重定向的网页链接)
             super.onPageFinished(view, url);
+
+            // 恢复浏览位置（主要针对动态加载的页面）
+            if (!"".equals(flagUrl)) {
+                reloadY(view, flagUrl);
+                flagUrl = "";
+            }
 
             // 去广告
             /*String fun="javascript:" +

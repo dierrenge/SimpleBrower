@@ -230,6 +230,7 @@ public class TxtActivity extends AppCompatActivity {
                                 // 判断当前APP是否有加入电池优化的白名单，如果没有，弹出加入电池优化的白名单的设置对话框。
                                 // hasIgnored = powerManager.isIgnoringBatteryOptimizations(TxtActivity.this.getPackageName());
                                 // 直接跳转设置省电策略
+                                MyToast.getInstance(TxtActivity.this, "设置后需稍等策略生效！").show();
                                 Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                                 intent.setData(Uri.parse("package:" + TxtActivity.this.getPackageName()));
                                 startActivity(intent);
