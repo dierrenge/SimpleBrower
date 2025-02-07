@@ -119,10 +119,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean hasAudioVideo = true; // 页面中有视频或音频
 
-    private int scrollY = 0;
-    private String dynamicContentState = "";
-
-    private Map<String, Map<String, String>> savaMaps = new HashMap();
+    private Map<String, Map<String, String>> savaMaps = new HashMap(); // 记录浏览位置（主要针对动态加载的页面）
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -429,7 +426,15 @@ public class BrowserActivity extends AppCompatActivity {
         url_jump = findViewById(R.id.url_jump);
         url_jump.setOnClickListener(view -> {
             if (webView.canGoForward()) {
-                webView.goForward();
+                List urlList = getUrls();
+                if (urlList.size() > 0) {
+                    int index = urlList.lastIndexOf(webView.getUrl());
+                    String nextUrl = urlList.get(index + 1).toString();
+                    webView.goForward();
+
+                    // 恢复浏览位置（主要针对动态加载的页面）
+                    reloadY(nextUrl);
+                }
             }
         });
 
@@ -571,6 +576,9 @@ public class BrowserActivity extends AppCompatActivity {
 
     // 强制返回上一个网页
     private void backUrl() {
+        // 返回时 也保存浏览位置（主要针对动态加载的页面）
+        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
+
         List urlList = getUrls();
         if (urlList.size() > 0) {
             int index = urlList.lastIndexOf(currentUrl);
@@ -585,15 +593,7 @@ public class BrowserActivity extends AppCompatActivity {
             webView.goBackOrForward(-1);
 
             // 恢复浏览位置（主要针对动态加载的页面）
-            Map<String, String> savaMap = savaMaps.get(previousUrl);
-            if (savaMap != null) {
-                webView.postDelayed(() -> {
-                    // 使用 JavaScript 恢复动态内容状态
-                    webView.evaluateJavascript("document.body.innerHTML = " + JSONObject.quote(savaMap.get("dynamicContentState")) + ";", null);
-                    // 使用 JavaScript 恢复滚动位置
-                    webView.evaluateJavascript("window.scrollTo(0, " + Integer.parseInt(savaMap.get("scrollY")) + ");", null);
-                }, 1000);
-            }
+            reloadY(previousUrl);
         } else {
             BrowserActivity.super.onBackPressed();
         }
@@ -628,6 +628,19 @@ public class BrowserActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    // 恢复浏览位置（主要针对动态加载的页面）
+    private void reloadY(String url) {
+        Map<String, String> savaMap = savaMaps.get(url);
+        if (savaMap != null) {
+            webView.postDelayed(() -> {
+                // 使用 JavaScript 恢复动态内容状态
+                webView.evaluateJavascript("document.body.innerHTML = " + JSONObject.quote(savaMap.get("dynamicContentState")) + ";", null);
+                // 使用 JavaScript 恢复滚动位置
+                webView.evaluateJavascript("window.scrollTo(0, " + Integer.parseInt(savaMap.get("scrollY")) + ");", null);
+            }, 1000);
+        }
     }
 
     // 获取栈内存在的URL
@@ -854,6 +867,12 @@ public class BrowserActivity extends AppCompatActivity {
                 return rtn;
             }
             return super.shouldOverrideUrlLoading(view, request);
+        }
+
+        // 页面跳转、前进、后退 会触发
+        @Override
+        public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+            super.doUpdateVisitedHistory(view, url, isReload);
         }
 
         @Override
