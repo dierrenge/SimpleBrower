@@ -55,8 +55,6 @@ import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -118,9 +116,6 @@ public class BrowserActivity extends AppCompatActivity {
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
 
     private boolean hasAudioVideo = true; // 页面中有视频或音频
-
-    private Map<String, Map<String, String>> savaMaps = new HashMap(); // 记录浏览位置（主要针对动态加载的页面）
-    private String flagUrl = ""; // 前进或后退的网址
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -427,15 +422,7 @@ public class BrowserActivity extends AppCompatActivity {
         url_jump = findViewById(R.id.url_jump);
         url_jump.setOnClickListener(view -> {
             if (webView.canGoForward()) {
-                List urlList = getUrls();
-                if (urlList.size() > 0) {
-                    int index = urlList.lastIndexOf(webView.getUrl());
-                    String nextUrl = urlList.get(index + 1).toString();
-                    webView.goForward();
-
-                    // 标记前进或后退的网址
-                    flagUrl = nextUrl + "前进";
-                }
+                webView.goForward();
             }
         });
 
@@ -577,24 +564,17 @@ public class BrowserActivity extends AppCompatActivity {
 
     // 强制返回上一个网页
     private void backUrl() {
-        // 返回时 也保存浏览位置（主要针对动态加载的页面）
-        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
-
         List urlList = getUrls();
         if (urlList.size() > 0) {
             int index = urlList.lastIndexOf(currentUrl);
-            String previousUrl = urlList.get(index - 1).toString();
             if (index - 2 >= 0) {
                 // 解决重定向
-                if (!MyApplication.getUrls().contains(previousUrl)) {
+                if (!MyApplication.getUrls().contains(urlList.get(index - 1).toString())) {
                     webView.goBackOrForward(-2);
                     return;
                 }
             }
             webView.goBackOrForward(-1);
-
-            // 标记前进或后退的网址
-            flagUrl = previousUrl;
         } else {
             BrowserActivity.super.onBackPressed();
         }
@@ -602,53 +582,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     //访问url
     private void loadUrl(String url) {
-        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
         if (webView != null) {
             webView.loadUrl(url);
-        }
-    }
-    private void loadUrl(WebView view, String url) {
-        saveY(webView.getUrl() == null ? currentUrl : webView.getUrl());
-        view.loadUrl(url);
-    }
-
-    // 保存浏览位置（主要针对动态加载的页面）
-    private void saveY(String url) {
-        // 使用 JavaScript 获取滚动位置和动态内容状态
-        webView.evaluateJavascript("(function() { return { scrollY: window.scrollY, content: document.body.innerHTML }; })();", new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String value) {
-                try {
-                    JSONObject state = new JSONObject(value);
-                    Map<String, String> savaMap = new HashMap<>();
-                    savaMap.put("scrollY", state.getInt("scrollY") + ""); // 保存滚动位置
-                    savaMap.put("dynamicContentState", state.getString("content")); // 保存动态内容状态
-                    savaMaps.put(url, savaMap);
-                } catch (JSONException e) {
-                    CommonUtils.saveLog("=======保存浏览位置异常：" + e.getMessage());
-                }
-            }
-        });
-    }
-
-    // 恢复浏览位置（主要针对动态加载的页面）
-    private void reloadY(WebView view, String url) {
-        int time = 0;
-        if (url.contains("前进")) {
-            time = 1000;
-            url = url.replace("前进","");
-        }
-        Map<String, String> savaMap = savaMaps.get(url);
-        if (savaMap != null) {
-            view.postDelayed(() -> {
-                // 使用 JavaScript 恢复动态内容状态 、 恢复滚动位置
-                String dynamicContentState = JSONObject.quote(savaMap.get("dynamicContentState"));
-                int scrollY = Integer.parseInt(savaMap.get("scrollY"));
-                view.evaluateJavascript("(function() { " +
-                        "document.body.innerHTML = " + dynamicContentState + "; " +
-                        "window.scrollTo(0, " + scrollY + "); " +
-                        "})();", null);
-            }, time);
         }
     }
 
@@ -727,12 +662,6 @@ public class BrowserActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             MyApplication.setUrl(url); // 记录为历史网址 (onPageFinished方法不会有重定向的网页链接)
             super.onPageFinished(view, url);
-
-            // 恢复浏览位置（主要针对动态加载的页面）
-            if (!"".equals(flagUrl)) {
-                reloadY(view, flagUrl);
-                flagUrl = "";
-            }
 
             // 去广告
             /*String fun="javascript:" +
@@ -872,7 +801,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 cUrl = "https://www.baidu.com/s?wd=" + txt.split("&")[0];
                             }
                         }*/
-                        loadUrl(view, cUrl);
+                        view.loadUrl(cUrl);
                         rtn = false;
                     } else {
                         return super.shouldOverrideUrlLoading(view, request);
