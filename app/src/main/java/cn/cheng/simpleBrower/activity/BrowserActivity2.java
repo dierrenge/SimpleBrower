@@ -13,8 +13,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import java.util.Stack;
 
@@ -35,9 +33,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private Button btnBack;
 
     private static String currentUrl; // 当前网页网址
-
-    private FragmentManager fragmentManager;
-    private FragmentTransaction fragmentTransaction;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -77,9 +72,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
             currentUrl = intent.getStringExtra("webInfo");
         }
         CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
-
-        fragmentManager = getSupportFragmentManager();
-        fragmentTransaction = fragmentManager.beginTransaction();
 
         // 加载初始页面
         navigateTo(WebViewFragment.newInstance(currentUrl));
@@ -122,12 +114,9 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
     // 显示 Fragment
     private void showFragment(WebViewFragment fragment) {
-        if (fragmentManager.getFragments().size() == 0) {
-            fragmentTransaction.replace(R.id.fragmentContainer, fragment).commit();
-        } else {
-            fragmentTransaction.add(R.id.fragmentContainer, fragment).commit();
-        }
-
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
     }
 
     // 全屏播放处理
