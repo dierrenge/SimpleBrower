@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
@@ -23,13 +25,11 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class BrowserActivity2 extends AppCompatActivity implements WebViewFragment.CallListener {
-    private static final int MAX_HISTORY_SIZE = 10; // 最大历史记录数量
+    private static final int MAX_HISTORY_SIZE = 20; // 最大历史记录数量
     private Stack<WebViewFragment> backStack = new Stack<>();
     private Stack<WebViewFragment> forwardStack = new Stack<>();
-    private FrameLayout fullScreenContainer;
-    private View customView;
-    private WebChromeClient.CustomViewCallback customViewCallback;
 
+    private LinearLayout btn_menu2;
     private Button btnForward;
     private Button btnBack;
 
@@ -46,21 +46,16 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
         setContentView(R.layout.activity_brower2);
 
+        btn_menu2 = findViewById(R.id.btn_menu2);
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
         btnBack.setOnClickListener(v -> {
+            preFragment = backStack.peek();
             onBack();
         });
         btnForward.setOnClickListener(v -> {
             onForward();
         });
-
-        // 初始化全屏容器
-        fullScreenContainer = new FrameLayout(this);
-        fullScreenContainer.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
 
         // 设置此activity可用于打开 网络链接
         Intent intent = this.getIntent();
@@ -109,10 +104,26 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     // 返回操作
     public void onBack() {
         if (backStack.size() > 1) {
-            preFragment = backStack.peek();
-            WebViewFragment current = backStack.pop();
-            forwardStack.push(current);
-            showFragment(backStack.peek());
+            WebViewFragment fragment = backStack.pop();
+            // System.out.println("*************************" + fragment.getWebView().getUrl());
+            WebViewFragment backFragment = backStack.peek();
+            // System.out.println("*************************" + backFragment.getWebView().getUrl());
+            backFragment.checkIfPageIsEmpty(isEmpty -> {
+                // 递归处理空白页
+                if (isEmpty) {
+                    // 隐藏上一个fragment
+                    if (fragment != null) {
+                        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                        fragmentTransaction.hide(fragment);
+                        fragmentTransaction.commit();
+                    }
+                    onBack();
+                } else {
+                    forwardStack.push(preFragment);
+                    // System.out.println("*************************" + backFragment.getWebView().getUrl());
+                    showFragment(backFragment);
+                }
+            });
         } else {
             BrowserActivity2.super.onBackPressed();
         }
@@ -123,6 +134,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         if (!forwardStack.isEmpty()) {
             preFragment = backStack.peek();
             WebViewFragment next = forwardStack.pop();
+            // System.out.println("+++++++++++++++++++++++++" + next.getWebView().getUrl());
             backStack.push(next);
             showFragment(next);
         }
@@ -144,42 +156,22 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     // 全屏播放处理
     @Override
     public void onEnterFullScreen(View view, WebChromeClient.CustomViewCallback callback) {
-        if (customView != null) {
-            callback.onCustomViewHidden();
-            return;
-        }
-
-        // 隐藏系统 UI
-        getSupportActionBar().hide();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        // 添加全屏视图
-        customView = view;
-        customViewCallback = callback;
-        fullScreenContainer.addView(customView);
-        ((ViewGroup) getWindow().getDecorView()).addView(fullScreenContainer);
-
-        // 锁定横屏
+        SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_NAVIGATION);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        btn_menu2.setVisibility(View.GONE);
     }
 
     @Override
     public void onExitFullScreen() {
-        if (customView == null) return;
-
-        // 恢复系统 UI
-        getSupportActionBar().show();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        // 移除全屏视图
-        fullScreenContainer.removeView(customView);
-        ((ViewGroup) getWindow().getDecorView()).removeView(fullScreenContainer);
-        customViewCallback.onCustomViewHidden();
-        customView = null;
-        customViewCallback = null;
-
-        // 恢复竖屏
+        SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_STATE);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        btn_menu2.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public LayoutInflater onProgressView() {
+        LayoutInflater inflater = LayoutInflater.from(BrowserActivity2.this);
+        return inflater;
     }
 
     @Override
@@ -191,12 +183,26 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     // 处理物理返回键
     @Override
     public void onBackPressed() {
-        if (customView != null) {
-            onExitFullScreen();
-        } else if (backStack.size() > 1) {
+        if (backStack.size() > 1) {
+            preFragment = backStack.peek();
+            if (preFragment.inCustomView()) {
+                preFragment.hideCustomView();
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
             onBack();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        /**
+         * 设置为横屏
+         */
+        if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
     }
 

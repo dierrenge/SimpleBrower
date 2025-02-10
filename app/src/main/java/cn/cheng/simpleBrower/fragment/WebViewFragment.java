@@ -1,6 +1,7 @@
 package cn.cheng.simpleBrower.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -18,6 +20,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -26,11 +29,19 @@ import java.lang.reflect.Method;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.activity.BrowserActivity;
+import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class WebViewFragment extends Fragment {
     private WebView webView;
     private CallListener callListener;
     private String jumpUrl;
+
+    private CustomWebChromeClient xwebchromeclient;
+    private FrameLayout video_fullView;// 全屏时视频加载view
+    private View xCustomView;
+    private WebChromeClient.CustomViewCallback xCustomViewCallback;
 
     // 无参构造函数
     public WebViewFragment() {
@@ -49,6 +60,7 @@ public class WebViewFragment extends Fragment {
     public interface CallListener {
         void onEnterFullScreen(View view, WebChromeClient.CustomViewCallback callback);
         void onExitFullScreen();
+        LayoutInflater onProgressView();
         // 跳转网址
         void jump(String url);
     }
@@ -62,6 +74,7 @@ public class WebViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
         webView = view.findViewById(R.id.webView);
+        video_fullView = (FrameLayout) view.findViewById(R.id.video_fullView);
 
         // 获取 URL 参数
         Bundle args = getArguments();
@@ -134,9 +147,24 @@ public class WebViewFragment extends Fragment {
 
         // 设置 WebViewClient 和 WebChromeClient
         webView.setWebViewClient(myClient);
+        xwebchromeclient = new CustomWebChromeClient();
         webView.setWebChromeClient(new CustomWebChromeClient());
 
         return view;
+    }
+
+    // 检测页面是否空白
+    public void checkIfPageIsEmpty(ValueCallback<Boolean> callback) {
+        webView.evaluateJavascript("(function() { " +
+                "return document.body.innerHTML; " +
+                "})();", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String value) {
+                // System.out.println("********************************" + value);
+                boolean isEmpty = value == null || "null".equals(value);
+                callback.onReceiveValue(isEmpty);
+            }
+        });
     }
 
     // 自定义 WebViewClient（处理页面加载错误）
@@ -214,33 +242,87 @@ public class WebViewFragment extends Fragment {
 
     // 自定义 WebChromeClient（处理全屏事件）
     private class CustomWebChromeClient extends WebChromeClient {
-        private View customView;
-        private WebChromeClient.CustomViewCallback customViewCallback;
 
+        private View xprogressvideo;
+
+        // 播放网络视频时全屏会被调用的方法
         @Override
         public void onShowCustomView(View view, CustomViewCallback callback) {
-            if (callListener != null) {
-                callListener.onEnterFullScreen(view, callback);
+            callListener.onEnterFullScreen(view, callback);
+            // 如果一个视图已经存在，那么立刻终止并新建一个
+            if (xCustomView != null) {
+                callback.onCustomViewHidden();
+                return;
             }
+            video_fullView.addView(view);
+            xCustomView = view;
+            xCustomViewCallback = callback;
+            video_fullView.setVisibility(View.VISIBLE);
+            webView.setVisibility(View.INVISIBLE);
+        }
+
+        // 视频播放退出全屏会被调用的
+        @Override
+        public void onHideCustomView() {
+            if (xCustomView == null)// 不是全屏播放状态
+                return;
+            callListener.onExitFullScreen();
+            xCustomView.setVisibility(View.GONE);
+            video_fullView.removeView(xCustomView);
+            xCustomView = null;
+            video_fullView.setVisibility(View.GONE);
+            xCustomViewCallback.onCustomViewHidden();
+            webView.setVisibility(View.VISIBLE);
+        }
+
+        // 视频加载时进程loading
+        @Override
+        public View getVideoLoadingProgressView() {
+            if (xprogressvideo == null) {
+                LayoutInflater inflater = callListener.onProgressView();
+                xprogressvideo = inflater.inflate(R.layout.video_loading_progress, null);
+            }
+            return xprogressvideo;
         }
 
         @Override
-        public void onHideCustomView() {
-            if (callListener != null) {
-                callListener.onExitFullScreen();
-            }
+        public void onProgressChanged(WebView view, int newProgress) {
+            super.onProgressChanged(view, newProgress);
         }
+
+        @Override
+        public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+            super.onConsoleMessage(consoleMessage);
+            return false;
+        }
+    }
+
+    /**
+     * 判断是否是全屏
+     *
+     * @return
+     */
+    public boolean inCustomView() {
+        return (xCustomView != null);
+    }
+
+    /**
+     * 全屏时按返加键执行退出全屏方法
+     */
+    public void hideCustomView() {
+        xwebchromeclient.onHideCustomView();
     }
 
     // 释放 WebView 资源
     @Override
-    public void onDestroyView() {
-        if (webView != null) {
-            webView.stopLoading();
-            webView.destroy();
-            webView = null;
-        }
-        super.onDestroyView();
+    public void onDestroy() {
+        super.onDestroy();
+        video_fullView.removeAllViews();
+        webView.stopLoading();
+        webView.setWebChromeClient(null);
+        webView.setWebViewClient(null);
+        webView.destroy();
+        webView = null;
     }
 
     public WebView getWebView() {
