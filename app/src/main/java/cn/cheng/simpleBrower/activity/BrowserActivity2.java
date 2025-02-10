@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.util.Stack;
 
@@ -33,6 +34,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private Button btnBack;
 
     private static String currentUrl; // 当前网页网址
+    private WebViewFragment preFragment; // 上一个fragment
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -79,13 +81,24 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
     // 跳转到新页面
     public void navigateTo(WebViewFragment fragment) {
+        if (backStack.size() > 0) {
+            preFragment = backStack.peek();
+        }
+
         // 内存优化：限制历史栈大小
         if (backStack.size() >= MAX_HISTORY_SIZE) {
             WebViewFragment oldest = backStack.remove(0);
             if (oldest.getWebView() != null) {
                 oldest.getWebView().destroy();
             }
+            getSupportFragmentManager().beginTransaction().remove(oldest).commit();
         }
+
+        // 添加新 Fragment
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.fragmentContainer, fragment)
+                .hide(fragment) // 先隐藏新 Fragment
+                .commit();
 
         forwardStack.clear(); // 清空前进栈
         backStack.push(fragment);
@@ -95,17 +108,20 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
     // 返回操作
     public void onBack() {
-        System.out.println("=============onBack============" + backStack.size() );
         if (backStack.size() > 1) {
+            preFragment = backStack.peek();
             WebViewFragment current = backStack.pop();
             forwardStack.push(current);
             showFragment(backStack.peek());
+        } else {
+            BrowserActivity2.super.onBackPressed();
         }
     }
 
     // 前进操作
     public void onForward() {
         if (!forwardStack.isEmpty()) {
+            preFragment = backStack.peek();
             WebViewFragment next = forwardStack.pop();
             backStack.push(next);
             showFragment(next);
@@ -114,9 +130,15 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
     // 显示 Fragment
     private void showFragment(WebViewFragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
-                .commit();
+        try {
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            if (preFragment != null) {
+                fragmentTransaction.hide(preFragment);
+            }
+            fragmentTransaction.show(fragment).commit();
+        } catch (Exception e) {
+            CommonUtils.saveLog("===========showFragment===========" + e.getMessage());
+        }
     }
 
     // 全屏播放处理

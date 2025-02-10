@@ -30,6 +30,7 @@ import cn.cheng.simpleBrower.R;
 public class WebViewFragment extends Fragment {
     private WebView webView;
     private CallListener callListener;
+    private String jumpUrl;
 
     // 无参构造函数
     public WebViewFragment() {
@@ -65,9 +66,9 @@ public class WebViewFragment extends Fragment {
         // 获取 URL 参数
         Bundle args = getArguments();
         if (args != null) {
-            String url = args.getString("url");
-            if (url != null) {
-                webView.loadUrl(url);
+            jumpUrl = args.getString("url");
+            if (jumpUrl != null) {
+                webView.loadUrl(jumpUrl);
             }
         }
 
@@ -140,17 +141,14 @@ public class WebViewFragment extends Fragment {
 
     // 自定义 WebViewClient（处理页面加载错误）
     WebViewClient myClient = new WebViewClient() {
-        private String startUrl = "";
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            startUrl = url;
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            MyApplication.setUrl(url); // 记录为历史网址 (onPageFinished方法不会有重定向的网页链接)
             super.onPageFinished(view, url);
         }
 
@@ -181,25 +179,19 @@ public class WebViewFragment extends Fragment {
         // 设置网页页面拦截
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            Uri uri = request.getUrl();
-            if (uri != null) {
-                String cUrl = uri.toString();
-                boolean rtn = true;
-                if (cUrl.startsWith("https:") || cUrl.startsWith("http:")) {
-
-                    if (!startUrl.equals(cUrl)) { // 重定向时，防止系统记录重定向前的地址
-                        if (callListener != null) {
-                            callListener.jump(cUrl);
-                        }
-                        rtn = false;
-                    } else {
-                        return super.shouldOverrideUrlLoading(view, request);
-                    }
-                }
-                // 当返回false时，用 WebView 加载该 url （否则不加载，即不跳转该地址）
-                return rtn;
+            String url = request.getUrl().toString();
+            if (!url.startsWith("https:") && !url.startsWith("http:")) {
+                return true;
             }
-            return super.shouldOverrideUrlLoading(view, request);
+            // 仅处理用户触发的 非重定向 主框架请求
+            if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
+                    && !request.isRedirect() && request.isForMainFrame()) {
+                if (callListener != null) {
+                    callListener.jump(url);
+                    return true; // 拦截跳转，由 Activity 处理
+                }
+            }
+            return false; // 其他情况由 WebView 自行处理
         }
 
         @Override
