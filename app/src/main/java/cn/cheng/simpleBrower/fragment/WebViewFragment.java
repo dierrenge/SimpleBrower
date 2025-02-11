@@ -25,12 +25,15 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import org.json.JSONObject;
+
 import java.lang.reflect.Method;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class WebViewFragment extends Fragment {
@@ -160,8 +163,8 @@ public class WebViewFragment extends Fragment {
                 "})();", new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String value) {
-                // System.out.println("********************************" + value);
                 boolean isEmpty = value == null || "null".equals(value);
+                if (!isEmpty) CommonUtils.saveLog(webView.getUrl() + "**************************\n" + value);
                 callback.onReceiveValue(isEmpty);
             }
         });

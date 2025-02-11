@@ -9,7 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -50,11 +52,14 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
         btnBack.setOnClickListener(v -> {
-            preFragment = backStack.peek();
-            onBack();
+            goBackOrForward("back", b -> {
+                onBack();
+            });
         });
         btnForward.setOnClickListener(v -> {
-            onForward();
+            goBackOrForward("forward", b -> {
+                onForward();
+            });
         });
 
         // 设置此activity可用于打开 网络链接
@@ -132,11 +137,30 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     // 前进操作
     public void onForward() {
         if (!forwardStack.isEmpty()) {
-            preFragment = backStack.peek();
             WebViewFragment next = forwardStack.pop();
             // System.out.println("+++++++++++++++++++++++++" + next.getWebView().getUrl());
             backStack.push(next);
             showFragment(next);
+        }
+    }
+
+    // 兼顾webView的前进返回
+    private void goBackOrForward(String type, ValueCallback<Boolean> callback) {
+        preFragment = backStack.peek();
+        WebView webView = preFragment.getWebView();
+        if ("back".equals(type)) {
+            if (webView.canGoBack()) {
+                forwardStack.clear(); // webView能返回说明会使用其自身的前进栈，故清空我们的fragment前进栈
+                webView.goBack();
+            } else {
+                callback.onReceiveValue(true);
+            }
+        } else if ("forward".equals(type)) {
+            if (webView.canGoForward()) {
+                webView.goForward();
+            } else {
+                callback.onReceiveValue(true);
+            }
         }
     }
 
@@ -189,7 +213,9 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
                 preFragment.hideCustomView();
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             }
-            onBack();
+            goBackOrForward("back", b -> {
+                onBack();
+            });
         } else {
             super.onBackPressed();
         }
