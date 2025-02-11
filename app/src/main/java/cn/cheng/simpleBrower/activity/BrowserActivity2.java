@@ -148,6 +148,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private void goBackOrForward(String type, ValueCallback<Boolean> callback) {
         preFragment = backStack.peek();
         WebView webView = preFragment.getWebView();
+        // System.out.println("=================================" + webView.getUrl());
         if ("back".equals(type)) {
             if (webView.canGoBack()) {
                 forwardStack.clear(); // webView能返回说明会使用其自身的前进栈，故清空我们的fragment前进栈

@@ -159,18 +159,18 @@ public class WebViewFragment extends Fragment {
     // 检测页面是否空白
     public void checkIfPageIsEmpty(ValueCallback<Boolean> callback) {
         webView.evaluateJavascript("(function() { " +
-                "return document.body.innerHTML; " +
+                "return document.body ? document.body.innerHTML : null; " +
                 "})();", new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String value) {
-                boolean isEmpty = value == null || "null".equals(value);
-                if (!isEmpty) CommonUtils.saveLog(webView.getUrl() + "**************************\n" + value);
+                boolean isEmpty = value == null || "null".equals(value) || !value.contains(">");
+                // if (!isEmpty) System.out.println(webView.getUrl() + "**************************\n" + value);
                 callback.onReceiveValue(isEmpty);
             }
         });
     }
 
-    // 自定义 WebViewClient（处理页面加载错误）
+    // 自定义 WebViewClient（处理页面加载）
     WebViewClient myClient = new WebViewClient() {
 
         @Override
@@ -180,6 +180,7 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            MyApplication.setUrl(url); // 记录为历史网址
             super.onPageFinished(view, url);
         }
 
@@ -321,7 +322,7 @@ public class WebViewFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         video_fullView.removeAllViews();
-        webView.stopLoading();
+        // webView.stopLoading();
         webView.setWebChromeClient(null);
         webView.setWebViewClient(null);
         webView.destroy();

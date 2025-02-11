@@ -66,6 +66,7 @@ public class MyApplication extends Application {
     }
 
     public static void setUrl(String url) {
+        if (urls.size() > 0 && urls.get(urls.size() - 1).equals(url)) return;
         urls.add(url);
     }
 
