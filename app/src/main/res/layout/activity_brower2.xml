@@ -33,5 +33,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="前进"/>
+        <Button
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="首页"/>
     </LinearLayout>
 </LinearLayout>

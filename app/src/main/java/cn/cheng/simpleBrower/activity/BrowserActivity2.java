@@ -34,6 +34,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private LinearLayout btn_menu2;
     private Button btnForward;
     private Button btnBack;
+    private Button btnHome;
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
@@ -51,6 +52,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         btn_menu2 = findViewById(R.id.btn_menu2);
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
+        btnHome = findViewById(R.id.btnHome);
         btnBack.setOnClickListener(v -> {
             goBackOrForward("back", b -> {
                 onBack();
@@ -60,6 +62,9 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
             goBackOrForward("forward", b -> {
                 onForward();
             });
+        });
+        btnHome.setOnClickListener(v -> {
+            BrowserActivity2.super.onBackPressed();
         });
 
         // 设置此activity可用于打开 网络链接

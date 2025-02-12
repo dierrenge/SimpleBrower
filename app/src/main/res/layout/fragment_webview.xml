@@ -27,25 +27,25 @@
             <EditText
                 android:id="@+id/url_box2"
                 android:layout_width="0dp"
-                android:layout_height="40dp"
+                android:layout_height="36dp"
                 android:layout_weight="1"
                 android:gravity="center|start"
                 android:imeOptions="actionDone"
-                android:paddingLeft="2dp"
+                android:paddingLeft="10dp"
                 android:paddingRight="2dp"
                 android:inputType="text"
                 android:maxLines="1"
                 android:textCursorDrawable="@drawable/edit_text_cursor"
-                android:background="@color/white"
-                android:layout_marginEnd="10dp"
+                android:background="@drawable/txt_bg"
+                android:layout_marginEnd="4dp"
                 android:textColor="@color/gray3" />
             <ImageButton
                 android:id="@+id/url_like2"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:scaleType="fitCenter"
-                android:background="@drawable/btn_like2"
-                android:layout_marginEnd="10dp"
+                android:background="@drawable/btn_bookmark"
+                android:layout_marginEnd="2dp"
                 android:gravity="center|end" />
             <ImageButton
                 android:id="@+id/url_flush2"
@@ -53,7 +53,7 @@
                 android:layout_height="26dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_flush"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="8dp"
                 android:gravity="center|end" />
 
         </LinearLayout>

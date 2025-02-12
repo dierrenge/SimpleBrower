@@ -7,9 +7,11 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
@@ -20,7 +22,12 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -37,6 +44,10 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class WebViewFragment extends Fragment {
+    private LinearLayout viewViewLayout;
+    private EditText url_box2;
+    private ImageButton url_like2;
+    private ImageButton url_flush2;
     private WebView webView;
     private CallListener callListener;
     private String jumpUrl;
@@ -76,6 +87,10 @@ public class WebViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
+        viewViewLayout = view.findViewById(R.id.viewViewLayout);
+        url_box2 = view.findViewById(R.id.url_box2);
+        url_like2 = view.findViewById(R.id.url_like2);
+        url_flush2 = view.findViewById(R.id.url_flush2);
         webView = view.findViewById(R.id.webView);
         video_fullView = (FrameLayout) view.findViewById(R.id.video_fullView);
 
@@ -84,10 +99,43 @@ public class WebViewFragment extends Fragment {
         if (args != null) {
             jumpUrl = args.getString("url");
             if (jumpUrl != null) {
+                url_box2.setText(jumpUrl);
                 webView.loadUrl(jumpUrl);
             }
         }
 
+        // 软件盘回车响应
+        url_box2.setOnEditorActionListener((TextView v, int actionId, KeyEvent event) -> {
+            if (actionId == KeyEvent.ACTION_DOWN || actionId == EditorInfo.IME_ACTION_DONE) {
+                jumpLoading();
+            }
+            return true;
+        });
+        // 刷新
+        url_flush2.setOnClickListener(v -> {
+            jumpLoading();
+        });
+
+        initWebView();
+
+        return view;
+    }
+
+    // 刷新网址栏
+    private void jumpLoading() {
+        String webInfo = url_box2.getText().toString();
+        if (!CommonUtils.isUrl(webInfo)) {
+            webInfo = "https://www.baidu.com/s?wd=" + webInfo;
+        } else {
+            if (!webInfo.toLowerCase().startsWith("http://") && !webInfo.toLowerCase().startsWith("https://")) {
+                webInfo = "http://" + webInfo;
+            }
+        }
+        webView.clearHistory();
+        webView.loadUrl(webInfo);
+    }
+
+    private void initWebView() {
         // 初始化 WebView 配置
         WebSettings webSettings = webView.getSettings();
         // 不显示滚动条
@@ -152,8 +200,6 @@ public class WebViewFragment extends Fragment {
         webView.setWebViewClient(myClient);
         xwebchromeclient = new CustomWebChromeClient();
         webView.setWebChromeClient(new CustomWebChromeClient());
-
-        return view;
     }
 
     // 检测页面是否空白
@@ -175,6 +221,7 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            url_box2.setText(url);
             super.onPageStarted(view, url, favicon);
         }
 
@@ -262,7 +309,7 @@ public class WebViewFragment extends Fragment {
             xCustomView = view;
             xCustomViewCallback = callback;
             video_fullView.setVisibility(View.VISIBLE);
-            webView.setVisibility(View.INVISIBLE);
+            viewViewLayout.setVisibility(View.INVISIBLE);
         }
 
         // 视频播放退出全屏会被调用的
@@ -276,7 +323,7 @@ public class WebViewFragment extends Fragment {
             xCustomView = null;
             video_fullView.setVisibility(View.GONE);
             xCustomViewCallback.onCustomViewHidden();
-            webView.setVisibility(View.VISIBLE);
+            viewViewLayout.setVisibility(View.VISIBLE);
         }
 
         // 视频加载时进程loading
