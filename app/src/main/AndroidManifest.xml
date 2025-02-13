@@ -180,9 +180,14 @@
             </intent-filter>
         </activity>
 
+        <!--
+        android:windowSoftInputMode="adjustNothing"
+        软键盘弹出时不会调整布局
+        -->
         <activity
             android:name=".activity.BrowserActivity2"
             android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
