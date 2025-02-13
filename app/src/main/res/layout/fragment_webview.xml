@@ -45,12 +45,12 @@
                 android:layout_height="26dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_bookmark"
-                android:layout_marginEnd="2dp"
+                android:layout_marginEnd="4dp"
                 android:gravity="center|end" />
             <ImageButton
                 android:id="@+id/url_flush2"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_flush"
                 android:layout_marginEnd="8dp"

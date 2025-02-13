@@ -161,7 +161,8 @@ public class WebViewFragment extends Fragment {
         webSettings.setLoadWithOverviewMode(true);
         //是否使用缓存
         //webSettings.setAppCacheEnabled(true);
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); // Android 13 平替 setAppCacheEnabled(true)
+        // webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); // Android 13 平替 setAppCacheEnabled(true)
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE); // 不缓存，主要有的网站登录用到cookie，设置LOAD_CACHE_ELSE_NETWORK导致无法登录
         //开启本地DOM存储
         webSettings.setDomStorageEnabled(true);
         // 加载图片
