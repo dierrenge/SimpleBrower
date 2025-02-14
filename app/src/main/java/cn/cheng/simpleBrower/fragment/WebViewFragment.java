@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -40,6 +42,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
@@ -48,6 +51,9 @@ public class WebViewFragment extends Fragment {
     private EditText url_box2;
     private ImageButton url_like2;
     private ImageButton url_flush2;
+    private ImageButton url_stop;
+    private ProgressBar viewViewProgressbar;
+    private Handler progressHandler;
     private WebView webView;
     private CallListener callListener;
     private String jumpUrl;
@@ -87,10 +93,13 @@ public class WebViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
+        progressHandler = new Handler();
         viewViewLayout = view.findViewById(R.id.viewViewLayout);
         url_box2 = view.findViewById(R.id.url_box2);
         url_like2 = view.findViewById(R.id.url_like2);
         url_flush2 = view.findViewById(R.id.url_flush2);
+        url_stop = view.findViewById(R.id.url_stop);
+        viewViewProgressbar = view.findViewById(R.id.viewViewProgressbar);
         webView = view.findViewById(R.id.webView);
         video_fullView = (FrameLayout) view.findViewById(R.id.video_fullView);
 
@@ -114,6 +123,12 @@ public class WebViewFragment extends Fragment {
         // 刷新
         url_flush2.setOnClickListener(v -> {
             jumpLoading();
+        });
+        // 停止刷新
+        url_stop.setOnClickListener(v -> {
+            webView.stopLoading(); // 停止加载
+            // webView.loadUrl("about:blank");  // 清空内容（可选）
+            hideProgress();
         });
 
         initWebView();
@@ -223,12 +238,19 @@ public class WebViewFragment extends Fragment {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             url_box2.setText(url);
+            url_box2.setEnabled(false);
+            viewViewProgressbar.setVisibility(View.VISIBLE);
+            url_flush2.setVisibility(View.GONE);
+            url_stop.setVisibility(View.VISIBLE);
+            // 添加超时检测（例如 30 秒）
+            progressHandler.postDelayed(myRunnable, 30000);
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             MyApplication.setUrl(url); // 记录为历史网址
+            hideProgress();
             super.onPageFinished(view, url);
         }
 
@@ -288,6 +310,7 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            hideProgress();
             super.onReceivedError(view, request, error);
         }
     };
@@ -339,7 +362,19 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
+            if (newProgress >= 100) {
+                hideProgress();
+            } else {
+                viewViewProgressbar.setProgress(newProgress);
+            }
             super.onProgressChanged(view, newProgress);
+        }
+
+        // 更新 Activity 标题
+        @Override
+        public void onReceivedTitle(WebView view, String title) {
+            super.onReceivedTitle(view, title);
+            // setTitle(title);
         }
 
         @Override
@@ -347,6 +382,27 @@ public class WebViewFragment extends Fragment {
             super.onConsoleMessage(consoleMessage);
             return false;
         }
+    }
+
+    // 超时处理进度条
+    Runnable myRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (viewViewProgressbar.getVisibility() == View.VISIBLE) {
+                webView.stopLoading();
+                hideProgress();
+                MyToast.getInstance(MyApplication.getActivity(), "加载超时").show();
+            }
+        }
+    };
+
+    // 隐藏进度条等
+    private void hideProgress() {
+        viewViewProgressbar.setVisibility(View.INVISIBLE);
+        url_flush2.setVisibility(View.VISIBLE);
+        url_stop.setVisibility(View.GONE);
+        url_box2.setEnabled(true);
+        progressHandler.removeCallbacks(myRunnable);
     }
 
     /**

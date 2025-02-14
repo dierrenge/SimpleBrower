@@ -60,14 +60,20 @@
             <ImageButton
                 android:id="@+id/url_stop"
                 android:visibility="gone"
-                android:layout_width="19dp"
-                android:layout_height="19dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_stop"
                 android:layout_marginEnd="10dp"
                 android:gravity="center|end" />
 
         </LinearLayout>
+        <ProgressBar
+            android:id="@+id/viewViewProgressbar"
+            android:visibility="invisible"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="2dp" />
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
