@@ -32,7 +32,7 @@
                 android:gravity="center|start"
                 android:imeOptions="actionDone"
                 android:paddingLeft="10dp"
-                android:paddingRight="2dp"
+                android:paddingRight="0dp"
                 android:inputType="text"
                 android:maxLines="1"
                 android:textCursorDrawable="@drawable/edit_text_cursor"
@@ -49,11 +49,22 @@
                 android:gravity="center|end" />
             <ImageButton
                 android:id="@+id/url_flush2"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:visibility="visible"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_flush"
-                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="0.5dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center|end" />
+            <ImageButton
+                android:id="@+id/url_stop"
+                android:visibility="gone"
+                android:layout_width="19dp"
+                android:layout_height="19dp"
+                android:scaleType="fitCenter"
+                android:background="@drawable/btn_stop"
+                android:layout_marginEnd="10dp"
                 android:gravity="center|end" />
 
         </LinearLayout>
