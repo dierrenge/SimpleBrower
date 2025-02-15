@@ -14,6 +14,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,9 +33,9 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private Stack<WebViewFragment> forwardStack = new Stack<>();
 
     private LinearLayout btn_menu2;
-    private Button btnForward;
-    private Button btnBack;
-    private Button btnHome;
+    private ImageButton btnForward;
+    private ImageButton btnBack;
+    private ImageButton btnHome;
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment

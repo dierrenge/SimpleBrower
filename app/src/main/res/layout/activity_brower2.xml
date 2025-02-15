@@ -7,37 +7,101 @@
     android:orientation="vertical">
 
     <!-- Fragment 容器 -->
+
+    <!-- 导航栏 -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:layout_height="0dp"/>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- 导航栏 -->
     <LinearLayout
         android:id="@+id/btn_menu2"
+        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnBack"
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="返回" />
+            android:layout_weight="1">
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:scaleX="1"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="fitCenter"
+                android:background="@drawable/back"
+                android:layout_marginEnd="4dp"
+                android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <ImageButton
+                android:id="@+id/btnForward"
+                android:scaleX="-1"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="fitCenter"
+                android:background="@drawable/back"
+                android:layout_marginEnd="4dp"
+                android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <ImageButton
+                android:id="@+id/btnHome"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="fitCenter"
+                android:background="@drawable/btn_home2"
+                android:layout_marginEnd="4dp"
+                android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <ImageButton
+                android:id="@+id/btnMonitor"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:scaleType="fitCenter"
+                android:background="@drawable/btn_monitor"
+                android:layout_marginEnd="4dp"
+                android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
-        <Button
-            android:id="@+id/btnForward"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="前进"/>
-        <Button
-            android:id="@+id/btnHome"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="首页"/>
+            <ImageButton
+                android:id="@+id/btnMore"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/btn_more"
+                android:gravity="center"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+
     </LinearLayout>
 </LinearLayout>

@@ -64,6 +64,7 @@
                 android:layout_height="24dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_stop"
+                android:layout_marginBottom="0.5dp"
                 android:layout_marginEnd="10dp"
                 android:gravity="center|end" />
 

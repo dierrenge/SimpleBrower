@@ -1,6 +1,8 @@
 package cn.cheng.simpleBrower.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.DownloadManager;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -8,6 +10,7 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,18 +34,29 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
@@ -62,6 +76,8 @@ public class WebViewFragment extends Fragment {
     private FrameLayout video_fullView;// 全屏时视频加载view
     private View xCustomView;
     private WebChromeClient.CustomViewCallback xCustomViewCallback;
+
+    private Handler handler;
 
     // 无参构造函数
     public WebViewFragment() {
@@ -120,6 +136,54 @@ public class WebViewFragment extends Fragment {
             }
             return true;
         });
+        // 收藏
+        url_like2.setOnClickListener(v -> {
+            // 页面跳转后会用到的权限
+            if (CommonUtils.hasStoragePermissions(MyApplication.getActivity())) {
+                if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
+                    //启动线程开始执行 收藏网址存档
+                    new Thread(() -> {
+                        try {
+                            File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+                            // 没有文件 hasFile为true 则追加
+                            boolean hasFile = false;
+                            if (!file.exists()) {
+                                hasFile = file.createNewFile();
+                            } else {
+                                hasFile = true;
+                            }
+                            try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file, hasFile));
+                                 BufferedReader reader = new BufferedReader(new FileReader(file))
+                            ) {
+                                Message message = Message.obtain();
+                                String likeUrl = jumpUrl + "\n";
+                                if (hasFile) {
+                                    List<String> likes = new ArrayList<>();
+                                    String line = null;
+                                    while ((line = reader.readLine()) != null) {
+                                        likes.add(line);
+                                    }
+                                    if (likes.size() > 0 && likes.contains(jumpUrl)) {
+                                        message.obj = "该网页已收藏过了。";
+                                        handler.sendMessage(message);
+                                        return;
+                                    }
+                                }
+                                bos.write(likeUrl.getBytes());
+                                message.obj = "网页收藏成功";
+                                handler.sendMessage(message);
+                            } catch (IOException e) {
+                                e.getMessage();
+                            }
+                        } catch (Exception e) {
+                            e.getMessage();
+                        }
+                    }).start();
+                }
+            } else {
+                CommonUtils.requestStoragePermissions(MyApplication.getActivity());
+            }
+        });
         // 刷新
         url_flush2.setOnClickListener(v -> {
             jumpLoading();
@@ -132,6 +196,15 @@ public class WebViewFragment extends Fragment {
         });
 
         initWebView();
+
+        // 多线程消息管理
+        handler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(@NonNull Message message) {
+                MyToast.getInstance(MyApplication.getActivity(), message.obj + "").show();
+                return false;
+            }
+        });
 
         return view;
     }
@@ -226,7 +299,7 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onReceiveValue(String value) {
                 boolean isEmpty = value == null || "null".equals(value) || !value.contains(">");
-                // if (!isEmpty) System.out.println(webView.getUrl() + "**************************\n" + value);
+                // if (!isEmpty) System.out.println(jumpUrl + "**************************\n" + value);
                 callback.onReceiveValue(isEmpty);
             }
         });
@@ -237,6 +310,7 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            jumpUrl = url;
             url_box2.setText(url);
             url_box2.setEnabled(false);
             viewViewProgressbar.setVisibility(View.VISIBLE);
