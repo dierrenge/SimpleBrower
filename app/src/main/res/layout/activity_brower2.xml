@@ -29,12 +29,13 @@
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0.5dp"
             android:layout_weight="1">
             <ImageButton
                 android:id="@+id/btnBack"
                 android:scaleX="1"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="29dp"
+                android:layout_height="29dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/back"
                 android:layout_marginEnd="4dp"
@@ -45,12 +46,13 @@
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0.5dp"
             android:layout_weight="1">
             <ImageButton
                 android:id="@+id/btnForward"
                 android:scaleX="-1"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="29dp"
+                android:layout_height="29dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/back"
                 android:layout_marginEnd="4dp"
@@ -79,8 +81,8 @@
             android:layout_weight="1">
             <ImageButton
                 android:id="@+id/btnMonitor"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="29dp"
+                android:layout_height="29dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_monitor"
                 android:layout_marginEnd="4dp"
@@ -95,8 +97,8 @@
 
             <ImageButton
                 android:id="@+id/btnMore"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/btn_more"
                 android:gravity="center"

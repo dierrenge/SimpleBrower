@@ -22,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:gravity="center"
+            android:background="@drawable/txt_bg"
             android:orientation="horizontal">
 
             <EditText
@@ -36,7 +37,7 @@
                 android:inputType="text"
                 android:maxLines="1"
                 android:textCursorDrawable="@drawable/edit_text_cursor"
-                android:background="@drawable/txt_bg"
+                android:background="@color/translucent"
                 android:layout_marginEnd="4dp"
                 android:textColor="@color/gray3" />
             <ImageButton
@@ -49,7 +50,7 @@
                 android:gravity="center|end" />
             <ImageButton
                 android:id="@+id/url_flush2"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitCenter"
@@ -59,7 +60,7 @@
                 android:gravity="center|end" />
             <ImageButton
                 android:id="@+id/url_stop"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitCenter"
@@ -71,10 +72,17 @@
         </LinearLayout>
         <ProgressBar
             android:id="@+id/viewViewProgressbar"
-            android:visibility="invisible"
+            android:visibility="gone"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="2dp" />
+        <LinearLayout
+            android:id="@+id/progressBg"
+            android:background="@drawable/txt_bg"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:orientation="horizontal">
+        </LinearLayout>
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"

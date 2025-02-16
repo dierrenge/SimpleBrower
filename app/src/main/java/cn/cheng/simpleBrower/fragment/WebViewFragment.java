@@ -67,6 +67,7 @@ public class WebViewFragment extends Fragment {
     private ImageButton url_flush2;
     private ImageButton url_stop;
     private ProgressBar viewViewProgressbar;
+    private LinearLayout progressBg;
     private Handler progressHandler;
     private WebView webView;
     private CallListener callListener;
@@ -116,6 +117,7 @@ public class WebViewFragment extends Fragment {
         url_flush2 = view.findViewById(R.id.url_flush2);
         url_stop = view.findViewById(R.id.url_stop);
         viewViewProgressbar = view.findViewById(R.id.viewViewProgressbar);
+        progressBg = view.findViewById(R.id.progressBg);
         webView = view.findViewById(R.id.webView);
         video_fullView = (FrameLayout) view.findViewById(R.id.video_fullView);
 
@@ -313,6 +315,7 @@ public class WebViewFragment extends Fragment {
             jumpUrl = url;
             url_box2.setText(url);
             url_box2.setEnabled(false);
+            progressBg.setVisibility(View.GONE);
             viewViewProgressbar.setVisibility(View.VISIBLE);
             url_flush2.setVisibility(View.GONE);
             url_stop.setVisibility(View.VISIBLE);
@@ -472,7 +475,8 @@ public class WebViewFragment extends Fragment {
 
     // 隐藏进度条等
     private void hideProgress() {
-        viewViewProgressbar.setVisibility(View.INVISIBLE);
+        viewViewProgressbar.setVisibility(View.GONE);
+        progressBg.setVisibility(View.VISIBLE);
         url_flush2.setVisibility(View.VISIBLE);
         url_stop.setVisibility(View.GONE);
         url_box2.setEnabled(true);
