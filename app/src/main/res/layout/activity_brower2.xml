@@ -38,7 +38,6 @@
                 android:layout_height="29dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/back"
-                android:layout_marginEnd="4dp"
                 android:gravity="center" />
         </LinearLayout>
         <LinearLayout
@@ -55,7 +54,6 @@
                 android:layout_height="29dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/back"
-                android:layout_marginEnd="4dp"
                 android:gravity="center" />
         </LinearLayout>
         <LinearLayout
@@ -70,7 +68,6 @@
                 android:layout_height="32dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_home2"
-                android:layout_marginEnd="4dp"
                 android:gravity="center" />
         </LinearLayout>
         <LinearLayout
@@ -81,11 +78,10 @@
             android:layout_weight="1">
             <ImageButton
                 android:id="@+id/btnMonitor"
-                android:layout_width="29dp"
-                android:layout_height="29dp"
+                android:layout_width="28.5dp"
+                android:layout_height="28.5dp"
                 android:scaleType="fitCenter"
                 android:background="@drawable/btn_monitor"
-                android:layout_marginEnd="4dp"
                 android:gravity="center" />
         </LinearLayout>
         <LinearLayout
@@ -99,7 +95,6 @@
                 android:id="@+id/btnMore"
                 android:layout_width="23dp"
                 android:layout_height="23dp"
-                android:layout_marginEnd="4dp"
                 android:background="@drawable/btn_more"
                 android:gravity="center"
                 android:scaleType="fitCenter" />

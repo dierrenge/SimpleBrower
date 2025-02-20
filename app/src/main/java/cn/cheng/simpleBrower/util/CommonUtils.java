@@ -1106,7 +1106,7 @@ public class CommonUtils {
             }
         }
         // Long timeEnd = System.currentTimeMillis();
-        // System.out.println("耗时：" + (timeEnd - timeStart)/1000F + "秒");
+        // System.out.println(mimeType + "===耗时：" + (timeEnd - timeStart)/1000F + "秒");
         return mimeType;
     }
 

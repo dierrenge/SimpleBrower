@@ -197,7 +197,8 @@ public class LikeActivity extends AppCompatActivity {
                     change(isChange);
                 }
                 // 跳转该网址
-                Intent intent = new Intent(LikeActivity.this, BrowserActivity.class);
+                // Intent intent = new Intent(LikeActivity.this, BrowserActivity.class);
+                Intent intent = new Intent(LikeActivity.this, BrowserActivity2.class);
                 intent.putExtra("webInfo", likeUrl);
                 LikeActivity.this.startActivity(intent);
             }

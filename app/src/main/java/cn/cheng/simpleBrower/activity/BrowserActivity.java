@@ -96,7 +96,6 @@ public class BrowserActivity extends AppCompatActivity {
     private Button url_back;
     private Button url_jump;
     private EditText url_box;
-    private EditText urlText;
     private FeetDialog feetDialog;
     private Handler handler;
     // 存放 当前网页 路径
@@ -122,8 +121,8 @@ public class BrowserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             // 忽略强制网络策略: 在主线程中可以访问网络
-            StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
+            // StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            // StrictMode.setThreadPolicy(policy);
 
             // 设置默认导航栏、状态栏样式
             SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
@@ -467,7 +466,6 @@ public class BrowserActivity extends AppCompatActivity {
         });
 
         /******************视频网络地址提示**************************/
-        urlText = findViewById(R.id.url_txt);
         handler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message message) {
@@ -476,27 +474,6 @@ public class BrowserActivity extends AppCompatActivity {
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
                     String url = arr[1];
-
-                    // 更新日志框内容
-                    String oldText = urlText.getText().toString();
-                    urlText.setText(oldText + "\n下载链接：" + url);
-
-                    // 无格式链接 判断格式
-                    if (what == 9) {
-                        String fileType = CommonUtils.getNetFileType(url, 1000);
-                        if (fileType == null) {
-                            return false;
-                        }
-                        if (fileType.contains("/")) {
-                            fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
-                        }
-                        // System.out.println(url + "*******************1***********************" + fileType);
-                        // 影音文件格式
-                        List<String> formats = AssetsReader.getList("audioVideo.txt");
-                        if (!formats.contains(fileType)) {
-                            return false;
-                        }
-                    }
 
                     // 弹框选择
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
@@ -525,6 +502,7 @@ public class BrowserActivity extends AppCompatActivity {
                             feetDialog.show();
                         }
                     }
+
                 } else {
                     MyToast.getInstance(BrowserActivity.this, message.obj + "").show();
                 }
@@ -747,8 +725,21 @@ public class BrowserActivity extends AppCompatActivity {
                 }
                 // 判断无格式的情况
                 else if (!name.contains(".")) {
-                    msg.what = 9;
-                    handler.sendMessage(msg);
+                    new Thread(() -> {
+                        String fileType = CommonUtils.getNetFileType(url, 1000);
+                        if (fileType != null) {
+                            if (fileType.contains("/")) {
+                                fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                            }
+                            // System.out.println(url + "*******************1***********************" + fileType);
+                            // 影音文件格式
+                            List<String> formats = AssetsReader.getList("audioVideo.txt");
+                            if (formats.contains(fileType)) {
+                                msg.what = 9;
+                                handler.sendMessage(msg);
+                            }
+                        }
+                    }).start();
                 }
             });
             // super.shouldInterceptRequest(view, request).getData();

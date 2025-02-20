@@ -123,15 +123,6 @@
                 app:fab_size="normal"/>
         </com.github.clans.fab.FloatingActionMenu>
 
-        <!--以下日志框隐藏了-->
-        <EditText
-            android:visibility="gone"
-            android:id="@+id/url_txt"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/white"
-            android:textColor="@color/gray3"
-            android:layout_alignParentBottom="true"/>
     </RelativeLayout>
 
 </LinearLayout>

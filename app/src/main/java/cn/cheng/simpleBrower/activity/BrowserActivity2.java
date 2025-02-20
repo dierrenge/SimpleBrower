@@ -82,7 +82,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
 
         // 加载初始页面
-        navigateTo(WebViewFragment.newInstance(currentUrl));
+        navigateTo(WebViewFragment.newInstance(currentUrl, this));
     }
 
     // 跳转到新页面
@@ -208,7 +208,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     @Override
     public void jump(String url) {
         currentUrl = url;
-        navigateTo(WebViewFragment.newInstance(currentUrl));
+        navigateTo(WebViewFragment.newInstance(currentUrl, this));
     }
 
     // 处理物理返回键

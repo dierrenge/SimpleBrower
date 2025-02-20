@@ -1,7 +1,10 @@
 package cn.cheng.simpleBrower.fragment;
 
 import android.annotation.SuppressLint;
+
+import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
@@ -47,15 +50,21 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.service.DownloadService;
+import cn.cheng.simpleBrower.util.AdBlocker;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -79,13 +88,22 @@ public class WebViewFragment extends Fragment {
     private WebChromeClient.CustomViewCallback xCustomViewCallback;
 
     private Handler handler;
+    private FeetDialog feetDialog;
+    private boolean flag = true; // 是否展示检查下载的提示框
+    private boolean flagVideo = true; // 是否展示检查影音下载的提示框
+    private boolean flagGif = true; // 是否开启动图过滤
+
+    private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
+    
+    private static Activity thisActivity;
 
     // 无参构造函数
     public WebViewFragment() {
     }
 
     // 静态工厂方法
-    public static WebViewFragment newInstance(String url) {
+    public static WebViewFragment newInstance(String url, Activity activity) {
+        thisActivity = activity;
         WebViewFragment fragment = new WebViewFragment();
         Bundle args = new Bundle();
         args.putString("url", url);
@@ -141,7 +159,7 @@ public class WebViewFragment extends Fragment {
         // 收藏
         url_like2.setOnClickListener(v -> {
             // 页面跳转后会用到的权限
-            if (CommonUtils.hasStoragePermissions(MyApplication.getActivity())) {
+            if (CommonUtils.hasStoragePermissions(thisActivity)) {
                 if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
                     //启动线程开始执行 收藏网址存档
                     new Thread(() -> {
@@ -158,6 +176,7 @@ public class WebViewFragment extends Fragment {
                                  BufferedReader reader = new BufferedReader(new FileReader(file))
                             ) {
                                 Message message = Message.obtain();
+                                message.what = 1;
                                 String likeUrl = jumpUrl + "\n";
                                 if (hasFile) {
                                     List<String> likes = new ArrayList<>();
@@ -183,7 +202,7 @@ public class WebViewFragment extends Fragment {
                     }).start();
                 }
             } else {
-                CommonUtils.requestStoragePermissions(MyApplication.getActivity());
+                CommonUtils.requestStoragePermissions(thisActivity);
             }
         });
         // 刷新
@@ -197,18 +216,80 @@ public class WebViewFragment extends Fragment {
             hideProgress();
         });
 
+        SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
+        if (sysBean != null) {
+            flagVideo = sysBean.isFlagVideo();
+            flagGif = sysBean.isFlagGif();
+        }
+
+        // 注册广告过滤器
+        AdBlocker.init(this.getContext());
+
         initWebView();
 
         // 多线程消息管理
         handler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message message) {
-                MyToast.getInstance(MyApplication.getActivity(), message.obj + "").show();
+                int what = message.what;
+                if (what != 1) {
+                    String[] arr = (String[]) message.obj;
+                    String title = arr[0];
+                    String url = arr[1];
+
+                    // 弹框选择
+                    if (flag && (feetDialog == null || !feetDialog.isShowing())) {
+                        if (what == 4 && !url.contains(".m3u8")) {
+                            String title2 = arr[2];
+                            feetDialog = new FeetDialog(thisActivity, "下载", title2, "下载", "取消");
+                        } else {
+                            feetDialog = new FeetDialog(thisActivity);
+                        }
+                        if (what == 4 || flagVideo) {
+                            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                @Override
+                                public void close() {
+                                    flag = true;
+                                    feetDialog.dismiss();
+                                }
+
+                                @Override
+                                public void ok() {
+                                    flag = true;
+                                    download(url, title, what);
+                                    feetDialog.dismiss();
+                                }
+                            });
+                            flag = false;
+                            feetDialog.show();
+                        }
+                    }
+
+                } else {
+                    MyToast.getInstance(thisActivity, message.obj + "").show();
+                }
                 return false;
             }
         });
 
         return view;
+    }
+
+    // 下载
+    private void download(String url, String titleO, int what) {
+        CommonUtils.requestNotificationPermissions(thisActivity); // 通知
+        String title = titleO;
+        try {
+            title = URLDecoder.decode(titleO, "utf-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        MyApplication.setActivity(thisActivity);
+        Intent intent = new Intent(thisActivity, DownloadService.class);
+        intent.putExtra("what", what);
+        intent.putExtra("url", url);
+        intent.putExtra("title", title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title);
+        thisActivity.startService(intent);
     }
 
     // 刷新网址栏
@@ -307,6 +388,26 @@ public class WebViewFragment extends Fragment {
         });
     }
 
+    // 判断广告链接
+    private boolean isAd(String url) {
+        boolean ad;
+        if (!loadedUrls.containsKey(url)) {
+            ad = AdBlocker.isAd(url);
+            loadedUrls.put(url, ad);
+        } else {
+            ad = loadedUrls.get(url);
+        }
+        // gif图片多为广告，直接过滤了
+        if (flagGif) {
+            if (url.contains("?")) {
+                url = url.split("\\?")[0];
+            }
+            url = url.replace(".js", "").trim();
+            ad = url.endsWith(".gif") || ad;
+        }
+        return ad;
+    }
+
     // 自定义 WebViewClient（处理页面加载）
     WebViewClient myClient = new WebViewClient() {
 
@@ -335,6 +436,14 @@ public class WebViewFragment extends Fragment {
         @Nullable
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            String url = request.getUrl().toString().toLowerCase();
+            String urlOrg = request.getUrl().toString();
+
+            // 广告过滤图片、js等资源文件
+            if (isAd(url)) {
+                return AdBlocker.createEmptyResource();
+            }
+
             view.post(() -> {
                 // 去广告
                 String fun = "(function() {" +
@@ -351,6 +460,44 @@ public class WebViewFragment extends Fragment {
                     });
                 } catch (Throwable e) {}
 
+                String name = url.substring(url.lastIndexOf("/") + 1);
+                Message msg = Message.obtain();
+                String[] arr = new String[]{view.getTitle(), urlOrg};
+                msg.obj = arr;
+
+                // 判断视频请求
+                if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
+                        url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                    // 非m3u8链接 或者 链接中只包含一个m3u8
+                    if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
+                        msg.what = 2;
+                        handler.sendMessage(msg);
+                    }
+                }
+                // 判断音频请求
+                else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                        || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
+                    msg.what = 3;
+                    handler.sendMessage(msg);
+                }
+                // 判断无格式的情况
+                else if (!name.contains(".")) {
+                    new Thread(() -> {
+                        String fileType = CommonUtils.getNetFileType(url, 1000);
+                        if (fileType != null) {
+                            if (fileType.contains("/")) {
+                                fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                            }
+                            // System.out.println(url + "*******************1***********************" + fileType);
+                            // 影音文件格式
+                            List<String> formats = AssetsReader.getList("audioVideo.txt");
+                            if (formats.contains(fileType)) {
+                                msg.what = 9;
+                                handler.sendMessage(msg);
+                            }
+                        }
+                    }).start();
+                }
             });
             return super.shouldInterceptRequest(view, request);
         }
@@ -360,6 +507,10 @@ public class WebViewFragment extends Fragment {
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
             if (!url.startsWith("https:") && !url.startsWith("http:")) {
+                return true;
+            }
+            // 广告过滤
+            if (isAd(url)) {
                 return true;
             }
             // 仅处理用户触发的 非重定向 主框架请求
@@ -411,6 +562,7 @@ public class WebViewFragment extends Fragment {
             xCustomViewCallback = callback;
             video_fullView.setVisibility(View.VISIBLE);
             viewViewLayout.setVisibility(View.INVISIBLE);
+            flag = false;
         }
 
         // 视频播放退出全屏会被调用的
@@ -425,6 +577,7 @@ public class WebViewFragment extends Fragment {
             video_fullView.setVisibility(View.GONE);
             xCustomViewCallback.onCustomViewHidden();
             viewViewLayout.setVisibility(View.VISIBLE);
+            flag = true;
         }
 
         // 视频加载时进程loading
@@ -466,9 +619,11 @@ public class WebViewFragment extends Fragment {
         @Override
         public void run() {
             if (viewViewProgressbar.getVisibility() == View.VISIBLE) {
-                webView.stopLoading();
+                if (webView != null) {
+                    webView.stopLoading();
+                }
                 hideProgress();
-                MyToast.getInstance(MyApplication.getActivity(), "加载超时").show();
+                MyToast.getInstance(thisActivity, "加载超时").show();
             }
         }
     };
@@ -504,11 +659,13 @@ public class WebViewFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         video_fullView.removeAllViews();
-        // webView.stopLoading();
-        webView.setWebChromeClient(null);
-        webView.setWebViewClient(null);
-        webView.destroy();
-        webView = null;
+        if (webView != null) {
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            webView.destroy();
+            webView = null;
+        }
+        progressHandler.removeCallbacks(myRunnable);
     }
 
     public WebView getWebView() {

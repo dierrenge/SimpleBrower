@@ -28,6 +28,7 @@ public class AdBlocker {
 
     private static final String AD_HOSTS_FILE = "host.txt";
     private static final Set<String> AD_HOSTS = new HashSet<>();
+    private static final Set<String> AD_URL= new HashSet<>();
 
     public static void init(final Context context) {
         new AsyncTask<Void, Void, Void>() {
@@ -49,7 +50,13 @@ public class AdBlocker {
         InputStreamReader inputStreamReader = new InputStreamReader(stream);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         String line;
-        while ((line = bufferedReader.readLine()) != null) AD_HOSTS.add(line);
+        while ((line = bufferedReader.readLine()) != null) {
+            if (line.contains("/")) {
+                AD_URL.add(line);
+            } else {
+                AD_HOSTS.add(line);
+            }
+        }
         bufferedReader.close();
         inputStreamReader.close();
         stream.close();
@@ -57,6 +64,11 @@ public class AdBlocker {
 
     public static boolean isAd(String url) {
         try {
+            for (String u : AD_URL) {
+                if (url.toLowerCase().contains(u.toLowerCase())) {
+                    return true;
+                }
+            }
             return isAdHost(getHost(url))||AD_HOSTS.contains(Uri.parse(url).getLastPathSegment());
         } catch (MalformedURLException e) {
             return false;
