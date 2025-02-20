@@ -20,7 +20,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
+import android.webkit.DownloadListener;
 import android.webkit.SslErrorHandler;
+import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -41,6 +43,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -62,6 +65,7 @@ import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AdBlocker;
@@ -367,6 +371,49 @@ public class WebViewFragment extends Fragment {
                 // do nothing
             }
         }
+
+        // 设置下载监听
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
+                // 会用到的权限
+                if (!flagVideo && !CommonUtils.hasStoragePermissions(thisActivity)) {
+                    CommonUtils.requestStoragePermissions(thisActivity);
+                    return;
+                }
+                // 调用系统下载处理
+                // downloadBySystem(url, disposition, mimetype);
+                // 使用自定义下载
+                Message msg = Message.obtain();
+                String name = URLUtil.guessFileName(url, disposition, mimetype);;
+                if (StringUtils.isEmpty(name)) {
+                    name = CommonUtils.getUrlName(url);
+                }
+                String finalName = name;
+                new Thread(() -> {
+                    // 用到的权限
+                    if (CommonUtils.hasStoragePermissions(thisActivity)) {
+                        String title = finalName;
+                        try {
+                            title = URLDecoder.decode(title, "utf-8");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
+                        title = M3u8DownLoader.getUrlContentFileSize(url, title);
+
+                        if (!title.contains(".html;")) {
+                            String[] arr = new String[]{finalName, url, title};
+                            msg.obj = arr;
+                            msg.what = 4;
+                            handler.sendMessage(msg);
+                        }
+                    } else {
+                        CommonUtils.requestStoragePermissions(thisActivity);
+                    }
+                }).start();
+            }
+        });
 
         // 设置 WebViewClient 和 WebChromeClient
         webView.setWebViewClient(myClient);
