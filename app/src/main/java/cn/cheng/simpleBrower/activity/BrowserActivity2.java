@@ -154,9 +154,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private void goBackOrForward(String type, ValueCallback<Boolean> callback) {
         preFragment = backStack.peek();
         WebView webView = preFragment.getWebView();
-        // 暂停跳转前的webView
-        webView.onPause();
-        webView.pauseTimers();
         // System.out.println("=================================" + webView.getUrl());
         if ("back".equals(type)) {
             if (webView.canGoBack()) {
@@ -182,12 +179,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
                 fragmentTransaction.hide(preFragment);
             }
             fragmentTransaction.show(fragment).commit();
-            WebView webView = fragment.getWebView();
-            if (webView != null) {
-                // 激活webView
-                webView.onResume();
-                webView.resumeTimers();
-            }
         } catch (Exception e) {
             CommonUtils.saveLog("===========showFragment===========" + e.getMessage());
         }
