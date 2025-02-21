@@ -705,6 +705,22 @@ public class WebViewFragment extends Fragment {
         xwebchromeclient.onHideCustomView();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 暂停webView
+        webView.onResume();
+        webView.resumeTimers();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // 激活webView
+        webView.onPause();
+        webView.pauseTimers();
+    }
+
     // 释放 WebView 资源
     @Override
     public void onDestroy() {
