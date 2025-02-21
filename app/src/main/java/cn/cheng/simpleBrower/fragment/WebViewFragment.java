@@ -564,6 +564,10 @@ public class WebViewFragment extends Fragment {
             if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
                     && !request.isRedirect() && request.isForMainFrame()) {
                 if (callListener != null) {
+                    // 暂停webView
+                    view.onPause();
+                    view.pauseTimers();
+                    // 跳转
                     callListener.jump(url);
                     return true; // 拦截跳转，由 Activity 处理
                 }
