@@ -91,7 +91,7 @@ public class WebViewFragment extends Fragment {
     private View xCustomView;
     private WebChromeClient.CustomViewCallback xCustomViewCallback;
 
-    private Handler handler;
+    private Handler handler; // 子线程与主线程通信
     private FeetDialog feetDialog;
     private boolean flag = true; // 是否展示检查下载的提示框
     private boolean flagVideo = true; // 是否展示检查影音下载的提示框

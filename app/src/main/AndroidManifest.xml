@@ -169,7 +169,7 @@
             android:launchMode="singleTop"
             tools:ignore="AppLinkUrlError">
             <!-- 设置此activity可用于打开 网络链接 -->
-            <intent-filter>
+            <!--<intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -177,7 +177,7 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
 
         <!--
