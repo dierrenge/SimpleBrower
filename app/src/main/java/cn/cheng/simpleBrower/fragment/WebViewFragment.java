@@ -117,11 +117,16 @@ public class WebViewFragment extends Fragment {
 
     // 回调接口
     public interface CallListener {
+        // 视频全屏回调
         void onEnterFullScreen(View view, WebChromeClient.CustomViewCallback callback);
+        // 视频退出全屏回调
         void onExitFullScreen();
+        // 下载进度条回调
         LayoutInflater onProgressView();
-        // 跳转网址
+        // 跳转网址回调
         void jump(String url);
+        // 下载回调
+        void downLoad();
     }
 
     public void setFullScreenListener(CallListener listener) {
@@ -246,6 +251,7 @@ public class WebViewFragment extends Fragment {
                         if (what == 4 && !url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(thisActivity, "下载", title2, "下载", "取消");
+                            callListener.downLoad(); // 下载的情况下自动关闭空白页面
                         } else {
                             feetDialog = new FeetDialog(thisActivity);
                         }
@@ -565,6 +571,9 @@ public class WebViewFragment extends Fragment {
                     && !request.isRedirect() && request.isForMainFrame()) {
                 if (callListener != null) {
                     // 暂停webView
+                    new Handler().postDelayed(() -> {
+                        view.stopLoading();
+                    }, 200);
                     view.onPause();
                     view.pauseTimers();
                     // 跳转
