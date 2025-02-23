@@ -63,6 +63,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
@@ -245,6 +246,23 @@ public class WebViewFragment extends Fragment {
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
                     String url = arr[1];
+
+                    // 影音监测的情况
+                    if (what != 4 || url.contains(".m3u8")) {
+                        String title0 = title;
+                        try {
+                            title0 = URLDecoder.decode(title0, "utf-8");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        DownloadBean bean = new DownloadBean();
+                        bean.setWhat(what);
+                        bean.setTitle(title0);
+                        bean.setFileType(arr[2]);
+                        bean.setUrl(url);
+                        MyApplication.setDownload(bean);
+                        return false;
+                    }
 
                     // 弹框选择
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
@@ -515,8 +533,14 @@ public class WebViewFragment extends Fragment {
 
                 String name = url.substring(url.lastIndexOf("/") + 1);
                 Message msg = Message.obtain();
-                String[] arr = new String[]{view.getTitle(), urlOrg};
-                msg.obj = arr;
+                if (name.contains(".")) {
+                    String type = name.substring(name.lastIndexOf("."));
+                    if (type.contains("?")) {
+                        type = type.substring(0, type.indexOf("?"));
+                    }
+                    String[] arr = new String[]{view.getTitle(), urlOrg, type};
+                    msg.obj = arr;
+                }
 
                 // 判断视频请求
                 if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
@@ -541,10 +565,15 @@ public class WebViewFragment extends Fragment {
                             if (fileType.contains("/")) {
                                 fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
                             }
+                            if (fileType.contains("?")) {
+                                fileType = fileType.substring(0, fileType.indexOf("?"));
+                            }
                             // System.out.println(url + "*******************1***********************" + fileType);
                             // 影音文件格式
                             List<String> formats = AssetsReader.getList("audioVideo.txt");
                             if (formats.contains(fileType)) {
+                                String[] arr = new String[]{view.getTitle(), urlOrg, fileType};
+                                msg.obj = arr;
                                 msg.what = 9;
                                 handler.sendMessage(msg);
                             }

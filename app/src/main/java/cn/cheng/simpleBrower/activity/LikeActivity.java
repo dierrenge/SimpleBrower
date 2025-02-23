@@ -17,6 +17,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,7 +143,9 @@ public class LikeActivity extends AppCompatActivity {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 // 加载子项布局
-                return new RecyclerView.ViewHolder(View.inflate(LikeActivity.this, R.layout.recyclerview_item, null)) {};
+                View itemView = LayoutInflater.from(LikeActivity.this)
+                        .inflate(R.layout.recyclerview_item, parent, false); // 第三个参数必须是 false！
+                return new RecyclerView.ViewHolder(itemView) {};
             }
 
             @Override

@@ -22,7 +22,9 @@ import androidx.fragment.app.FragmentTransaction;
 
 import java.util.Stack;
 
+import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.custom.DownloadListDialog;
 import cn.cheng.simpleBrower.fragment.WebViewFragment;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -36,6 +38,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private ImageButton btnForward;
     private ImageButton btnBack;
     private ImageButton btnHome;
+    private ImageButton btnMonitor;
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
@@ -54,6 +57,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
         btnHome = findViewById(R.id.btnHome);
+        btnMonitor = findViewById(R.id.btnMonitor);
         btnBack.setOnClickListener(v -> {
             goBackOrForward("back", b -> {
                 onBack();
@@ -66,6 +70,10 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         });
         btnHome.setOnClickListener(v -> {
             BrowserActivity2.super.onBackPressed();
+        });
+        btnMonitor.setOnClickListener(v -> {
+            DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this);
+            dialog.show();
         });
 
         // 设置此activity可用于打开 网络链接
@@ -276,6 +284,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
                 fragment.getWebView().destroy();
             }
         }
+        MyApplication.clearDownloadList();
         super.onDestroy();
     }
 }

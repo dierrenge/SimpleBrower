@@ -1305,4 +1305,18 @@ public class CommonUtils {
         }
         return num;
     }
+
+    // 字符串放重复处理（末尾累加数字）
+    public static String preventDuplication(String str) {
+        String patternStr = "(\\d+)\\s*$"; // 这个正则表达式匹配末尾的整数序列
+        Pattern pattern = Pattern.compile(patternStr);
+        Matcher matcher = pattern.matcher(str);
+        int num = 1;
+        if (matcher.find()) {
+            num = Integer.parseInt(matcher.group(1));
+            str = str.substring(0, str.lastIndexOf("" + num));
+            num++;
+        }
+        return str + num;
+    }
 }

@@ -65,8 +65,6 @@ public class DownloadService extends Service {
     private int notificationId = 0;
     // 频道id 每次下载通知要不一样
     private String CHANNEL_ID = "";
-    // 分隔符
-    private static final String F = "<\"\"\"\"￥";
 
     private Map<Integer, ExecutorService> pools = new HashMap<>();
 
@@ -96,7 +94,7 @@ public class DownloadService extends Service {
         int what = intent.getIntExtra("what", 0);
         String title = intent.getStringExtra("title");
         String url = intent.getStringExtra("url");
-        String urlName = url.substring(url.lastIndexOf("/") + 1);
+        // String urlName = url.substring(url.lastIndexOf("/") + 1);
         if (title == null || "".equals(title)) {
             title = System.currentTimeMillis() + "";
         }
@@ -104,7 +102,7 @@ public class DownloadService extends Service {
             title = title.substring(title.lastIndexOf("/") + 1);
         }
         supDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower";
-        CHANNEL_ID = title + F + urlName;
+        CHANNEL_ID = url;
 
         // 高版本通知Notification 必须先定义NotificationChannel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -112,20 +110,12 @@ public class DownloadService extends Service {
                 for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
                     if (activeNotification.getNotification() != null) {
                         String channelId = activeNotification.getNotification().getChannelId();
-                        String[] split = channelId.split(F);
-                        if (CHANNEL_ID.equals(channelId) || channelId.equals(title + F + urlName)) {
-                            Message message = myHandler.obtainMessage(0, new String[]{"该网页已存在一个下载任务", ""});
+                        if (CHANNEL_ID.equals(channelId)) {
+                            Message message = myHandler.obtainMessage(0, new String[]{"已存在一个相同的下载任务", ""});
                             myHandler.sendMessage(message);
                             return super.onStartCommand(intent, flags, startId);
-                        } else {
-                            if (title.equals(split[0]) && !urlName.equals(split[1]) && what != 4) {
-                                title += "I";
-                            }
                         }
                     }
-                }
-                if (what != 4) {
-                    CHANNEL_ID = title + F + urlName;
                 }
             }
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID
