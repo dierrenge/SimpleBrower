@@ -427,6 +427,8 @@ public class WebViewFragment extends Fragment {
                         title = M3u8DownLoader.getUrlContentFileSize(url, title);
 
                         if (!title.contains(".html;")) {
+                            // 记录点击下载的链接url
+                            MyApplication.setClickDownloadUrl(url);
                             String[] arr = new String[]{finalName, url, title};
                             msg.obj = arr;
                             msg.what = 4;

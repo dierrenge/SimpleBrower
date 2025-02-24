@@ -37,8 +37,11 @@ public class MyApplication extends Application {
     // 记录小说的本地路径url
     private static String txtUrl;
 
-    // 记录网页中的下载对象
+    // 记录网页中的下载对象（主要是影音下载对象）
     private static List<DownloadBean> downloadList = new ArrayList<>();
+
+    // 记录点击下载的链接url
+    private static String clickDownloadUrl;
 
     @Override
     public void onCreate() {
@@ -145,5 +148,13 @@ public class MyApplication extends Application {
 
     public static void clearDownloadList() {
         downloadList = new ArrayList<>();
+    }
+
+    public static String getClickDownloadUrl() {
+        return clickDownloadUrl;
+    }
+
+    public static void setClickDownloadUrl(String clickDownloadUrl) {
+        MyApplication.clickDownloadUrl = clickDownloadUrl;
     }
 }
