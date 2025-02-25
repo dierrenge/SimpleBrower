@@ -1,6 +1,7 @@
 package cn.cheng.simpleBrower.custom;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -68,6 +69,7 @@ public class DownloadListDialog extends Dialog {
         // view窗口显示设置
         Window window = this.getWindow();
         window.setGravity(Gravity.BOTTOM);
+        window.setWindowAnimations(R.style.DialogAnimation); // 应用动画样式
         window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -115,7 +117,7 @@ public class DownloadListDialog extends Dialog {
                 String text = title0 + bean.getFileType();
                 textView.setText(text);
                 button.setOnClickListener(view -> {
-                    CommonUtils.requestNotificationPermissions(MyApplication.getActivity()); // 通知
+                    CommonUtils.requestNotificationPermissions((Activity) context); // 通知
                     MyApplication.setActivity(MyApplication.getActivity());
                     Intent intent = new Intent(MyApplication.getActivity(), DownloadService.class);
                     intent.putExtra("what", bean.getWhat());

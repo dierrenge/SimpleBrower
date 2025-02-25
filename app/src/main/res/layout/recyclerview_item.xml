@@ -9,20 +9,19 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:gravity="center|start"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="10dp"
         android:orientation="horizontal">
         <LinearLayout
             android:id="@+id/item_l"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:paddingRight="5dp"
             android:orientation="horizontal">
             <TextView
                 android:id="@+id/item_txt"
                 android:gravity="center|start"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:textIsSelectable="true"
                 android:textSize="14dp"
@@ -31,7 +30,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="40dp"
+            android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center">
@@ -40,7 +39,7 @@
                 android:visibility="gone"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:layout_width="40dp"
+                android:layout_width="30dp"
                 android:layout_height="40dp"
                 android:background="@color/trans_color"
                 android:textColor="@color/gray2"
@@ -51,7 +50,7 @@
                 android:visibility="gone"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:layout_width="40dp"
+                android:layout_width="30dp"
                 android:layout_height="40dp"
                 android:background="@color/trans_color"
                 android:textColor="@color/gray2"

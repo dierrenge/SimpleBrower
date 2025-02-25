@@ -241,6 +241,12 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         });
     }
 
+    // 检测有下载的情况
+    @Override
+    public void sniffingDownload() {
+        btnMonitor.setBackgroundResource(R.drawable.btn_monitor2);
+    }
+
     // 处理物理返回键
     @Override
     public void onBackPressed() {

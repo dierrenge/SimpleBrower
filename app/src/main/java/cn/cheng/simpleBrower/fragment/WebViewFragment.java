@@ -128,6 +128,8 @@ public class WebViewFragment extends Fragment {
         void jump(String url);
         // 下载回调
         void downLoad();
+        // 检测有下载的情况
+        void sniffingDownload();
     }
 
     public void setFullScreenListener(CallListener listener) {
@@ -261,6 +263,7 @@ public class WebViewFragment extends Fragment {
                         bean.setFileType(arr[2]);
                         bean.setUrl(url);
                         MyApplication.setDownload(bean);
+                        callListener.sniffingDownload();
                         return false;
                     }
 
