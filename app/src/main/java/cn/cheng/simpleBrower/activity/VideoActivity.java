@@ -1,6 +1,5 @@
 package cn.cheng.simpleBrower.activity;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -8,24 +7,21 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.view.View;
 
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
-import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.listener.GSYVideoProgressListener;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
-import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.bean.SwitchVideoModel;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.custom.video.SampleVideo;
@@ -250,6 +246,13 @@ public class VideoActivity extends AppCompatActivity {
         //开始播放
         mVideoPlayer.startPlayLogic();
 
+        // 恢复播放进度
+        Long positionX = MyApplication.getVideoPosition().get(name);
+        if (positionX != null && positionX > 0) {
+            new Handler().postDelayed(() -> {
+                mVideoPlayer.seekTo(positionX);
+            }, 100);
+        }
     }
 
     @Override
@@ -299,6 +302,11 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mVideoPlayer != null) {
+            // 记录播放进度
+            CharSequence text = mVideoPlayer.getCurrentPlayer().getTitleTextView().getText();
+            MyApplication.setVideoPosition(text.toString(), position);
+        }
         if (orientationUtils != null)
             orientationUtils.releaseListener();
     }

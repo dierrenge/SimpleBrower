@@ -43,6 +43,9 @@ public class MyApplication extends Application {
     // 记录点击下载的链接url
     private static String clickDownloadUrl;
 
+    // 记录播放器影音播放进度
+    private static HashMap<String, Long> videoPosition = new HashMap<>();
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -156,5 +159,13 @@ public class MyApplication extends Application {
 
     public static void setClickDownloadUrl(String clickDownloadUrl) {
         MyApplication.clickDownloadUrl = clickDownloadUrl;
+    }
+
+    public static void setVideoPosition(String name, Long position) {
+        videoPosition.put(name, position);
+    }
+
+    public static HashMap<String, Long> getVideoPosition() {
+        return videoPosition;
     }
 }
