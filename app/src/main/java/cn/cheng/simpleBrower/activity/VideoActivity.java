@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -235,6 +236,7 @@ public class VideoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //直接横屏
                 orientationUtils.resolveByClick();
+                VideoActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE); // 根据传感器自动旋转到横屏模式
                 //第一个true是否需要隐藏actionbar，第二个true是否需要隐藏statusbar
                 mVideoPlayer.startWindowFullscreen(VideoActivity.this, true, true);
 

@@ -109,7 +109,7 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="sensorLandscape"
             tools:ignore="AppLinkUrlError">
             <!-- 设置此activity可用于打开 视频文件 -->
             <intent-filter>
