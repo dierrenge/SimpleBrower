@@ -34,11 +34,6 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
     private Intent intent = new Intent("com.example.communication.RECEIVER");
     private Reader reader;
 
-    // 电话状态监听
-    private TelephonyManager telephonyManager;
-    private PhoneStateListener phoneStateListener;
-    private boolean phoneFlag = false;
-
     @Override
     public void onCreate() {
         textToSpeech = new TextToSpeech(this, this);
@@ -47,38 +42,6 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
         intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(receiver, intentFilter);
         super.onCreate();
-
-        // 设置电话状态监听
-        telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-        phoneStateListener = new PhoneStateListener() {
-            @Override
-            public void onCallStateChanged(int state, String phoneNumber) {
-                switch (state) {
-                    case TelephonyManager.CALL_STATE_RINGING:
-                        // 来电响铃
-                        phoneFlag = true;
-                        break;
-                    case TelephonyManager.CALL_STATE_OFFHOOK:
-                        // 通话开始（接听或拨出）
-                        // 停止TTS服务
-                        if (phoneFlag && TxtActivity.txtActivity != null && TxtActivity.flagRead && textToSpeech != null && textToSpeech.isSpeaking()) {
-                            startRead(txt, false);
-                            MyToast.getInstance(TxtActivity.txtActivity, "通话开始").show();
-                        }
-                        break;
-                    case TelephonyManager.CALL_STATE_IDLE:
-                        // 通话结束
-                        // 开启TTS服务
-                        if (phoneFlag && TxtActivity.txtActivity != null && TxtActivity.flagRead && textToSpeech != null &&  !textToSpeech.isSpeaking()) {
-                            startRead(txt, true);
-                            MyToast.getInstance(TxtActivity.txtActivity, "通话结束").show();
-                            phoneFlag = false;
-                        }
-                        break;
-                }
-            }
-        };
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
     @Override

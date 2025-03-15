@@ -20,6 +20,8 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -77,6 +79,10 @@ public class TxtActivity extends AppCompatActivity {
 
     // 打开方式 标记
     boolean otherFlag = false;
+
+    // 电话状态监听
+    private TelephonyManager telephonyManager;
+    private PhoneStateListener phoneStateListener;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -327,6 +333,33 @@ public class TxtActivity extends AppCompatActivity {
                     return false;
                 }
             });
+
+            // 设置电话状态监听
+            telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            phoneStateListener = new PhoneStateListener() {
+                @Override
+                public void onCallStateChanged(int state, String phoneNumber) {
+                    switch (state) {
+                        case TelephonyManager.CALL_STATE_RINGING:
+                            // 来电响铃
+                            break;
+                        case TelephonyManager.CALL_STATE_OFFHOOK:
+                            // 通话开始（接听或拨出）
+                            // 停止TTS服务
+                            if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
+                                Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+                                TxtActivity.txtActivity.stopService(intentS);
+                                TxtActivity.flagRead = false;
+                                MyToast.getInstance(TxtActivity.txtActivity, "通话开始").show();
+                            }
+                            break;
+                        case TelephonyManager.CALL_STATE_IDLE:
+                            // 通话结束
+                            break;
+                    }
+                }
+            };
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         } catch (Throwable e) {
             MyToast.getInstance(this, "打开异常咯").show();
             e.printStackTrace();
