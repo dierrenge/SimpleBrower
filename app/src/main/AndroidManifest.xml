@@ -30,6 +30,9 @@
         android:name="android.permission.READ_MEDIA_VIDEO"
         android:minSdkVersion="33" />
 
+    <!-- 读取电话状态权限 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <!--文字转语音权限-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <queries>
