@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -19,11 +20,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
@@ -95,14 +98,15 @@ public class DownloadListDialog extends Dialog {
         recyclerView.setLayoutManager(layoutManager);
 
         // 给recyclerview设置适配器
-        recyclerView.setAdapter(new RecyclerView.Adapter() {
+        RecyclerView.Adapter adapter = new RecyclerView.Adapter() {
             @NonNull
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 // 加载子项布局
                 View itemView = LayoutInflater.from(context)
                         .inflate(R.layout.download_recyclerview_item, parent, false); // 第三个参数必须是 false！
-                return new RecyclerView.ViewHolder(itemView) {};
+                return new RecyclerView.ViewHolder(itemView) {
+                };
             }
 
             @Override
@@ -131,7 +135,8 @@ public class DownloadListDialog extends Dialog {
             public int getItemCount() {
                 return downloadList.size();
             }
-        });
+        };
+        recyclerView.setAdapter(adapter);
 
         // 滑动监听
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -140,6 +145,42 @@ public class DownloadListDialog extends Dialog {
 
             }
         });
+
+        // 配置触摸事件
+        ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
+        ) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                // 处理拖拽换位
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+                Collections.swap(downloadList, fromPos, toPos);
+                adapter.notifyItemMoved(fromPos, toPos);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // 处理滑动删除
+                int position = viewHolder.getAdapterPosition();
+                downloadList.removeIf(item -> item.getUrl() != null && item.getUrl().equals(downloadList.get(position).getUrl()));
+                adapter.notifyItemRemoved(position);
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     @Override
