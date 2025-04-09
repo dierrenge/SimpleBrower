@@ -39,6 +39,7 @@ public class MyApplication extends Application {
 
     // 记录网页中的下载对象（主要是影音下载对象）
     private static List<DownloadBean> downloadList = new ArrayList<>();
+    private static List<DownloadBean> downloadListBak = new ArrayList<>(); // 副本
 
     // 记录点击下载的链接url
     private static String clickDownloadUrl;
@@ -126,13 +127,14 @@ public class MyApplication extends Application {
         }
         if (ret == 0) {
             downloadList.add(bean);
+            downloadListBak.add(bean);
         }
     }
 
     private static int compareDownload(DownloadBean bean) {
         String title = bean.getTitle();
         String url = bean.getUrl();
-        for (DownloadBean b : downloadList) {
+        for (DownloadBean b : downloadListBak) {
             String previousTitle = b.getTitle();
             String previousUrl = b.getUrl();
             if (url.equals(previousUrl)) {
@@ -151,6 +153,7 @@ public class MyApplication extends Application {
 
     public static void clearDownloadList() {
         downloadList = new ArrayList<>();
+        downloadListBak = new ArrayList<>();
     }
 
     public static String getClickDownloadUrl() {

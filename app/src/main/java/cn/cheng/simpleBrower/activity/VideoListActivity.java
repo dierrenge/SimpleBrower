@@ -116,7 +116,7 @@ public class VideoListActivity extends AppCompatActivity {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 // 设置TextView显示数据
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
-                textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
                 String videoUrl = videoUrls.get(position);
                 String[] s = videoUrl.split("/");
                 if (s.length > 0) {
@@ -128,13 +128,13 @@ public class VideoListActivity extends AppCompatActivity {
                         click(videoUrl);
                     });
                     // 解决：配置了android:textIsSelectable="true",同时也设置了点击事件，发现点第一次时候，点击事件没有生效
-                    textView.setOnTouchListener(new View.OnTouchListener() {
+                    /*textView.setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(View view, MotionEvent motionEvent) {
                             view.requestFocus();
                             return false;
                         }
-                    });
+                    });*/
                     Button button = holder.itemView.findViewById(R.id.item_del);
                     button.setOnClickListener(view -> {
                         FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "删除", "确定要删除该文件吗？", "删除", "取消");

@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -112,20 +113,21 @@ public class DownloadListDialog extends Dialog {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 // 设置TextView显示数据
-                TextView textView = holder.itemView.findViewById(R.id.item_downloadFilename);
-                textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                EditText editText = holder.itemView.findViewById(R.id.item_downloadFilename);
+                TextView textView = holder.itemView.findViewById(R.id.item_downloadFileType);
+                // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
                 Button button = holder.itemView.findViewById(R.id.item_download);
 
                 DownloadBean bean = downloadList.get(position);
-                String title0 = bean.getTitle();
-                String text = title0 + bean.getFileType();
-                textView.setText(text);
+                editText.setText(bean.getTitle());
+                textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
                     CommonUtils.requestNotificationPermissions((Activity) context); // 通知
                     MyApplication.setActivity(MyApplication.getActivity());
                     Intent intent = new Intent(MyApplication.getActivity(), DownloadService.class);
                     intent.putExtra("what", bean.getWhat());
                     intent.putExtra("url", bean.getUrl());
+                    String title0 = editText.getText().toString();
                     intent.putExtra("title", title0.length() > 30 ? title0.substring(0, 24) + "···" + title0.substring(title0.length() - 6) : title0);
                     MyApplication.getActivity().startService(intent);
                 });

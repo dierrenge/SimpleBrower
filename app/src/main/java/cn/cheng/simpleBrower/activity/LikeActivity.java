@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,6 +12,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
@@ -138,14 +141,15 @@ public class LikeActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         // 给recyclerview设置适配器
-        recyclerView.setAdapter(new RecyclerView.Adapter() {
+        RecyclerView.Adapter adapter = new RecyclerView.Adapter() {
             @NonNull
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 // 加载子项布局
                 View itemView = LayoutInflater.from(LikeActivity.this)
                         .inflate(R.layout.recyclerview_item, parent, false); // 第三个参数必须是 false！
-                return new RecyclerView.ViewHolder(itemView) {};
+                return new RecyclerView.ViewHolder(itemView) {
+                };
             }
 
             @Override
@@ -153,7 +157,7 @@ public class LikeActivity extends AppCompatActivity {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 // 设置TextView显示数据
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
-                textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                //textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
                 String likeUrl = likeUrls.get(position);
                 textView.setText(likeUrl);
                 textView.setOnClickListener(view -> {
@@ -163,13 +167,13 @@ public class LikeActivity extends AppCompatActivity {
                     click(likeUrl);
                 });
                 // 解决：配置了android:textIsSelectable="true",同时也设置了点击事件，发现点第一次时候，点击事件没有生效
-                textView.setOnTouchListener(new View.OnTouchListener() {
+                /*textView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {
                         view.requestFocus();
                         return false;
                     }
-                });
+                });*/
                 Button button = holder.itemView.findViewById(R.id.item_del);
                 button.setOnClickListener(view -> {
                     FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
@@ -178,6 +182,7 @@ public class LikeActivity extends AppCompatActivity {
                         public void close() {
                             feetDialog.dismiss();
                         }
+
                         @Override
                         public void ok() {
                             // 删除本项记录
@@ -205,7 +210,8 @@ public class LikeActivity extends AppCompatActivity {
                 intent.putExtra("webInfo", likeUrl);
                 LikeActivity.this.startActivity(intent);
             }
-        });
+        };
+        recyclerView.setAdapter(adapter);
 
         // 滑动监听
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -214,6 +220,41 @@ public class LikeActivity extends AppCompatActivity {
                 change(isChange);
             }
         });
+
+        // 配置触摸事件
+        ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
+        ) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                // 处理拖拽换位
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+                Collections.swap(likeUrls, fromPos, toPos);
+                moveLikeUrl();
+                adapter.notifyItemMoved(fromPos, toPos);
+                return true;
+            }
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // 处理滑动删除
+                // int position = viewHolder.getAdapterPosition();
+                // likeUrls.removeIf(item -> item != null && item.equals(likeUrls.get(position)));
+                // adapter.notifyItemRemoved(position);
+            }
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     void initHandler() {
@@ -326,6 +367,38 @@ public class LikeActivity extends AppCompatActivity {
                     message.what = 3;
                     message.obj = new String[]{url, position+""};
                     handler.sendMessage(message);
+                }).start();
+            }
+        }
+    }
+
+    private void moveLikeUrl() {
+        if ("历史".equals(flag)) {
+            MyApplication.clearUrls();
+            for (String l : likeUrls) {
+                MyApplication.setUrl(l);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
+                //启动线程开始执行 删除网址存档
+                new Thread(() -> {
+                    try {
+                        File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+                        if (file.exists()) {
+                            // 集合中删除该网址
+                            try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                                for (String s : likeUrls) {
+                                    if (s != null) {
+                                        bos.write((s + "\n").getBytes());
+                                    }
+                                }
+                            } catch (IOException e) {
+                                e.getMessage();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.getMessage();
+                    }
                 }).start();
             }
         }

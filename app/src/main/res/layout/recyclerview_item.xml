@@ -23,7 +23,7 @@
                 android:gravity="center|start"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:textIsSelectable="true"
+                android:textIsSelectable="false"
                 android:textSize="14dp"
                 android:inputType="text"
                 android:maxLines="1"/> <!-- android:textIsSelectable="true" 允许复制-->
