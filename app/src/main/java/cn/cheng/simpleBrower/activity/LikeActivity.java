@@ -184,7 +184,7 @@ public class LikeActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void ok() {
+                        public void ok(String txt) {
                             // 删除本项记录
                             deleteLikeUrl(likeUrl);
                             feetDialog.dismiss();

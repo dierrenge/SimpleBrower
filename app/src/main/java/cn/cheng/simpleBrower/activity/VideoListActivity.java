@@ -144,7 +144,7 @@ public class VideoListActivity extends AppCompatActivity {
                                 feetDialog.dismiss();
                             }
                             @Override
-                            public void ok() {
+                            public void ok(String txt) {
                                 // 删除本项记录
                                 deleteVideoUrl(videoUrl, position);
                                 feetDialog.dismiss();

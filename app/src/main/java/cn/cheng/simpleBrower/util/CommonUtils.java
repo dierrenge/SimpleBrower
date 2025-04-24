@@ -585,7 +585,7 @@ public class CommonUtils {
                     feetDialog.dismiss();
                 }
                 @Override
-                public void ok() {
+                public void ok(String txt) {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                     intent.setData(Uri.parse("package:" + context.getPackageName()));
                     context.startActivityForResult(intent, 100);
@@ -628,7 +628,7 @@ public class CommonUtils {
                     feetDialog.dismiss();
                 }
                 @Override
-                public void ok() {
+                public void ok(String txt) {
                     Intent settingsIntent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
                     settingsIntent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
                     context.startActivityForResult(settingsIntent, 200);

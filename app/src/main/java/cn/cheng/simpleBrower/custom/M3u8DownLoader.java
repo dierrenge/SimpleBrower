@@ -1037,9 +1037,13 @@ public class M3u8DownLoader {
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
             // 获取长度
             float contentLength = httpURLConnection.getContentLength()/1024F/1024F;
+            String fileSize = "未知大小";
+            if (contentLength > 0) {
+                fileSize = String.format("%.2f", contentLength) + "M";
+            }
             // System.out.println("=======contentLength=====" + contentLength);
             if (title.contains(".")) {
-                title += " / " + String.format("%.2f", contentLength) + "M";
+                title += " / " + fileSize;
             } else {
                 // 获取格式
                 String contentType = httpURLConnection.getContentType();
@@ -1060,7 +1064,7 @@ public class M3u8DownLoader {
                     fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
                     format = "";
                 }
-                title = fileName + format + " / " + String.format("%.2f", contentLength) + "M";
+                title = fileName + format + " / " + fileSize;
             }
             // System.out.println("+++++++++++++++++++++++++++++++" + title);
         } catch (Exception e) {

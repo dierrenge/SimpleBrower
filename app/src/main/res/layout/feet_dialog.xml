@@ -34,6 +34,36 @@
         android:textSize="17dp" />
 
     <LinearLayout
+        android:id="@+id/dialog_text_layout"
+        android:visibility="gone"
+        android:layout_width="260dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/dialog_text_filename"
+            android:gravity="center|start"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:textSize="17dp"
+            android:inputType="text"
+            android:textColor="@color/gray2"
+            android:textColorHint="@color/gray2"
+            android:textCursorDrawable="@drawable/edit_text_cursor"
+            android:maxLines="1"/>
+        <TextView
+            android:id="@+id/dialog_text_fileType"
+            android:gravity="center|start"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:textIsSelectable="false"
+            android:textSize="17dp"
+            android:inputType="text"
+            android:maxLines="1"/> <!-- android:textIsSelectable="true" 允许复制-->
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"

@@ -492,7 +492,7 @@ public class BrowserActivity extends AppCompatActivity {
                                 }
 
                                 @Override
-                                public void ok() {
+                                public void ok(String txt) {
                                     flag = true;
                                     download(url, title, what);
                                     feetDialog.dismiss();
@@ -1048,7 +1048,7 @@ public class BrowserActivity extends AppCompatActivity {
                                         feetDialog.dismiss();
                                     }
                                     @Override
-                                    public void ok() {
+                                    public void ok(String txt) {
                                         Intent intent = new Intent();
                                         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

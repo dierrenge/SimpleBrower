@@ -5,9 +5,11 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,6 +29,9 @@ public class FeetDialog extends Dialog {
     private TouchListener touchListener;
     private TextView dialog_title;
     private TextView dialog_text;
+    private LinearLayout dialog_text_layout;
+    private EditText dialog_text_filename;
+    private TextView dialog_text_fileType;
     private String title, text, okName, closeName;
 
     public FeetDialog(@NonNull Context context) {
@@ -57,11 +62,27 @@ public class FeetDialog extends Dialog {
         okBtn = findViewById(R.id.dialog_set_ok);
         dialog_title = findViewById(R.id.dialog_title);
         dialog_text = findViewById(R.id.dialog_text);
+        dialog_text_layout = findViewById(R.id.dialog_text_layout);
+        dialog_text_filename = findViewById(R.id.dialog_text_filename);
+        dialog_text_fileType = findViewById(R.id.dialog_text_fileType);
         if (title != null) {
             dialog_title.setText(title);
         }
         if (text != null) {
-            dialog_text.setText(text);
+            if (text.contains(" / ")) {
+                dialog_text.setVisibility(View.GONE);
+                dialog_text_layout.setVisibility(View.VISIBLE);
+                String name = text.substring(0, text.lastIndexOf(" / "));
+                String type = text.substring(text.lastIndexOf(" / "));
+                if (name.contains(".")) {
+                    name = name.substring(0, name.lastIndexOf("."));
+                    type = name.substring(name.lastIndexOf(".")) + type;
+                }
+                dialog_text_filename.setText(name);
+                dialog_text_fileType.setText(type);
+            } else {
+                dialog_text.setText(text);
+            }
         }
         if (okName != null) {
             okBtn.setText(okName);
@@ -93,7 +114,14 @@ public class FeetDialog extends Dialog {
             @Override
             public void upEvent() {
                 if (touchListener != null) {
-                    touchListener.ok();
+                    String txt = "";
+                    String type = "";
+                    if (text.contains(" / ")) {
+                        txt = dialog_text_filename.getText().toString();
+                        type = dialog_text_fileType.getText().toString();
+                        type = type.substring(0, type.lastIndexOf(" / "));
+                    }
+                    touchListener.ok(txt + type);
                 }
             }
         });
@@ -126,8 +154,8 @@ public class FeetDialog extends Dialog {
     public interface TouchListener {
         // 关闭弹框
         void close();
-        // 应用锁屏
-        void ok();
+        // 应用
+        void ok(String text);
     }
 
 }

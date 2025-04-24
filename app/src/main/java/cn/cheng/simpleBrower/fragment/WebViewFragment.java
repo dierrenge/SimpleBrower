@@ -285,9 +285,9 @@ public class WebViewFragment extends Fragment {
                                 }
 
                                 @Override
-                                public void ok() {
+                                public void ok(String txt) {
                                     flag = true;
-                                    download(url, title, what);
+                                    download(url, arr.length >= 3 && arr[2].contains(" / ") ? txt : title, what);
                                     feetDialog.dismiss();
                                 }
                             });
