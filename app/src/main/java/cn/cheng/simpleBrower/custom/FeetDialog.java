@@ -75,8 +75,8 @@ public class FeetDialog extends Dialog {
                 String name = text.substring(0, text.lastIndexOf(" / "));
                 String type = text.substring(text.lastIndexOf(" / "));
                 if (name.contains(".")) {
-                    name = name.substring(0, name.lastIndexOf("."));
                     type = name.substring(name.lastIndexOf(".")) + type;
+                    name = name.substring(0, name.lastIndexOf("."));
                 }
                 dialog_text_filename.setText(name);
                 dialog_text_fileType.setText(type);
