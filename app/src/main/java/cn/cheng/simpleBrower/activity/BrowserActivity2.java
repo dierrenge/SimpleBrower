@@ -25,6 +25,7 @@ import java.util.Stack;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.DownloadListDialog;
+import cn.cheng.simpleBrower.custom.MoreFunctionDialog;
 import cn.cheng.simpleBrower.fragment.WebViewFragment;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -39,6 +40,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private ImageButton btnBack;
     private ImageButton btnHome;
     private ImageButton btnMonitor;
+    private ImageButton btnMore;
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
@@ -58,6 +60,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         btnForward = findViewById(R.id.btnForward);
         btnHome = findViewById(R.id.btnHome);
         btnMonitor = findViewById(R.id.btnMonitor);
+        btnMore = findViewById(R.id.btnMore);
         btnBack.setOnClickListener(v -> {
             goBackOrForward("back", b -> {
                 onBack();
@@ -73,6 +76,13 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         });
         btnMonitor.setOnClickListener(v -> {
             DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this);
+            dialog.setOnCallListener(() -> {
+                btnMonitor.setBackgroundResource(R.drawable.btn_monitor);
+            });
+            dialog.show();
+        });
+        btnMore.setOnClickListener(v -> {
+            MoreFunctionDialog dialog = new MoreFunctionDialog(BrowserActivity2.this);
             dialog.show();
         });
 

@@ -7,10 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -25,15 +23,11 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.activity.TxtActivity;
-import cn.cheng.simpleBrower.activity.TxtListActivity;
 import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
@@ -46,7 +40,7 @@ public class DownloadListDialog extends Dialog {
 
     private Context context;
 
-    private TouchListener touchListener;
+    private CallListener callListener;
 
     private static RecyclerView recyclerView;
     private LinearLayout txt_bg2;
@@ -171,6 +165,9 @@ public class DownloadListDialog extends Dialog {
                 int position = viewHolder.getAdapterPosition();
                 downloadList.removeIf(item -> item.getUrl() != null && item.getUrl().equals(downloadList.get(position).getUrl()));
                 adapter.notifyItemRemoved(position);
+                if (callListener != null && downloadList.size() == 0) {
+                    callListener.deleteAll();
+                }
             }
 
             @Override
@@ -202,12 +199,12 @@ public class DownloadListDialog extends Dialog {
         super.setCanceledOnTouchOutside(cancel);
     }
 
-    public void setOnTouchListener(TouchListener touchListener) {
-        this.touchListener = touchListener;
+    public void setOnCallListener(CallListener touchListener) {
+        this.callListener = touchListener;
     }
 
-    public interface TouchListener {
-        void download();
+    public interface CallListener {
+        void deleteAll();
     }
 
 }

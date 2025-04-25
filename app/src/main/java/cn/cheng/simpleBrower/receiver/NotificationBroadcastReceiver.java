@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import java.io.File;
+
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -30,6 +32,16 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         if (action.equals("notification_cancelled")) {
             // 记录的删除项
             MyApplication.setNum(type);
+            String fileName = intent.getStringExtra("fileName");
+            if (fileName != null) {
+                if (!fileName.contains(".")) {
+                    fileName += ".m3u8";
+                }
+                String finalFileName = fileName;
+                new Thread(() -> {
+                    CommonUtils.deleteFile(new File(finalFileName));
+                }).start();
+            }
         }
     }
 }

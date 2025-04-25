@@ -45,7 +45,7 @@ import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
- * 下载Service （目前仅用于下载m3u8）
+ * 下载Service （下载包括m3u8格式的文件）
  */
 public class DownloadService extends Service {
 
@@ -164,6 +164,7 @@ public class DownloadService extends Service {
         Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
         intentCancel.setAction("notification_cancelled");
         intentCancel.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
+        intentCancel.putExtra("fileName", supDir + "/" + title);
         // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
         int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(this, notificationId, intentCancel, flag);

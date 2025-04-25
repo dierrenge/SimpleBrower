@@ -120,6 +120,14 @@ public class LikeActivity extends AppCompatActivity {
             }
         });
 
+        Intent intent = getIntent();
+        String flagI = intent.getStringExtra("flag");
+        if ("历史".equals(flagI)) {
+            flag = "历史";
+            like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
+            like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
+        }
+
         // 背景
         layout = findViewById(R.id.like_bg);
 
