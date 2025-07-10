@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'cn.cheng.simpleBrower'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "cn.cheng.simpleBrower"
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 3
         versionName "7.1.0"
 
@@ -23,10 +23,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
+    buildToolsVersion '35.0.0'
 }
+// 上面修改Android版本(如34->35) compileSdk和buildToolsVersion都要改
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.1'
@@ -51,12 +53,12 @@ dependencies {
 
     /**
      * 视频播放框架
-     * 使用版本：v8.1.7-release-jitpack、v9.0.0-release-jitpack
+     * 使用版本：v8.1.7-release-jitpack、v9.0.0-release-jitpack（compileSdk 34，gradle 7.3.1）、v10.2.0
      */
-    // 完整版引入
+    // v9.0.0-release-jitpack完整版引入
     // implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
-    // 部分引入
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v9.0.0-release-jitpack'
+    // v9.0.0-release-jitpack部分引入
+    /*implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-java:v9.0.0-release-jitpack'
     // 是否需要ExoPlayer模式 支持格式更多
     implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-exo2:v9.0.0-release-jitpack'
     // 是否需要AliPlayer模式
@@ -66,7 +68,21 @@ dependencies {
     implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a:v9.0.0-release-jitpack'
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5:v9.0.0-release-jitpack'
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86:v9.0.0-release-jitpack'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'*/
 
+    // v10.2.0完整版引入
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer:v10.2.0'
+    // v10.2.0部分引入
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-java:v10.2.0'
+    //是否需要ExoPlayer模式
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-exo2:v10.2.0'
+    //是否需要AliPlayer模式
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-aliplay:v10.2.0'
+    //根据你的需求ijk模式的so
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-arm64:v10.2.0'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv7a:v10.2.0'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv5:v10.2.0'
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x86:v10.2.0'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x64:v10.2.0'
 
 }

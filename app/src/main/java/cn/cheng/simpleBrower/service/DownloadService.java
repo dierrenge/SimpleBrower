@@ -156,7 +156,7 @@ public class DownloadService extends Service {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             pendingIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_IMMUTABLE);
         } else {
-            pendingIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_ONE_SHOT);
+            pendingIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_MUTABLE);
         }
         nBuilder.setContentIntent(pendingIntent);
 
