@@ -1,5 +1,7 @@
 package cn.cheng.simpleBrower.activity;
 
+import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -9,6 +11,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
@@ -214,7 +217,7 @@ public class VideoActivity extends AppCompatActivity {
                     // 大概估算 参数为1时小拖一下 进度1/15
                     // 快进比例 = duration/1000 * 1/15  / 目标小拖动时间
                     int m = 10; // 目标小拖动时间10秒
-                    float pro = duration/1000F * 1/15F /m; // 快进比例
+                    float pro = duration/1000F * 1/16F /m; // 快进比例
                     mVideoPlayer.setSeekRatio(pro);
                     durationAll = duration;
                     // System.out.println("=======================" + mVideoPlayer.getSeekRatio());
@@ -224,7 +227,8 @@ public class VideoActivity extends AppCompatActivity {
                 // 播放完成监听
                 float last = 1F * currentPosition / duration;
                 // System.out.println("==============" + last);
-                if (last  >= 0.999 || progress == 100) {
+                // System.out.println("========progress======" + progress);
+                if (last  >= 0.998 || progress == 100) {
                     mVideoPlayer.startNext();
                 }
             }
