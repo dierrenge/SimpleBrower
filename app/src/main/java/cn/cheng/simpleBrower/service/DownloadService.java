@@ -200,7 +200,7 @@ public class DownloadService extends Service {
             pools.put(notificationId, fixedThreadPool);
             m3u8Download.setFixedThreadPool(fixedThreadPool);
             //设置重试次数
-            m3u8Download.setRetryCount(8);
+            m3u8Download.setRetryCount(3);
             //设置连接超时时间（单位：毫秒）
             m3u8Download.setTimeoutMillisecond(10000L);
             //m3u8是否转换成MP4
