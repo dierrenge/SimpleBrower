@@ -298,6 +298,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
                 fragment.getWebView().destroy();
             }
         }
+        // 退出浏览器页面后 清空可下载列表
         MyApplication.clearDownloadList();
         super.onDestroy();
     }

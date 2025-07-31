@@ -39,6 +39,7 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.MainActivity;
+import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
@@ -67,8 +68,6 @@ public class DownloadService extends Service {
     private String CHANNEL_ID = "";
 
     private Map<Integer, ExecutorService> pools = new HashMap<>();
-
-    private Map<Integer, Notification> notificationMap = new HashMap<>();
 
     public DownloadService() {
     }
@@ -160,7 +159,7 @@ public class DownloadService extends Service {
         }
         nBuilder.setContentIntent(pendingIntent);
 
-        // 创建一个用于记录滑动删除的调用广播
+        // 创建一个用于记录滑动删除的intent 调用广播
         Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
         intentCancel.setAction("notification_cancelled");
         intentCancel.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
@@ -170,15 +169,31 @@ public class DownloadService extends Service {
         PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(this, notificationId, intentCancel, flag);
         nBuilder.setDeleteIntent(pendingIntentCancel);
 
-        // 创建通知
-        notification = nBuilder.build();
-        // 将通知id与通知 以键值对方式存下来
-        notificationMap.put(notificationId, notification);
+        // 创建一个处理按钮点击事件的intent 调用广播
+        Intent intentClick = new Intent(this, NotificationBroadcastReceiver.class);
+        intentClick.setAction("notification_clicked");
+        intentClick.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
+        intentClick.putExtra("fileName", supDir + "/" + title);
+        // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+        int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+        PendingIntent pendingIntentClick = PendingIntent.getBroadcast(this, notificationId, intentClick, flag2);
 
         //初始化下载任务内容views
-        String[] arr = new String[]{"0", notificationId+"", title};
-        Message message = myHandler.obtainMessage(3, arr);
-        myHandler.sendMessage(message);
+        views = new RemoteViews(getPackageName(), R.layout.notification_download);
+        views.setTextViewText(R.id.task_name, title);
+        views.setTextViewText(R.id.tvProcess, "已下载0.00%");
+        views.setProgressBar(R.id.pbDownload, 100, download_precent, false);
+        views.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);
+
+        // 创建通知
+        notification = nBuilder.setCustomContentView(views).build();
+        // 将通知id与通知 以键值对方式存下来
+        NotificationBean notificationBean = new NotificationBean();
+        notificationBean.setNotification(notification);
+        notificationBean.setTitle(title);
+        notificationBean.setUrl(url);
+        notificationBean.setState("暂停");
+        MyApplication.setDownLoadInfo(notificationId, notificationBean);
 
         //启动线程开始执行下载任务
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
@@ -264,13 +279,12 @@ public class DownloadService extends Service {
                             str = "已下载" + str + "%";
                         }
                         // 根据 notificationId 获取 notification
-                        Notification notificationX = notificationMap.get(n);
-                        // 添加或更新状态栏上的下载进度等信息
-                        views = new RemoteViews(getPackageName(), R.layout.notification_download);
-                        views.setTextViewText(R.id.task_name, arr[2]);
-                        views.setTextViewText(R.id.tvProcess, str);
-                        views.setProgressBar(R.id.pbDownload, 100, download_precent, false);
-                        notificationX.contentView = views;
+                        NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(n);
+                        Notification notificationX = downLoadInfo.getNotification();
+                        // 更新状态栏上的下载进度等信息
+                        RemoteViews contentView = notificationX.contentView;
+                        contentView.setTextViewText(R.id.tvProcess, str);
+                        contentView.setProgressBar(R.id.pbDownload, 100, download_precent, false);
                         nm.notify(n, notificationX);
                         break;
                     case 4:

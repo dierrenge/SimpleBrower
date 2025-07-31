@@ -163,7 +163,7 @@ public class DownloadListDialog extends Dialog {
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 // 处理滑动删除
                 int position = viewHolder.getAdapterPosition();
-                downloadList.removeIf(item -> item.getUrl() != null && item.getUrl().equals(downloadList.get(position).getUrl()));
+                MyApplication.deleteDownloadList(downloadList.get(position).getUrl());
                 adapter.notifyItemRemoved(position);
                 if (callListener != null && downloadList.size() == 0) {
                     callListener.deleteAll();

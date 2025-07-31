@@ -9,10 +9,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import cn.cheng.simpleBrower.bean.DownloadBean;
+import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -46,6 +45,9 @@ public class MyApplication extends Application {
 
     // 记录播放器影音播放进度
     private static HashMap<String, Long> videoPosition = new HashMap<>();
+
+    // 记录下载任务消息
+    private static HashMap<Integer, NotificationBean> downLoadBeanMap = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -150,6 +152,10 @@ public class MyApplication extends Application {
     public static List<DownloadBean> getDownloadList() {
         return downloadList;
     }
+    public static void deleteDownloadList(String url) {
+        downloadList.removeIf(item -> item.getUrl() != null && item.getUrl().equals(url));
+        downloadListBak.removeIf(item -> item.getUrl() != null && item.getUrl().equals(url));
+    }
 
     public static void clearDownloadList() {
         downloadList = new ArrayList<>();
@@ -171,4 +177,17 @@ public class MyApplication extends Application {
     public static HashMap<String, Long> getVideoPosition() {
         return videoPosition;
     }
+
+    public static NotificationBean getDownLoadInfo(int key) {
+        return downLoadBeanMap.get(key);
+    }
+
+    public static void setDownLoadInfo(int key, NotificationBean value) {
+        downLoadBeanMap.put(key, value);
+    }
+
+    public static void deleteDownLoadState(int key) {
+        downLoadBeanMap.remove(key);
+    }
+
 }

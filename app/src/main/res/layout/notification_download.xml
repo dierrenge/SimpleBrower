@@ -56,13 +56,22 @@
                 android:textSize="12dp"
                 android:textStyle="bold" />
         </LinearLayout>
-        <ImageView
+        <!--<ImageView
             android:id="@+id/ivLogo2"
             android:layout_width="38dp"
             android:layout_height="38dp"
             android:scaleType="centerInside"
             android:src="@mipmap/app_logo"
             android:layout_marginLeft="6dp"
-            android:layout_marginRight="8dp"/>
+            android:layout_marginRight="8dp"/>-->
+        <TextView
+            android:id="@+id/btn_state"
+            android:gravity="center"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="8dp"
+            android:text="暂停"
+            android:textSize="18dp"/>
     </LinearLayout>
 </LinearLayout>

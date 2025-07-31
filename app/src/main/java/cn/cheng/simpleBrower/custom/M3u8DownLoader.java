@@ -42,6 +42,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import cn.cheng.simpleBrower.MyApplication;
+import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
@@ -116,6 +117,8 @@ public class M3u8DownLoader {
     //已经下载的文件大小
     private BigDecimal downloadBytes = new BigDecimal(0);
 
+    private NotificationBean notificationBean;
+
     // m3u8是否转MP4
     private boolean m3u8ToMp4 = false;
 
@@ -126,6 +129,7 @@ public class M3u8DownLoader {
     public M3u8DownLoader(String m3U8URL, int notificationId) {
         DOWNLOADURL = m3U8URL;
         id = notificationId;
+        notificationBean = MyApplication.getDownLoadInfo(notificationId);
     }
 
     public void setThreadCount(int threadCount) {
@@ -1104,7 +1108,7 @@ public class M3u8DownLoader {
                      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
 
                     long time = 0;
-                    while ((len = bis.read(buf)) != -1) {
+                    while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
                         bos.write(buf, 0, len);
                         // 更新进度
                         bytesum += len;
@@ -1117,9 +1121,11 @@ public class M3u8DownLoader {
                         }
                     }
                     inputStream.close();
-                    String[] arr2 = new String[]{"下载文件成功", id+""};
-                    Message msg = handler.obtainMessage(2, arr2);
-                    handler.sendMessage(msg);
+                    if ("暂停".equals(notificationBean.getState())) {
+                        String[] arr2 = new String[]{"下载文件成功", id+""};
+                        Message msg = handler.obtainMessage(2, arr2);
+                        handler.sendMessage(msg);
+                    }
                 } catch (Exception e) {
                    e.printStackTrace();
                     String[] arr = new String[]{"", id+""};
