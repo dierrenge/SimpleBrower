@@ -965,6 +965,7 @@ public class M3u8DownLoader {
      */
     private void startDownloadNoThread(Handler handler) {
         int i = 0;
+        int j = 0;
         // 如果生成目录不存在，则创建
         File file1 = new File(supDir + "/m3u8/" + fileName);
         // System.out.println("生成目录==========" + file1.getAbsolutePath());
@@ -978,20 +979,22 @@ public class M3u8DownLoader {
             }
             i++;
             String message = getTsFile(s, i);
-            if (message != null) {
+            if (message == null) {
                 if (tsList.size() != 0) {
                     String[] arr = new String[]{new BigDecimal(i).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                     Message msg = handler.obtainMessage(3, arr);
                     handler.sendMessage(msg);
                 }
             } else {
-                String[] arr = new String[]{message, id+""};
+                /*String[] arr = new String[]{message, id+""};
                 Message msg= handler.obtainMessage(4, arr);
                 handler.sendMessage(msg);
-                break;
+                break;*/
+                j++;
             }
         }
         // 下载成功提示
+        i -= j;
         String str = i + "个ts文件";
         if (tsList.size() == i) {
             str = "下载完成！共" + str;
