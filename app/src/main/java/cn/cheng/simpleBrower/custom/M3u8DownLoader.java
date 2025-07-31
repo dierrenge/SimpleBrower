@@ -119,6 +119,8 @@ public class M3u8DownLoader {
 
     private NotificationBean notificationBean;
 
+    private Handler handler;
+
     // m3u8是否转MP4
     private boolean m3u8ToMp4 = false;
 
@@ -126,10 +128,11 @@ public class M3u8DownLoader {
         this.m3u8ToMp4 = m3u8ToMp4;
     }
 
-    public M3u8DownLoader(String m3U8URL, int notificationId) {
+    public M3u8DownLoader(String m3U8URL, int notificationId, Handler myHandler) {
         DOWNLOADURL = m3U8URL;
         id = notificationId;
         notificationBean = MyApplication.getDownLoadInfo(notificationId);
+        handler = myHandler;
     }
 
     public void setThreadCount(int threadCount) {
@@ -1010,7 +1013,7 @@ public class M3u8DownLoader {
     /**
      * 开始下载视频
      */
-    public void start(Handler handler) {
+    public void start() {
         // checkField();
         new Thread(()->{
             System.out.println(DOWNLOADURL + "   =============");
@@ -1074,11 +1077,7 @@ public class M3u8DownLoader {
                 httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
                 // 以识别各种格式
                 httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
-                // 获取文件流
-                InputStream inputStream = httpURLConnection.getInputStream();
-                // 获取长度
-                int contentLength = httpURLConnection.getContentLength();
-                // System.out.println("=======contentLength=====" +contentLength);
+
                 // 保存文件的绝对路径
                 String absolutePath = supDir + "/" + fileName;
                 if (!fileName.contains(".") || what != 4) {
@@ -1105,16 +1104,41 @@ public class M3u8DownLoader {
                 }
                 // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
                 File file = new File(absolutePath);
-                int len, bytesum = 0;
-                byte[] buf = new byte[1024*8];
-                try (BufferedInputStream bis = new BufferedInputStream(inputStream);
-                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                int startByte = 0;
+                // 检查本地文件是否存在
+                if (file.exists()) {
+                    startByte = (int) file.length();
+                    httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+                }
+                httpURLConnection.connect();
 
+                int responseCode = httpURLConnection.getResponseCode();
+                if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
+                    System.out.println("Error: " + responseCode);
+                    return;
+                }
+
+                // 获取文件长度
+                int contentLength = httpURLConnection.getContentLength();
+                if (startByte > 0 && contentLength == -1) {
+                    System.out.println("Error: Server does not support resume");
+                    return;
+                }
+                // System.out.println("=======contentLength=====" +contentLength);
+
+                int len, bytesum = notificationBean.getBytesum();
+                byte[] buf = new byte[1024*8];
+                // 获取文件流
+                InputStream inputStream = httpURLConnection.getInputStream();
+                try (BufferedInputStream bis = new BufferedInputStream(inputStream);
+                     RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
+                    randomAccessFile.seek(startByte);
                     long time = 0;
                     while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
-                        bos.write(buf, 0, len);
+                        randomAccessFile.write(buf, 0, len);
                         // 更新进度
                         bytesum += len;
+                        notificationBean.setBytesum(bytesum);
                         String index = String.format("%.2f", bytesum * 100F / contentLength);
                         if (len > 0 && System.currentTimeMillis() - time > 1000) {
                             time = System.currentTimeMillis();

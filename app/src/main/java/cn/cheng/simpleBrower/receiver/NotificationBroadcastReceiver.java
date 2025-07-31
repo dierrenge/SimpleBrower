@@ -34,19 +34,23 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
             NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(type);
-            Notification notificationX = downLoadInfo.getNotification();
-            RemoteViews contentView = notificationX.contentView;
-            String state = downLoadInfo.getState();
-            if (state != null) {
-                if (state.equals("暂停")) {
-                    state = "继续";
-                } else {
-                    state = "暂停";
-
+            if (downLoadInfo != null) {
+                Notification notificationX = downLoadInfo.getNotification();
+                RemoteViews contentView = notificationX.contentView;
+                String state = downLoadInfo.getState();
+                if (state != null) {
+                    if (state.equals("暂停")) {
+                        state = "继续";
+                    } else {
+                        state = "暂停";
+                    }
+                    contentView.setTextViewText(R.id.btn_state, state);
+                    downLoadInfo.setState(state);
+                    notificationManager.notify(type, notificationX);
+                    if (state.equals("暂停")) {
+                        downLoadInfo.getM3u8Download().start();
+                    }
                 }
-                contentView.setTextViewText(R.id.btn_state, state);
-                downLoadInfo.setState(state);
-                notificationManager.notify(type, notificationX);
             }
         }
 

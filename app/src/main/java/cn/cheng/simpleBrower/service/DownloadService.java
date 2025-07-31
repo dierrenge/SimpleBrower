@@ -203,7 +203,8 @@ public class DownloadService extends Service {
                 dirName = System.currentTimeMillis() + "";
             }
             // M3u8DownLoader.test(url, myHandler);
-            M3u8DownLoader m3u8Download =  new M3u8DownLoader(url, notificationId);
+            M3u8DownLoader m3u8Download = new M3u8DownLoader(url, notificationId, myHandler);
+            notificationBean.setM3u8Download(m3u8Download);
             m3u8Download.setWhat(what);
             //设置生成目录
             m3u8Download.setDir(supDir + "/" + dirName, supDir);
@@ -221,7 +222,7 @@ public class DownloadService extends Service {
             //m3u8是否转换成MP4
             m3u8Download.setM3u8ToMp4(false);
             //开始下载
-            m3u8Download.start(myHandler);
+            m3u8Download.start();
         }
         // Message message2 = myHandler.obtainMessage(0, new String[]{CHANNEL_ID + "-开始下载", ""});
         // myHandler.sendMessage(message2);
