@@ -10,6 +10,7 @@ import android.widget.RemoteViews;
 import androidx.core.app.NotificationCompat;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
@@ -24,16 +25,16 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        int type = intent.getIntExtra(TYPE, -1);
+        int notificationId = intent.getIntExtra(TYPE, -1);
         String action = intent.getAction();
-        if (type == -1) {
+        if (notificationId == -1) {
             return;
         }
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
 
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
-            NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(type);
             if (downLoadInfo != null) {
                 Notification notificationX = downLoadInfo.getNotification();
                 RemoteViews contentView = notificationX.contentView;
@@ -46,9 +47,12 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                     }
                     contentView.setTextViewText(R.id.btn_state, state);
                     downLoadInfo.setState(state);
-                    notificationManager.notify(type, notificationX);
+                    notificationManager.notify(notificationId, notificationX);
                     if (state.equals("暂停")) {
-                        downLoadInfo.getM3u8Download().start();
+                        // 继续下载
+                        Intent serviceIntent = new Intent(context, DownloadService.class);
+                        intent.putExtra("notificationId", notificationId);
+                        context.startService(serviceIntent);
                     }
                 }
             }
@@ -56,9 +60,14 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
-            notificationManager.cancel(type);
+            if (downLoadInfo != null) {
+                downLoadInfo.setState("继续");
+            }
+            ExecutorService pool = MyApplication.getPool(notificationId);
+            if (pool != null) pool.shutdownNow();
+            notificationManager.cancel(notificationId);
             // 记录的删除项
-            MyApplication.setNum(type);
+            MyApplication.setNum(notificationId);
             String fileName = intent.getStringExtra("fileName");
             if (fileName != null) {
                 if (!fileName.contains(".")) {

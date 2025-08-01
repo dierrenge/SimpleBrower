@@ -2,20 +2,20 @@ package cn.cheng.simpleBrower.bean;
 
 import android.app.Notification;
 
-import cn.cheng.simpleBrower.custom.M3u8DownLoader;
+import java.io.Serializable;
 
 /**
  * 下载任务消息
  */
-public class NotificationBean {
+public class NotificationBean implements Serializable {
     private Notification notification;
     private String title;
     private String url;
-    private String state; // 表示点击后呈现的状态
-
-    private M3u8DownLoader m3u8Download;
+    private String state; // 表示点击后呈现的下载状态
 
     private int bytesum; // 记录下载进度
+
+    private int what; // 用于区分下载文件类别
 
     public Notification getNotification() {
         return notification;
@@ -49,19 +49,19 @@ public class NotificationBean {
         this.state = state;
     }
 
-    public M3u8DownLoader getM3u8Download() {
-        return m3u8Download;
-    }
-
-    public void setM3u8Download(M3u8DownLoader m3u8Download) {
-        this.m3u8Download = m3u8Download;
-    }
-
     public int getBytesum() {
         return bytesum;
     }
 
     public void setBytesum(int bytesum) {
         this.bytesum = bytesum;
+    }
+
+    public int getWhat() {
+        return what;
+    }
+
+    public void setWhat(int what) {
+        this.what = what;
     }
 }

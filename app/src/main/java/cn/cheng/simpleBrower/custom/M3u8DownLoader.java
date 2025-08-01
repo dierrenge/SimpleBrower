@@ -1057,6 +1057,7 @@ public class M3u8DownLoader {
         }
         while (count <= retryCount) {
             try {
+                /* 1、设置请求连接配置 */
                 URL url = new URL(DOWNLOADURL);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
@@ -1078,7 +1079,7 @@ public class M3u8DownLoader {
                 // 以识别各种格式
                 httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
 
-                // 保存文件的绝对路径
+                /* 2、保存文件的绝对路径 */
                 String absolutePath = supDir + "/" + fileName;
                 if (!fileName.contains(".") || what != 4) {
                     // 获取格式
@@ -1103,22 +1104,24 @@ public class M3u8DownLoader {
                     absolutePath = supDir + "/" + fileName + format;
                 }
                 // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
+
+                /* 3、检查本地文件是否存在，存在则从上次的下载位置开始下载 */
                 File file = new File(absolutePath);
                 int startByte = 0;
-                // 检查本地文件是否存在
                 if (file.exists()) {
                     startByte = (int) file.length();
                     httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
                 }
-                httpURLConnection.connect();
 
+                /* 4、连接并获取请求状态 */
+                httpURLConnection.connect();
                 int responseCode = httpURLConnection.getResponseCode();
                 if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
                     System.out.println("Error: " + responseCode);
                     return;
                 }
 
-                // 获取文件长度
+                /* 5、获取文件长度，判断是否支持断点续传 */
                 int contentLength = httpURLConnection.getContentLength();
                 if (startByte > 0 && contentLength == -1) {
                     System.out.println("Error: Server does not support resume");
@@ -1126,6 +1129,7 @@ public class M3u8DownLoader {
                 }
                 // System.out.println("=======contentLength=====" +contentLength);
 
+                /* 6、写入文件流及更新进度处理 */
                 int len, bytesum = notificationBean.getBytesum();
                 byte[] buf = new byte[1024*8];
                 // 获取文件流
@@ -1138,7 +1142,6 @@ public class M3u8DownLoader {
                         randomAccessFile.write(buf, 0, len);
                         // 更新进度
                         bytesum += len;
-                        notificationBean.setBytesum(bytesum);
                         String index = String.format("%.2f", bytesum * 100F / contentLength);
                         if (len > 0 && System.currentTimeMillis() - time > 1000) {
                             time = System.currentTimeMillis();
@@ -1147,7 +1150,7 @@ public class M3u8DownLoader {
                             handler.sendMessage(msg0);
                         }
                     }
-                    inputStream.close();
+                    notificationBean.setBytesum(bytesum);
                     if ("暂停".equals(notificationBean.getState())) {
                         String[] arr2 = new String[]{"下载文件成功", id+""};
                         Message msg = handler.obtainMessage(2, arr2);

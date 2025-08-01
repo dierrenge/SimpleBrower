@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
@@ -48,6 +49,9 @@ public class MyApplication extends Application {
 
     // 记录下载任务消息
     private static HashMap<Integer, NotificationBean> downLoadBeanMap = new HashMap<>();
+
+    // 记录下载任务用的线程池
+    private static Map<Integer, ExecutorService> pools = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -190,4 +194,11 @@ public class MyApplication extends Application {
         downLoadBeanMap.remove(key);
     }
 
+    public static void setPool(int key, ExecutorService pool) {
+        pools.put(key, pool);
+    }
+
+    public static ExecutorService getPool(int key) {
+        return pools.get(key);
+    }
 }
