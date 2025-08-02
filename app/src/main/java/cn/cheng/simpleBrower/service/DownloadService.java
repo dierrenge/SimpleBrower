@@ -58,16 +58,12 @@ public class DownloadService extends Service {
     private Notification notification;
     // 线程处理工具
     private MyHandler myHandler;
-    // 下载进度
-    private int download_precent = 0;
     // 通知提示视图
     private RemoteViews views;
     // 通知id 每次下载通知要不一样
     private int notificationId = 0;
     // 频道id 每次下载通知要不一样
     private String CHANNEL_ID = "";
-
-    private Map<Integer, ExecutorService> pools = new HashMap<>();
 
     public DownloadService() {
     }
@@ -182,7 +178,7 @@ public class DownloadService extends Service {
         views = new RemoteViews(getPackageName(), R.layout.notification_download);
         views.setTextViewText(R.id.task_name, title);
         views.setTextViewText(R.id.tvProcess, "已下载0.00%");
-        views.setProgressBar(R.id.pbDownload, 100, download_precent, false);
+        views.setProgressBar(R.id.pbDownload, 100, 0, false);
         views.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);
 
         // 创建通知
@@ -213,7 +209,7 @@ public class DownloadService extends Service {
             //设置线程数
             // m3u8Download.setThreadCount(100);
             ExecutorService fixedThreadPool = Executors.newFixedThreadPool(100);
-            pools.put(notificationId, fixedThreadPool);
+            notificationBean.setFixedThreadPool(fixedThreadPool);
             m3u8Download.setFixedThreadPool(fixedThreadPool);
             //设置重试次数
             m3u8Download.setRetryCount(3);
@@ -242,11 +238,16 @@ public class DownloadService extends Service {
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
-            if (!(msg.obj instanceof String[])) {
-                return;
-            }
+            if (!(msg.obj instanceof String[])) return;
+            int n = 0;
+            NotificationBean downLoadInfo = new NotificationBean();
             String[] arr = (String[]) msg.obj;
             if (arr.length >= 2) {
+                try {
+                    // 根据 notificationId 获取 notification
+                    n = Integer.parseInt(arr[1]);
+                    downLoadInfo = MyApplication.getDownLoadInfo(n);
+                } catch (Exception e) {}
                 switch (msg.what) {
                     case 0:
                         MyToast.getInstance(context, arr[0]).show();
@@ -255,41 +256,36 @@ public class DownloadService extends Service {
                         break;
                     case 2:
                         //下载完成后清除所有下载信息，执行安装提示
-                        download_precent = 0;
-                        nm.cancel(Integer.parseInt(arr[1]));
+                        MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                        nm.cancel(n);
                         MyToast.getInstance(context, arr[0]).show();
                         //停止掉当前的服务
                         stopSelf();
                         break;
                     case 3:
                         // 获取记录的删除项
-                        int n = Integer.parseInt(arr[1]);
                         List<Integer> nums = MyApplication.getNums();
                         if (nums.contains(n)) {
-                            pools.get(n).shutdownNow();
+                            downLoadInfo.getFixedThreadPool().shutdownNow();
                             File file = new File(supDir + "/" + arr[2] + ".m3u8");
-                            if (file.exists()) {
-                                file.delete();
-                            }
+                            if (file.exists()) file.delete();
                             return;
                         }
                         // 获取进度信息
                         String str = arr[0];
+                        // 更新状态栏上的下载进度等信息
+                        Notification notificationX = downLoadInfo.getNotification();
+                        RemoteViews contentView = notificationX.contentView;
                         if (str.matches("^(([1-9]\\d*)(\\.\\d+)?)$|^((0)(\\.\\d+)?)$")) { // 判断数字
-                            download_precent = (int) Float.parseFloat(str);
+                            contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
                             str = "已下载" + str + "%";
                         }
-                        // 根据 notificationId 获取 notification
-                        NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(n);
-                        Notification notificationX = downLoadInfo.getNotification();
-                        // 更新状态栏上的下载进度等信息
-                        RemoteViews contentView = notificationX.contentView;
                         contentView.setTextViewText(R.id.tvProcess, str);
-                        contentView.setProgressBar(R.id.pbDownload, 100, download_precent, false);
                         nm.notify(n, notificationX);
                         break;
                     case 4:
-                        nm.cancel(Integer.parseInt(arr[1]));
+                        MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                        nm.cancel(n);
                         break;
                 }
             }

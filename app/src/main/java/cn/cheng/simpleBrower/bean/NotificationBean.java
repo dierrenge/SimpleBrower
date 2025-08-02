@@ -2,6 +2,8 @@ package cn.cheng.simpleBrower.bean;
 
 import android.app.Notification;
 
+import java.util.concurrent.ExecutorService;
+
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 
 /**
@@ -14,6 +16,8 @@ public class NotificationBean {
     private String state; // 表示点击后呈现的状态
 
     private M3u8DownLoader m3u8Download;
+
+    private ExecutorService fixedThreadPool; // 线程池
 
     private int bytesum; // 记录下载进度
 
@@ -55,6 +59,14 @@ public class NotificationBean {
 
     public void setM3u8Download(M3u8DownLoader m3u8Download) {
         this.m3u8Download = m3u8Download;
+    }
+
+    public ExecutorService getFixedThreadPool() {
+        return fixedThreadPool;
+    }
+
+    public void setFixedThreadPool(ExecutorService fixedThreadPool) {
+        this.fixedThreadPool = fixedThreadPool;
     }
 
     public int getBytesum() {

@@ -1,8 +1,12 @@
 package cn.cheng.simpleBrower.custom;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.webkit.URLUtil;
+import android.widget.RemoteViews;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -42,6 +46,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import cn.cheng.simpleBrower.MyApplication;
+import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -1025,8 +1030,8 @@ public class M3u8DownLoader {
                         System.out.println("不需要解密");
                     }
                     if (!m3u8ToMp4) {
-                        // startDownload0(handler);
-                        startDownloadNoThread(handler); // 试试非多线程
+                        startDownload0(handler);
+                        // startDownloadNoThread(handler); // 试试非多线程
                     } else {
                         startDownload(handler);
                     }
@@ -1049,131 +1054,150 @@ public class M3u8DownLoader {
      * @return 内容
      */
     private void getUrlContentFile(Handler handler) {
-        int count = 1;
         HttpURLConnection httpURLConnection = null;
         File dir = new File(supDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        while (count <= retryCount) {
-            try {
-                URL url = new URL(DOWNLOADURL);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
-                httpURLConnection.setReadTimeout((int) timeoutMillisecond);
-                httpURLConnection.setUseCaches(false);
-                httpURLConnection.setDoInput(true);
-                // 模拟电脑请求
-                httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
-                // 跨域设置相关
-                httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
-                //* 代办允许所有方法
-                httpURLConnection.setRequestProperty("Access-Control-Allow-Methods", "*");
-                // Access-Control-Max-Age 用于 CORS 相关配置的缓存
-                httpURLConnection.setRequestProperty("Access-Control-Max-Age", "3600");
-                // 提示OPTIONS预检时，后端需要设置的两个常用自定义头
-                httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
-                // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
-                httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
-                // 以识别各种格式
-                httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+        try {
+            URL url = new URL(DOWNLOADURL);
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+            httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setDoInput(true);
+            // 模拟电脑请求
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            // 跨域设置相关
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
+            //* 代办允许所有方法
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Methods", "*");
+            // Access-Control-Max-Age 用于 CORS 相关配置的缓存
+            httpURLConnection.setRequestProperty("Access-Control-Max-Age", "3600");
+            // 提示OPTIONS预检时，后端需要设置的两个常用自定义头
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
+            // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
+            // 以识别各种格式
+            httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
 
-                // 保存文件的绝对路径
-                String absolutePath = supDir + "/" + fileName;
-                if (!fileName.contains(".") || what != 4) {
-                    // 获取格式
-                    String contentType = httpURLConnection.getContentType();
-                    String format = CommonUtils.getUrlFormat(DOWNLOADURL);
-                    if ("".equals(format)) {
-                        if (contentType.contains("text/plain")) {
-                            format = ".txt";
+            // 保存文件的绝对路径
+            String absolutePath = supDir + "/" + fileName;
+            if (!fileName.contains(".") || what != 4) {
+                // 获取格式
+                String contentType = httpURLConnection.getContentType();
+                String format = CommonUtils.getUrlFormat(DOWNLOADURL);
+                if ("".equals(format)) {
+                    if (contentType.contains("text/plain")) {
+                        format = ".txt";
+                    } else {
+                        String[] s = contentType.split("/");
+                        if (s.length > 0) {
+                            format = "." + s[s.length - 1];
                         } else {
-                            String[] s = contentType.split("/");
-                            if (s.length > 0) {
-                                format = "." + s[s.length - 1];
-                            } else {
-                                format = ".未知格式";
-                            }
+                            format = ".未知格式";
                         }
                     }
-                    if (fileName == null) {
-                        fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
-                        format = "";
-                    }
-                    absolutePath = supDir + "/" + fileName + format;
                 }
-                // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
-                File file = new File(absolutePath);
-                int startByte = 0;
-                // 检查本地文件是否存在
-                if (file.exists()) {
-                    startByte = (int) file.length();
-                    httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+                if (fileName == null) {
+                    fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
+                    format = "";
                 }
-                httpURLConnection.connect();
+                absolutePath = supDir + "/" + fileName + format;
+            }
+            // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
+            File file = new File(absolutePath);
+            int startByte = 0;
+            // 检查本地文件是否存在
+            if (file.exists()) {
+                startByte = (int) file.length();
+                httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+            }
+            httpURLConnection.connect();
 
-                int responseCode = httpURLConnection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
-                    System.out.println("Error: " + responseCode);
-                    return;
-                }
+            int responseCode = httpURLConnection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
+                System.out.println("Error: " + responseCode);
+                String m = "Error: " + responseCode;
+                String[]  arr = new String[]{"出错啦：" + m, id+""};
+                Message msg= handler.obtainMessage(0, arr);
+                handler.sendMessage(msg);
+                return;
+            }
 
-                // 获取文件长度
-                int contentLength = httpURLConnection.getContentLength();
-                if (startByte > 0 && contentLength == -1) {
-                    System.out.println("Error: Server does not support resume");
-                    return;
-                }
-                // System.out.println("=======contentLength=====" +contentLength);
+            // 获取文件长度
+            int contentLength = httpURLConnection.getContentLength();
+            if (startByte > 0 && contentLength == -1) {
+                System.out.println("Error: Server does not support resume");
+                String m = "Error: Server does not support resume";
+                String[]  arr = new String[]{"出错啦：" + m, id+""};
+                Message msg= handler.obtainMessage(0, arr);
+                handler.sendMessage(msg);
+                return;
+            }
+            // System.out.println("=======contentLength=====" +contentLength);
 
-                int len, bytesum = notificationBean.getBytesum();
-                byte[] buf = new byte[1024*8];
-                // 获取文件流
-                InputStream inputStream = httpURLConnection.getInputStream();
-                try (BufferedInputStream bis = new BufferedInputStream(inputStream);
-                     RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
-                    randomAccessFile.seek(startByte);
-                    long time = 0;
-                    while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
-                        randomAccessFile.write(buf, 0, len);
-                        // 更新进度
-                        bytesum += len;
-                        notificationBean.setBytesum(bytesum);
-                        String index = String.format("%.2f", bytesum * 100F / contentLength);
-                        if (len > 0 && System.currentTimeMillis() - time > 1000) {
-                            time = System.currentTimeMillis();
-                            String[] arr = new String[]{index, id+"", fileName};
-                            Message msg0 = handler.obtainMessage(3, arr);
-                            handler.sendMessage(msg0);
-                        }
+            int len, bytesum = notificationBean.getBytesum();
+            byte[] buf = new byte[1024*8];
+            // 获取文件流
+            InputStream inputStream = httpURLConnection.getInputStream();
+            try (BufferedInputStream bis = new BufferedInputStream(inputStream);
+                 RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
+                randomAccessFile.seek(startByte);
+                long time = 0;
+                while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
+                    randomAccessFile.write(buf, 0, len);
+                    // 更新进度
+                    bytesum += len;
+                    String index = String.format("%.2f", bytesum * 100F / contentLength);
+                    if (len > 0 && System.currentTimeMillis() - time > 1000) {
+                        time = System.currentTimeMillis();
+                        String[] arr = new String[]{index, id+"", fileName};
+                        Message msg0 = handler.obtainMessage(3, arr);
+                        handler.sendMessage(msg0);
                     }
-                    inputStream.close();
-                    if ("暂停".equals(notificationBean.getState())) {
-                        String[] arr2 = new String[]{"下载文件成功", id+""};
-                        Message msg = handler.obtainMessage(2, arr2);
-                        handler.sendMessage(msg);
-                    }
-                } catch (Exception e) {
-                   e.printStackTrace();
-                    String[] arr = new String[]{"", id+""};
-                    Message msg= handler.obtainMessage(4, arr);
+                }
+                notificationBean.setBytesum(bytesum);
+                inputStream.close();
+                if ("暂停".equals(notificationBean.getState()) && bytesum == contentLength) {
+                    String[] arr2 = new String[]{"下载文件成功", id+""};
+                    Message msg = handler.obtainMessage(2, arr2);
                     handler.sendMessage(msg);
                 }
-                break;
             } catch (Exception e) {
-                System.out.println("第" + count + "获取链接重试！\t" + DOWNLOADURL);
-                count++;
+                Notification notificationX = notificationBean.getNotification();
+                RemoteViews contentView = notificationX.contentView;
+                contentView.setTextViewText(R.id.btn_state, "继续");
+                notificationBean.setState("继续");
+                NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(id, notificationX);
+
                 e.printStackTrace();
-                String[]  arr = new String[]{"", id+""};
-                Message msg= handler.obtainMessage(4, arr);
+                String m = e.getMessage();
+                String[]  arr = new String[]{"出错啦：" + m, id+""};
+                Message msg= handler.obtainMessage(0, arr);
                 handler.sendMessage(msg);
-            } finally {
-                if (httpURLConnection != null) {
-                    httpURLConnection.disconnect();
-                }
+            }
+        } catch (Exception e) {
+            Notification notificationX = notificationBean.getNotification();
+            RemoteViews contentView = notificationX.contentView;
+            contentView.setTextViewText(R.id.btn_state, "继续");
+            notificationBean.setState("继续");
+            NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(id, notificationX);
+
+            e.printStackTrace();
+            String m = e.getMessage();
+            String[]  arr = new String[]{"出错啦：" + m, id+""};
+            Message msg= handler.obtainMessage(0, arr);
+            handler.sendMessage(msg);
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
             }
         }
     }
+
 
     /**
      * 模拟http请求获取下载文件名及文件大小
