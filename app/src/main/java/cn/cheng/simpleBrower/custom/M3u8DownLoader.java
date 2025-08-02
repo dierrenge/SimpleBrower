@@ -1110,29 +1110,32 @@ public class M3u8DownLoader {
             int startByte = 0;
             // 检查本地文件是否存在
             if (file.exists()) {
+                if (notificationBean.getTotalSize() == 0) {
+                    String m = "已存在相同文件";
+                    stopAndSendMsg(m);
+                    return;
+                }
                 startByte = (int) file.length();
                 httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
             }
-            httpURLConnection.connect();
 
+            // 连接并判断请求状态
+            httpURLConnection.connect();
             int responseCode = httpURLConnection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
-                System.out.println("Error: " + responseCode);
-                String m = "Error: " + responseCode;
-                String[]  arr = new String[]{"出错啦：" + m, id+""};
-                Message msg= handler.obtainMessage(0, arr);
-                handler.sendMessage(msg);
+                String m = "出错啦: 请求状态为" + responseCode;
+                stopAndSendMsg(m);
                 return;
             }
 
             // 获取文件长度
             int contentLength = httpURLConnection.getContentLength();
+            if (startByte == 0) {
+                notificationBean.setTotalSize(contentLength);
+            }
             if (startByte > 0 && contentLength == -1) {
-                System.out.println("Error: Server does not support resume");
-                String m = "Error: Server does not support resume";
-                String[]  arr = new String[]{"出错啦：" + m, id+""};
-                Message msg= handler.obtainMessage(0, arr);
-                handler.sendMessage(msg);
+                String m = "出错啦: 不支持断点续传呢";
+                stopAndSendMsg(m);
                 return;
             }
             // System.out.println("=======contentLength=====" +contentLength);
@@ -1149,7 +1152,7 @@ public class M3u8DownLoader {
                     randomAccessFile.write(buf, 0, len);
                     // 更新进度
                     bytesum += len;
-                    String index = String.format("%.2f", bytesum * 100F / contentLength);
+                    String index = String.format("%.2f", bytesum * 100F / notificationBean.getTotalSize());
                     if (len > 0 && System.currentTimeMillis() - time > 1000) {
                         time = System.currentTimeMillis();
                         String[] arr = new String[]{index, id+"", fileName};
@@ -1159,43 +1162,39 @@ public class M3u8DownLoader {
                 }
                 notificationBean.setBytesum(bytesum);
                 inputStream.close();
-                if ("暂停".equals(notificationBean.getState()) && bytesum == contentLength) {
+                if ("暂停".equals(notificationBean.getState()) && bytesum == notificationBean.getTotalSize()) {
                     String[] arr2 = new String[]{"下载文件成功", id+""};
                     Message msg = handler.obtainMessage(2, arr2);
                     handler.sendMessage(msg);
                 }
             } catch (Exception e) {
-                Notification notificationX = notificationBean.getNotification();
-                RemoteViews contentView = notificationX.contentView;
-                contentView.setTextViewText(R.id.btn_state, "继续");
-                notificationBean.setState("继续");
-                NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(id, notificationX);
-
+                String m = "出错啦：" + e.getMessage();
+                stopAndSendMsg(m);
                 e.printStackTrace();
-                String m = e.getMessage();
-                String[]  arr = new String[]{"出错啦：" + m, id+""};
-                Message msg= handler.obtainMessage(0, arr);
-                handler.sendMessage(msg);
             }
         } catch (Exception e) {
-            Notification notificationX = notificationBean.getNotification();
-            RemoteViews contentView = notificationX.contentView;
-            contentView.setTextViewText(R.id.btn_state, "继续");
-            notificationBean.setState("继续");
-            NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(id, notificationX);
-
+            String m = "出错啦：" + e.getMessage();
+            stopAndSendMsg(m);
             e.printStackTrace();
-            String m = e.getMessage();
-            String[]  arr = new String[]{"出错啦：" + m, id+""};
-            Message msg= handler.obtainMessage(0, arr);
-            handler.sendMessage(msg);
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
         }
+    }
+
+    // 暂停下载消息，发送指定提示
+    private void stopAndSendMsg(String m) {
+        /*Notification notificationX = notificationBean.getNotification();
+        RemoteViews contentView = notificationX.contentView;
+        contentView.setTextViewText(R.id.btn_state, "继续");
+        notificationBean.setState("继续");
+        NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(id, notificationX);*/
+
+        String[]  arr = new String[]{m, id+""};
+        Message msg= handler.obtainMessage(2, arr);
+        handler.sendMessage(msg);
     }
 
 

@@ -21,6 +21,8 @@ public class NotificationBean {
 
     private int bytesum; // 记录下载进度
 
+    private int totalSize; // 文件总大小
+
     public Notification getNotification() {
         return notification;
     }
@@ -75,5 +77,13 @@ public class NotificationBean {
 
     public void setBytesum(int bytesum) {
         this.bytesum = bytesum;
+    }
+
+    public int getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(int totalSize) {
+        this.totalSize = totalSize;
     }
 }
