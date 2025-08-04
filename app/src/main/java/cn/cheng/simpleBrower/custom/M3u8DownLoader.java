@@ -78,13 +78,13 @@ public class M3u8DownLoader {
     private final int id;
 
     // 获取伪png这种ts文件实际字节开始下标
-    static int num = 0;
-
-    //线程数
-    private int threadCount = 1;
+    // static int num = 0;
 
     // 线程池
     private ExecutorService fixedThreadPool;
+
+    // 线程数
+    private int threadCount;
 
     //重试次数
     private int retryCount = 30;
@@ -142,10 +142,6 @@ public class M3u8DownLoader {
 
     public void setThreadCount(int threadCount) {
         this.threadCount = threadCount;
-    }
-
-    public void setFixedThreadPool(ExecutorService fixedThreadPool) {
-        this.fixedThreadPool = fixedThreadPool;
     }
 
     public void setRetryCount(int retryCount) {
@@ -801,11 +797,7 @@ public class M3u8DownLoader {
     /**
      * 下载视频 合成mp4
      */
-    private void startDownload(Handler handler) {
-        // 线程池
-        if (fixedThreadPool == null) {
-            fixedThreadPool = Executors.newFixedThreadPool(threadCount);
-        }
+    private void startDownload() {
         int i = 0;
         // 如果生成目录不存在，则创建
         File file1 = new File(dir);
@@ -829,7 +821,6 @@ public class M3u8DownLoader {
             BufferedInputStream bis = null;
             RandomAccessFile raFile = null;
             try {
-                int consume = 0;
                 //轮询是否下载成功
                 while (!fixedThreadPool.isTerminated()) {
                     // 标记为关闭的线程不再执行了
@@ -837,17 +828,12 @@ public class M3u8DownLoader {
                         return;
                     }
                     try {
-                        consume++;
-                        BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
                         if (tsList.size() != 0) {
                             String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
                             Message msg = handler.obtainMessage(3, arr);
                             handler.sendMessage(msg);
                         }
-                        // System.out.print("已用时" + consume + "秒！\t下载速度：" /*+ StringUtils.convertToDownloadSpeed(new BigDecimal(downloadBytes.toString()).subtract(bigDecimal), 3) + "/s"*/);
-                        // System.out.print("\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
-                        // System.out.println(new BigDecimal(finishedCount).divide(new BigDecimal(tsSet.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "%");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                         String[] arr = new String[]{e.getMessage(), id+""};
@@ -900,11 +886,7 @@ public class M3u8DownLoader {
     /**
      * 下载视频 不合成mp4
      */
-    private void startDownload0(Handler handler) {
-        // 线程池
-        if (fixedThreadPool == null) {
-            fixedThreadPool = Executors.newFixedThreadPool(threadCount);
-        }
+    private void startDownload0() {
         int i = 0;
         // 如果生成目录不存在，则创建
         File file1 = new File(supDir + "/m3u8/" + fileName);
@@ -925,7 +907,6 @@ public class M3u8DownLoader {
         // 下载过程监视
         new Thread(() -> {
             try {
-                int consume = 0;
                 //轮询是否下载成功
                 while (!fixedThreadPool.isTerminated()) {
                     try {
@@ -933,8 +914,6 @@ public class M3u8DownLoader {
                         if (closed()) {
                             return;
                         }
-                        consume++;
-                        BigDecimal bigDecimal = new BigDecimal(downloadBytes.toString());
                         Thread.sleep(1000L);
                         if (tsList.size() != 0) {
                             String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
@@ -971,7 +950,7 @@ public class M3u8DownLoader {
     /**
      * 下载视频 不合成mp4 非多线程
      */
-    private void startDownloadNoThread(Handler handler) {
+    private void startDownloadNoThread() {
         int i = 0;
         int j = 0;
         // 如果生成目录不存在，则创建
@@ -1024,16 +1003,19 @@ public class M3u8DownLoader {
             System.out.println(DOWNLOADURL + "   =============");
             if (DOWNLOADURL.endsWith(".m3u8")) {
                 try {
+                    this.fixedThreadPool = Executors.newFixedThreadPool(threadCount);
+                    notificationBean.setFixedThreadPool(fixedThreadPool);
+
                     String tsUrl = getTsUrl();
                     System.out.println("----" + tsUrl);
                     if(StringUtils.isEmpty(tsUrl)) {
                         System.out.println("不需要解密");
                     }
                     if (!m3u8ToMp4) {
-                        startDownload0(handler);
-                        // startDownloadNoThread(handler); // 试试非多线程
+                        startDownload0();
+                        // startDownloadNoThread(); // 试试非多线程
                     } else {
-                        startDownload(handler);
+                        startDownload();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1042,7 +1024,7 @@ public class M3u8DownLoader {
                     handler.sendMessage(msg);
                 }
             } else {
-                getUrlContentFile(handler);
+                getUrlContentFile();
             }
 
         }).start();
@@ -1053,7 +1035,7 @@ public class M3u8DownLoader {
      *
      * @return 内容
      */
-    private void getUrlContentFile(Handler handler) {
+    private void getUrlContentFile() {
         HttpURLConnection httpURLConnection = null;
         File dir = new File(supDir);
         if (!dir.exists()) {
@@ -1108,39 +1090,49 @@ public class M3u8DownLoader {
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
             File file = new File(absolutePath);
             int startByte = 0;
+            int bytesum = notificationBean.getBytesum();
             // 检查本地文件是否存在
             if (file.exists()) {
                 if (notificationBean.getTotalSize() == 0) {
                     String m = "已存在相同文件";
-                    stopAndSendMsg(m);
+                    stopAndSendMsg(m, 2);
                     return;
                 }
-                startByte = (int) file.length();
-                httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+                if (bytesum > 0) {
+                    startByte = (int) file.length();
+                    httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+                }
             }
 
             // 连接并判断请求状态
             httpURLConnection.connect();
             int responseCode = httpURLConnection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK && startByte > 0) {
+                String m = "不支持断点续传，请勿点击暂停";
+                // file.delete();
+                stopAndSendMsg(m, 0);
+                return;
+            }
             if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
                 String m = "出错啦: 请求状态为" + responseCode;
-                stopAndSendMsg(m);
+                stopAndSendMsg(m, 2);
                 return;
             }
 
             // 获取文件长度
             int contentLength = httpURLConnection.getContentLength();
             if (startByte == 0) {
-                notificationBean.setTotalSize(contentLength);
+                notificationBean.setTotalSize(contentLength > 0 ? contentLength : 1);
             }
             if (startByte > 0 && contentLength == -1) {
-                String m = "出错啦: 不支持断点续传呢";
-                stopAndSendMsg(m);
+                String m = "不支持断点续传，请勿点击暂停";
+                // file.delete();
+                stopAndSendMsg(m, 0);
                 return;
             }
             // System.out.println("=======contentLength=====" +contentLength);
 
-            int len, bytesum = notificationBean.getBytesum();
+            int len;
             byte[] buf = new byte[1024*8];
             // 获取文件流
             InputStream inputStream = httpURLConnection.getInputStream();
@@ -1161,20 +1153,19 @@ public class M3u8DownLoader {
                     }
                 }
                 notificationBean.setBytesum(bytesum);
-                inputStream.close();
-                if ("暂停".equals(notificationBean.getState()) && bytesum == notificationBean.getTotalSize()) {
+                if ("暂停".equals(notificationBean.getState()) && bytesum >= notificationBean.getTotalSize()) {
                     String[] arr2 = new String[]{"下载文件成功", id+""};
                     Message msg = handler.obtainMessage(2, arr2);
                     handler.sendMessage(msg);
                 }
             } catch (Exception e) {
                 String m = "出错啦：" + e.getMessage();
-                stopAndSendMsg(m);
+                stopAndSendMsg(m, 2);
                 e.printStackTrace();
             }
         } catch (Exception e) {
             String m = "出错啦：" + e.getMessage();
-            stopAndSendMsg(m);
+            stopAndSendMsg(m, 2);
             e.printStackTrace();
         } finally {
             if (httpURLConnection != null) {
@@ -1184,17 +1175,20 @@ public class M3u8DownLoader {
     }
 
     // 暂停下载消息，发送指定提示
-    private void stopAndSendMsg(String m) {
-        /*Notification notificationX = notificationBean.getNotification();
-        RemoteViews contentView = notificationX.contentView;
-        contentView.setTextViewText(R.id.btn_state, "继续");
-        notificationBean.setState("继续");
-        NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(id, notificationX);*/
-
+    private void stopAndSendMsg(String m, int w) {
         String[]  arr = new String[]{m, id+""};
-        Message msg= handler.obtainMessage(2, arr);
+        Message msg= handler.obtainMessage(w, arr);
         handler.sendMessage(msg);
+        if (w == 0) {
+            Notification notificationX = notificationBean.getNotification();
+            RemoteViews contentView = notificationX.contentView;
+            contentView.setTextViewText(R.id.btn_state, "继续");
+            notificationBean.setState("继续");
+            NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(id, notificationX);
+            notificationBean.setBytesum(0);
+            notificationBean.getM3u8Download().start();
+        }
     }
 
 

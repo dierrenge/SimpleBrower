@@ -1319,4 +1319,9 @@ public class CommonUtils {
         }
         return str + num;
     }
+
+    // 判断数字（包括小数）
+    public static boolean matchingNumber(String str) {
+        return str != null && str.matches("^(([1-9]\\d*)(\\.\\d+)?)$|^((0)(\\.\\d+)?)$");
+    }
 }

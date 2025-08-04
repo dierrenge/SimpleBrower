@@ -186,7 +186,7 @@ public class MyApplication extends Application {
         downLoadBeanMap.put(key, value);
     }
 
-    public static void deleteDownLoadState(int key) {
+    public static void deleteDownLoadInfo(int key) {
         downLoadBeanMap.remove(key);
     }
 

@@ -25,6 +25,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -193,26 +195,19 @@ public class DownloadService extends Service {
 
         //启动线程开始执行下载任务
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            //启动线程开始执行下载任务
-            String dirName = intent.getStringExtra("dirName");
-            if (dirName == null || "".equals(dirName)) {
-                dirName = System.currentTimeMillis() + "";
-            }
             // M3u8DownLoader.test(url, myHandler);
             M3u8DownLoader m3u8Download = new M3u8DownLoader(url, notificationId, myHandler);
             notificationBean.setM3u8Download(m3u8Download);
+            // 设置下载类型（网站自身提供的下载为4）
             m3u8Download.setWhat(what);
             //设置生成目录
-            m3u8Download.setDir(supDir + "/" + dirName, supDir);
+            m3u8Download.setDir(supDir + "/" + System.currentTimeMillis(), supDir);
             //设置视频名称
             m3u8Download.setFileName(title);
             //设置线程数
-            // m3u8Download.setThreadCount(100);
-            ExecutorService fixedThreadPool = Executors.newFixedThreadPool(100);
-            notificationBean.setFixedThreadPool(fixedThreadPool);
-            m3u8Download.setFixedThreadPool(fixedThreadPool);
+            m3u8Download.setThreadCount(100);
             //设置重试次数
-            m3u8Download.setRetryCount(3);
+            m3u8Download.setRetryCount(4);
             //设置连接超时时间（单位：毫秒）
             m3u8Download.setTimeoutMillisecond(10000L);
             //m3u8是否转换成MP4
@@ -257,6 +252,7 @@ public class DownloadService extends Service {
                     case 2:
                         //下载完成后清除所有下载信息，执行安装提示
                         MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                        MyApplication.deleteDownLoadInfo(n);
                         nm.cancel(n);
                         MyToast.getInstance(context, arr[0]).show();
                         //停止掉当前的服务
@@ -276,7 +272,7 @@ public class DownloadService extends Service {
                         // 更新状态栏上的下载进度等信息
                         Notification notificationX = downLoadInfo.getNotification();
                         RemoteViews contentView = notificationX.contentView;
-                        if (str.matches("^(([1-9]\\d*)(\\.\\d+)?)$|^((0)(\\.\\d+)?)$")) { // 判断数字
+                        if (CommonUtils.matchingNumber(str)) { // 判断数字
                             contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
                             str = "已下载" + str + "%";
                         }
@@ -285,6 +281,7 @@ public class DownloadService extends Service {
                         break;
                     case 4:
                         MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                        MyApplication.deleteDownLoadInfo(n);
                         nm.cancel(n);
                         break;
                 }

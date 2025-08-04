@@ -19,7 +19,7 @@ public class NotificationBean {
 
     private ExecutorService fixedThreadPool; // 线程池
 
-    private int bytesum; // 记录下载进度
+    private int bytesum; // 记录已下载进度
 
     private int totalSize; // 文件总大小
 
