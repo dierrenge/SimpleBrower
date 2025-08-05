@@ -2,6 +2,8 @@ package cn.cheng.simpleBrower.bean;
 
 import android.app.Notification;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
@@ -15,13 +17,17 @@ public class NotificationBean {
     private String url;
     private String state; // 表示点击后呈现的状态
 
+    private int bytesum; // 记录已下载进度
+
+    private int totalSize; // 文件总大小
+
     private M3u8DownLoader m3u8Download;
 
     private ExecutorService fixedThreadPool; // 线程池
 
-    private int bytesum; // 记录已下载进度
+    private List<Integer> hlsFinishedNumList = new ArrayList<>();
 
-    private int totalSize; // 文件总大小
+    private int hlsFinishedCount;
 
     public Notification getNotification() {
         return notification;
@@ -55,6 +61,22 @@ public class NotificationBean {
         this.state = state;
     }
 
+    public int getBytesum() {
+        return bytesum;
+    }
+
+    public void setBytesum(int bytesum) {
+        this.bytesum = bytesum;
+    }
+
+    public int getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(int totalSize) {
+        this.totalSize = totalSize;
+    }
+
     public M3u8DownLoader getM3u8Download() {
         return m3u8Download;
     }
@@ -71,19 +93,19 @@ public class NotificationBean {
         this.fixedThreadPool = fixedThreadPool;
     }
 
-    public int getBytesum() {
-        return bytesum;
+    public List<Integer> getHlsFinishedNumList() {
+        return hlsFinishedNumList;
     }
 
-    public void setBytesum(int bytesum) {
-        this.bytesum = bytesum;
+    public void setHlsFinishedNum(int hlsFinishedNum) {
+        this.hlsFinishedNumList.add(hlsFinishedNum);
     }
 
-    public int getTotalSize() {
-        return totalSize;
+    public int getHlsFinishedCount() {
+        return hlsFinishedCount;
     }
 
-    public void setTotalSize(int totalSize) {
-        this.totalSize = totalSize;
+    public void setHlsFinishedCount(int hlsFinishedCount) {
+        this.hlsFinishedCount = hlsFinishedCount;
     }
 }

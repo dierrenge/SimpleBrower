@@ -63,18 +63,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             ExecutorService pool = downLoadInfo.getFixedThreadPool();
             if (pool != null) pool.shutdownNow();
             notificationManager.cancel(notificationId);
-            // 记录的删除项
-            MyApplication.setNum(notificationId);
-            String fileName = intent.getStringExtra("fileName");
-            if (fileName != null) {
-                if (!fileName.contains(".")) {
-                    fileName += ".m3u8";
-                }
-                String finalFileName = fileName;
-                new Thread(() -> {
-                    CommonUtils.deleteFile(new File(finalFileName));
-                }).start();
-            }
+            MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+            MyApplication.deleteDownLoadInfo(notificationId);
         }
     }
 }

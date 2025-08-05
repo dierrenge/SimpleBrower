@@ -21,9 +21,6 @@ public class MyApplication extends Application {
 
     private static Activity activity;
 
-    // 记录下载的删除项
-    private static List<Integer> nums = new LinkedList<>();
-
     // 存放 当前网页 路径
     private static List<String> urls = new ArrayList<>();
 
@@ -62,20 +59,6 @@ public class MyApplication extends Application {
     // 必须事先设置activity
     public static Activity getActivity() {
         return activity;
-    }
-
-    public static void setNum(int num) {
-        if (!nums.contains(num)) {
-            nums.add(num);
-        }
-    }
-
-    public static void removeNum(int num) {
-        nums.remove(num);
-    }
-
-    public static List<Integer> getNums() {
-        return nums;
     }
 
     public static List<String> getUrls() {

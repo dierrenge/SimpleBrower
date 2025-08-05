@@ -201,7 +201,7 @@ public class DownloadService extends Service {
             // 设置下载类型（网站自身提供的下载为4）
             m3u8Download.setWhat(what);
             //设置生成目录
-            m3u8Download.setDir(supDir + "/" + System.currentTimeMillis(), supDir);
+            m3u8Download.setDir(supDir);
             //设置视频名称
             m3u8Download.setFileName(title);
             //设置线程数
@@ -210,8 +210,6 @@ public class DownloadService extends Service {
             m3u8Download.setRetryCount(4);
             //设置连接超时时间（单位：毫秒）
             m3u8Download.setTimeoutMillisecond(10000L);
-            //m3u8是否转换成MP4
-            m3u8Download.setM3u8ToMp4(false);
             //开始下载
             m3u8Download.start();
         }
@@ -259,14 +257,6 @@ public class DownloadService extends Service {
                         stopSelf();
                         break;
                     case 3:
-                        // 获取记录的删除项
-                        List<Integer> nums = MyApplication.getNums();
-                        if (nums.contains(n)) {
-                            downLoadInfo.getFixedThreadPool().shutdownNow();
-                            File file = new File(supDir + "/" + arr[2] + ".m3u8");
-                            if (file.exists()) file.delete();
-                            return;
-                        }
                         // 获取进度信息
                         String str = arr[0];
                         // 更新状态栏上的下载进度等信息
