@@ -61,6 +61,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -535,6 +537,37 @@ public class CommonUtils {
                         }
                     });
                     ret = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 批量删除指定目录下的所以文件
+     * @param file
+     */
+    public static boolean batchDeleteFile(File file) {
+        boolean ret = false;
+        if (file != null && file.exists()) {
+            if (file.isFile() || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                ret = file.delete();
+                System.gc();
+            } else {
+                try (Stream<Path> pathStream = Files.walk(file.toPath())) {
+                    pathStream
+                            .parallel()  // 启用并行处理
+                            .filter(p -> !Files.isDirectory(p))
+                            .forEach(p -> {
+                                try {
+                                    Files.delete(p);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                    ret = deleteFile(file);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -586,7 +586,7 @@ public class M3u8DownLoader {
                     stopAndSendMsg(str, 0);
                     System.out.println(str);
                 }
-                if ("暂停".equals(notificationBean.getState()) && tsList.size() == finishedCount){
+                if ("暂停".equals(notificationBean.getState()) && tsList.size() <= finishedCount){
                     // 下载成功提示
                     String str = "下载完成！共" + finishedCount + "个ts文件";
                     stopAndSendMsg(str, 2);

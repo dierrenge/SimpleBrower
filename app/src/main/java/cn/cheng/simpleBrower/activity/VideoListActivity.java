@@ -241,7 +241,7 @@ public class VideoListActivity extends AppCompatActivity {
                         // 删除该m3u8对应的所有ts文件
                         String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
                         File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
-                        isDelete = CommonUtils.deleteFile(dirFile);
+                        isDelete = CommonUtils.batchDeleteFile(dirFile);
                         if (isDelete) {
                             isDelete = CommonUtils.deleteFile(file);
                         }
