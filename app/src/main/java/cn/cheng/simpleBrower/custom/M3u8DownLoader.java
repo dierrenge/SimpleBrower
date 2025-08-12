@@ -684,10 +684,6 @@ public class M3u8DownLoader {
                         }
                     }
                 }
-                if (fileName == null) {
-                    fileName = URLUtil.guessFileName(DOWNLOADURL, "", contentType);
-                    format = "";
-                }
                 absolutePath = supDir + "/" + fileName + format;
             }
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
