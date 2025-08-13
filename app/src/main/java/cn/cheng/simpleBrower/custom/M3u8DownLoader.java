@@ -671,19 +671,7 @@ public class M3u8DownLoader {
             if (!fileName.contains(".") || what != 4) {
                 // 获取格式
                 String contentType = httpURLConnection.getContentType();
-                String format = CommonUtils.getUrlFormat(DOWNLOADURL);
-                if ("".equals(format)) {
-                    if (contentType.contains("text/plain")) {
-                        format = ".txt";
-                    } else {
-                        String[] s = contentType.split("/");
-                        if (s.length > 0) {
-                            format = "." + s[s.length - 1];
-                        } else {
-                            format = ".未知格式";
-                        }
-                    }
-                }
+                String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
                 absolutePath = supDir + "/" + fileName + format;
             }
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
@@ -849,19 +837,7 @@ public class M3u8DownLoader {
             } else {
                 // 获取格式
                 String contentType = httpURLConnection.getContentType();
-                String format = CommonUtils.getUrlFormat(downLoadUrl);
-                if ("".equals(format)) {
-                    if (contentType.contains("text/plain")) {
-                        format = ".txt";
-                    } else {
-                        String[] s = contentType.split("/");
-                        if (s.length > 0) {
-                            format = "." + s[s.length - 1];
-                        } else {
-                            format = ".未知格式";
-                        }
-                    }
-                }
+                String format = CommonUtils.getUrlFormat(downLoadUrl, contentType);
                 if (fileName == null) {
                     fileName = URLUtil.guessFileName(downLoadUrl, "", contentType);
                     format = "";

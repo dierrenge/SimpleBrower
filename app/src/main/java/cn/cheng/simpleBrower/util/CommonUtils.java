@@ -510,6 +510,42 @@ public class CommonUtils {
         return format;
     }
 
+    public static String getUrlFormat(String url, String contentType) {
+        // 网址中获取
+        String format = "";
+        try {
+            if (url.contains("?")) {
+                format = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+            } else {
+                format = url.substring(url.lastIndexOf("/") + 1);
+            }
+            if (format.contains(".")) {
+                format = format.substring(format.lastIndexOf("."));
+                if (format.toLowerCase().endsWith("php")) {
+                    format = "";
+                }
+            } else {
+                format = "";
+            }
+        } catch (Exception e) {
+            e.getMessage();
+        }
+        // 根据请求文件格式判断
+        if ("".equals(format)) {
+            if (contentType.contains("text/plain")) {
+                format = ".txt";
+            } else {
+                String[] s = contentType.split("/");
+                if (s.length > 0) {
+                    format = "." + s[s.length - 1];
+                } else {
+                    format = ".未知格式";
+                }
+            }
+        }
+        return format;
+    }
+
     /**
      * 文件删除
      *
