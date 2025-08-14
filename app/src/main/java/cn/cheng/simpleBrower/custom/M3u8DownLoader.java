@@ -644,6 +644,7 @@ public class M3u8DownLoader {
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        int bytesum = notificationBean.getBytesum(); // 尝试恢复进度
         try {
             URL url = new URL(DOWNLOADURL);
             httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -676,8 +677,6 @@ public class M3u8DownLoader {
             }
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
             File file = new File(absolutePath);
-            int startByte = 0;
-            int bytesum = notificationBean.getBytesum();
             // 检查本地文件是否存在
             if (file.exists()) {
                 if (notificationBean.getTotalSize() == 0) {
@@ -686,15 +685,15 @@ public class M3u8DownLoader {
                     return;
                 }
                 if (bytesum > 0) {
-                    startByte = (int) file.length();
-                    httpURLConnection.setRequestProperty("Range", "bytes=" + startByte + "-");
+                    bytesum = (int) file.length();
+                    httpURLConnection.setRequestProperty("Range", "bytes=" + bytesum + "-");
                 }
             }
 
             // 连接并判断请求状态
             httpURLConnection.connect();
             int responseCode = httpURLConnection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK && startByte > 0) {
+            if (responseCode == HttpURLConnection.HTTP_OK && bytesum > 0) {
                 String m = "不支持断点续传，请勿点击暂停";
                 // file.delete();
                 stopAndSendMsg(m, 10);
@@ -708,10 +707,10 @@ public class M3u8DownLoader {
 
             // 获取文件长度
             int contentLength = httpURLConnection.getContentLength();
-            if (startByte == 0) {
+            if (bytesum == 0) {
                 notificationBean.setTotalSize(contentLength > 0 ? contentLength : 1);
             }
-            if (startByte > 0 && contentLength == -1) {
+            if (bytesum > 0 && contentLength == -1) {
                 String m = "不支持断点续传，请勿点击暂停";
                 // file.delete();
                 stopAndSendMsg(m, 10);
@@ -725,7 +724,7 @@ public class M3u8DownLoader {
             InputStream inputStream = httpURLConnection.getInputStream();
             try (BufferedInputStream bis = new BufferedInputStream(inputStream);
                  RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
-                randomAccessFile.seek(startByte);
+                randomAccessFile.seek(bytesum);
                 long time = 0;
                 while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
                     randomAccessFile.write(buf, 0, len);
@@ -739,7 +738,6 @@ public class M3u8DownLoader {
                         handler.sendMessage(msg0);
                     }
                 }
-                notificationBean.setBytesum(bytesum);
                 if ("暂停".equals(notificationBean.getState()) && bytesum >= notificationBean.getTotalSize()) {
                     String[] arr2 = new String[]{"下载文件成功", id+""};
                     Message msg = handler.obtainMessage(2, arr2);
@@ -767,6 +765,10 @@ public class M3u8DownLoader {
             }
             e.printStackTrace();
         } finally {
+            if (notificationBean != null) {
+                // 保存下载进度
+                notificationBean.setBytesum(bytesum);
+            }
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
