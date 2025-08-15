@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.webkit.URLUtil;
 import android.widget.RemoteViews;
@@ -118,38 +119,23 @@ public class M3u8DownLoader {
 
     private Handler handler;
 
-    private Context context;
-
-    public M3u8DownLoader(String m3U8URL, int notificationId, Handler myHandler, Context context) {
-        DOWNLOADURL = m3U8URL;
-        id = notificationId;
-        notificationBean = MyApplication.getDownLoadInfo(notificationId);
-        handler = myHandler;
-        this.context = context;
-    }
-
-    public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
-    }
-
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public void setTimeoutMillisecond(long timeoutMillisecond) {
-        this.timeoutMillisecond = timeoutMillisecond;
-    }
-
-    public void setDir(String supDir) {
-        this.supDir = supDir;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public void setWhat(int what) {
-        this.what = what;
+    public M3u8DownLoader(int notificationId) {
+        this.handler = new DownLoadHandler();
+        this.id = notificationId;
+        this.notificationBean = MyApplication.getDownLoadInfo(notificationId);
+        this.DOWNLOADURL = notificationBean.getUrl();
+        // 设置下载类型（网站自身提供的下载为4）
+        this.what = notificationBean.getWhat();
+        //设置生成目录
+        this.supDir = notificationBean.getSupDir();
+        //设置视频名称
+        this.fileName = notificationBean.getTitle();
+        //设置线程数
+        this.threadCount = notificationBean.getThreadCount();
+        //设置重试次数
+        this.retryCount = notificationBean.getRetryCount();
+        //设置连接超时时间（单位：毫秒）
+        this.timeoutMillisecond = notificationBean.getTimeoutMillisecond();
     }
 
     /**
@@ -614,7 +600,7 @@ public class M3u8DownLoader {
                 try {
                     // 创建并记录线程池
                     this.fixedThreadPool = Executors.newFixedThreadPool(threadCount);
-                    notificationBean.setFixedThreadPool(fixedThreadPool);
+                    // notificationBean.setFixedThreadPool(fixedThreadPool);
                     // 获取并整理所有ts片段链接
                     if (notificationBean.getHlsFinishedNumList().isEmpty()) {
                         getTsUrl(); // 首次获取ts片段
@@ -785,7 +771,7 @@ public class M3u8DownLoader {
         handler.sendMessage(msg);
         if (w == 0 || w == 10) {
             // Notification notificationX = notificationBean.getNotification();
-            Notification notificationX = CommonUtils.getRunNotification(context, DOWNLOADURL);
+            Notification notificationX = CommonUtils.getRunNotification(DOWNLOADURL);
             if (notificationX != null) {
                 RemoteViews contentView = notificationX.contentView;
                 contentView.setTextViewText(R.id.btn_state, "继续");
@@ -798,7 +784,7 @@ public class M3u8DownLoader {
                 notificationManager.notify(id, notificationX);
                 if (w == 10) {
                     notificationBean.setBytesum(0);
-                    notificationBean.getM3u8Download().start();
+                    this.start();
                 }
             }
         }

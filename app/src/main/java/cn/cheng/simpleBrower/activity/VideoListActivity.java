@@ -60,6 +60,7 @@ public class VideoListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MyApplication.setActivity(this);
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
 
@@ -286,6 +287,7 @@ public class VideoListActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
+        MyApplication.setActivity(this);
         initVideoUrls();
         new Handler().post(() -> {
             change(isChange);

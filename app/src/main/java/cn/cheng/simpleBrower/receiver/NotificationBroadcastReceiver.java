@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.NotificationBean;
+import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -49,7 +50,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                     downLoadInfo.setState(state);
                     notificationManager.notify(notificationId, notificationX);
                     if (state.equals("暂停")) {
-                        downLoadInfo.getM3u8Download().start();
+                        new M3u8DownLoader(notificationId).start();
                     }
                 }
             }
@@ -58,8 +59,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
             downLoadInfo.setState("继续");
-            ExecutorService pool = downLoadInfo.getFixedThreadPool();
-            if (pool != null) pool.shutdownNow();
+            // ExecutorService pool = downLoadInfo.getFixedThreadPool();
+            // if (pool != null) pool.shutdownNow();
             notificationManager.cancel(notificationId);
             MyApplication.deleteDownloadList(downLoadInfo.getUrl());
             MyApplication.deleteDownLoadInfo(notificationId);

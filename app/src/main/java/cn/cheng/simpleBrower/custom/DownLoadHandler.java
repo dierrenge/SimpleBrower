@@ -25,9 +25,8 @@ public class DownLoadHandler extends Handler {
     private Activity context;
     private NotificationManager nm;
 
-    public DownLoadHandler(Looper looper, Activity context) {
-        super(looper);
-        this.context = context;
+    public DownLoadHandler() {
+        this.context = MyApplication.getActivity();
         this.nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 

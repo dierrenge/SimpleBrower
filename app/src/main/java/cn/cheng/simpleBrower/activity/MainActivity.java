@@ -241,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
+        MyApplication.setActivity(this);
         super.onResume();
         // 有读写权限后只执行一次
         if (CommonUtils.hasStoragePermissions(this) && !CommonUtils.onlySet(this, "onlyLike")) {

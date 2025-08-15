@@ -86,7 +86,7 @@ public class DownloadService extends Service {
 
         // 线程消息传递处理
         // myHandler = new MyHandler(Looper.myLooper(), MyApplication.getActivity());
-        myHandler = new DownLoadHandler(Looper.myLooper(), MyApplication.getActivity());
+        myHandler = new DownLoadHandler();
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
@@ -186,31 +186,35 @@ public class DownloadService extends Service {
         notification = nBuilder.setCustomContentView(views).build();
         // 发布通知 （放入通知管理器）
         nm.notify(notificationId, notification);
-        // 将通知id与通知 以键值对方式存下来
+
+        // 设置消息属性
         NotificationBean notificationBean = new NotificationBean();
         // notificationBean.setNotification(notification);
+        // 设置消息id
+        notificationBean.setNotificationId(notificationId);
+        // 设置下载文件名称
         notificationBean.setTitle(title);
+        // 设置下载文件地址
         notificationBean.setUrl(url);
+        // 设置下载类型（网站自身提供的下载为4）
+        notificationBean.setWhat(what);
+        // 设置生成目录
+        notificationBean.setSupDir(supDir);
+        // 设置线程数
+        notificationBean.setThreadCount(100);
+        // 设置重试次数
+        notificationBean.setRetryCount(4);
+        // 设置连接超时时间（单位：毫秒）
+        notificationBean.setTimeoutMillisecond(10000L);
+        // 设置下载文件初始消息显示的状态
         notificationBean.setState("暂停");
         MyApplication.setDownLoadInfo(notificationId, notificationBean);
 
         //启动线程开始执行下载任务
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             // M3u8DownLoader.test(url, myHandler);
-            M3u8DownLoader m3u8Download = new M3u8DownLoader(url, notificationId, myHandler, this);
-            notificationBean.setM3u8Download(m3u8Download);
-            // 设置下载类型（网站自身提供的下载为4）
-            m3u8Download.setWhat(what);
-            //设置生成目录
-            m3u8Download.setDir(supDir);
-            //设置视频名称
-            m3u8Download.setFileName(title);
-            //设置线程数
-            m3u8Download.setThreadCount(100);
-            //设置重试次数
-            m3u8Download.setRetryCount(4);
-            //设置连接超时时间（单位：毫秒）
-            m3u8Download.setTimeoutMillisecond(10000L);
+            M3u8DownLoader m3u8Download = new M3u8DownLoader(notificationId);
+            // notificationBean.setM3u8Download(m3u8Download);
             //开始下载
             m3u8Download.start();
         }

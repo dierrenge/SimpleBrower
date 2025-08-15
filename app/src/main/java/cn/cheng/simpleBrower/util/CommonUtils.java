@@ -1397,10 +1397,11 @@ public class CommonUtils {
     }
 
     // 根据频道id获取正在运行的消息Notification
-    public static Notification getRunNotification(Context context, String id) {
+    public static Notification getRunNotification(String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (context == null || id == null) return null;
-            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            Activity activity = MyApplication.getActivity();
+            if (activity == null || id == null) return null;
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
             for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
                 Notification notification = activeNotification.getNotification();
                 if (notification != null) {
@@ -1415,6 +1416,7 @@ public class CommonUtils {
     }
     public static Notification getRunNotification(NotificationManager nm, String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (nm == null || id == null) return null;
             for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
                 Notification notification = activeNotification.getNotification();
                 if (notification != null) {
