@@ -42,6 +42,7 @@ import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
 import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.bean.NotificationBean;
+import cn.cheng.simpleBrower.custom.DownLoadHandler;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
@@ -59,7 +60,7 @@ public class DownloadService extends Service {
     // 消息通知
     private Notification notification;
     // 线程处理工具
-    private MyHandler myHandler;
+    private Handler myHandler;
     // 通知提示视图
     private RemoteViews views;
     // 通知id 每次下载通知要不一样
@@ -84,7 +85,8 @@ public class DownloadService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         // 线程消息传递处理
-        myHandler = new MyHandler(Looper.myLooper(), MyApplication.getActivity());
+        // myHandler = new MyHandler(Looper.myLooper(), MyApplication.getActivity());
+        myHandler = new DownLoadHandler(Looper.myLooper(), MyApplication.getActivity());
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
@@ -103,15 +105,13 @@ public class DownloadService extends Service {
 
         // 高版本通知Notification 必须先定义NotificationChannel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (nm.getActiveNotifications().length > 0) {
-                for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
-                    if (activeNotification.getNotification() != null) {
-                        String channelId = activeNotification.getNotification().getChannelId();
-                        if (CHANNEL_ID.equals(channelId)) {
-                            Message message = myHandler.obtainMessage(0, new String[]{"已存在一个相同的下载任务", ""});
-                            myHandler.sendMessage(message);
-                            return super.onStartCommand(intent, flags, startId);
-                        }
+            for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
+                if (activeNotification.getNotification() != null) {
+                    String channelId = activeNotification.getNotification().getChannelId();
+                    if (CHANNEL_ID.equals(channelId)) {
+                        Message message = myHandler.obtainMessage(0, new String[]{"已存在一个相同的下载任务", ""});
+                        myHandler.sendMessage(message);
+                        return super.onStartCommand(intent, flags, startId);
                     }
                 }
             }
@@ -160,7 +160,7 @@ public class DownloadService extends Service {
         // 创建一个用于记录滑动删除的intent 调用广播
         Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
         intentCancel.setAction("notification_cancelled");
-        intentCancel.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
+        intentCancel.putExtra("notificationId", notificationId);
         intentCancel.putExtra("fileName", supDir + "/" + title);
         // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
         int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
@@ -170,8 +170,8 @@ public class DownloadService extends Service {
         // 创建一个处理按钮点击事件的intent 调用广播
         Intent intentClick = new Intent(this, NotificationBroadcastReceiver.class);
         intentClick.setAction("notification_clicked");
-        intentClick.putExtra(NotificationBroadcastReceiver.TYPE, notificationId);
-        intentClick.putExtra("fileName", supDir + "/" + title);
+        intentClick.putExtra("notificationId", notificationId);
+        intentClick.putExtra("channelId", CHANNEL_ID);
         // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
         int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pendingIntentClick = PendingIntent.getBroadcast(this, notificationId, intentClick, flag2);
@@ -182,12 +182,13 @@ public class DownloadService extends Service {
         views.setTextViewText(R.id.tvProcess, "已下载0.00%");
         views.setProgressBar(R.id.pbDownload, 100, 0, false);
         views.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);
-
         // 创建通知
         notification = nBuilder.setCustomContentView(views).build();
+        // 发布通知 （放入通知管理器）
+        nm.notify(notificationId, notification);
         // 将通知id与通知 以键值对方式存下来
         NotificationBean notificationBean = new NotificationBean();
-        notificationBean.setNotification(notification);
+        // notificationBean.setNotification(notification);
         notificationBean.setTitle(title);
         notificationBean.setUrl(url);
         notificationBean.setState("暂停");
@@ -196,7 +197,7 @@ public class DownloadService extends Service {
         //启动线程开始执行下载任务
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             // M3u8DownLoader.test(url, myHandler);
-            M3u8DownLoader m3u8Download = new M3u8DownLoader(url, notificationId, myHandler);
+            M3u8DownLoader m3u8Download = new M3u8DownLoader(url, notificationId, myHandler, this);
             notificationBean.setM3u8Download(m3u8Download);
             // 设置下载类型（网站自身提供的下载为4）
             m3u8Download.setWhat(what);
@@ -219,7 +220,7 @@ public class DownloadService extends Service {
     }
 
     // 线程消息传递处理
-    private class MyHandler extends Handler {
+    /*private class MyHandler extends Handler {
 
         private Activity context;
 
@@ -248,7 +249,7 @@ public class DownloadService extends Service {
                     case 1:
                         break;
                     case 2:
-                        //下载完成后清除所有下载信息，执行安装提示
+                        //下载完成后清除所有下载信息
                         MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                         MyApplication.deleteDownLoadInfo(n);
                         nm.cancel(n);
@@ -260,14 +261,17 @@ public class DownloadService extends Service {
                         // 获取进度信息
                         String str = arr[0];
                         // 更新状态栏上的下载进度等信息
-                        Notification notificationX = downLoadInfo.getNotification();
-                        RemoteViews contentView = notificationX.contentView;
-                        if (CommonUtils.matchingNumber(str)) { // 判断数字
-                            contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
-                            str = "已下载" + str + "%";
+                        // Notification notificationX = downLoadInfo.getNotification();
+                        Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
+                        if (notificationX != null) {
+                            RemoteViews contentView = notificationX.contentView;
+                            if (CommonUtils.matchingNumber(str)) { // 判断数字
+                                contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
+                                str = "已下载" + str + "%";
+                            }
+                            contentView.setTextViewText(R.id.tvProcess, str);
+                            nm.notify(n, notificationX);
                         }
-                        contentView.setTextViewText(R.id.tvProcess, str);
-                        nm.notify(n, notificationX);
                         break;
                     case 4:
                         MyApplication.deleteDownloadList(downLoadInfo.getUrl());
@@ -277,5 +281,5 @@ public class DownloadService extends Service {
                 }
             }
         }
-    }
+    }*/
 }

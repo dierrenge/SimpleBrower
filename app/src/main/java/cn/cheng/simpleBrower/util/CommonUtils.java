@@ -4,6 +4,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.service.notification.StatusBarNotification;
 import android.webkit.URLUtil;
 
 import androidx.core.app.ActivityCompat;
@@ -1392,5 +1394,37 @@ public class CommonUtils {
     // 判断数字（包括小数）
     public static boolean matchingNumber(String str) {
         return str != null && str.matches("^(([1-9]\\d*)(\\.\\d+)?)$|^((0)(\\.\\d+)?)$");
+    }
+
+    // 根据频道id获取正在运行的消息Notification
+    public static Notification getRunNotification(Context context, String id) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (context == null || id == null) return null;
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
+                Notification notification = activeNotification.getNotification();
+                if (notification != null) {
+                    String channelId = notification.getChannelId();
+                    if (id.equals(channelId)) {
+                        return notification;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    public static Notification getRunNotification(NotificationManager nm, String id) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
+                Notification notification = activeNotification.getNotification();
+                if (notification != null) {
+                    String channelId = notification.getChannelId();
+                    if (id.equals(channelId)) {
+                        return notification;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

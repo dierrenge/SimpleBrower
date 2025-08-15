@@ -21,12 +21,10 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 // 用于接受下载完成提示的广播接收者
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
-    public static final String TYPE = "type"; //这个type是为了Notification更新信息的，这个不明白的朋友可以去搜搜，很多
-
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        int notificationId = intent.getIntExtra(TYPE, -1);
+        int notificationId = intent.getIntExtra("notificationId", -1);
         if (notificationId == -1) return;
         NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
         if (downLoadInfo == null) return;
@@ -35,8 +33,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
-            if (downLoadInfo != null) {
-                Notification notificationX = downLoadInfo.getNotification();
+            //Notification notificationX = downLoadInfo.getNotification();
+            String channelId = intent.getStringExtra("channelId");
+            Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
+            if (notificationX != null) {
                 RemoteViews contentView = notificationX.contentView;
                 String state = downLoadInfo.getState();
                 if (state != null) {
@@ -57,9 +57,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
-            if (downLoadInfo != null) {
-                downLoadInfo.setState("继续");
-            }
+            downLoadInfo.setState("继续");
             ExecutorService pool = downLoadInfo.getFixedThreadPool();
             if (pool != null) pool.shutdownNow();
             notificationManager.cancel(notificationId);

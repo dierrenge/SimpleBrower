@@ -118,11 +118,14 @@ public class M3u8DownLoader {
 
     private Handler handler;
 
-    public M3u8DownLoader(String m3U8URL, int notificationId, Handler myHandler) {
+    private Context context;
+
+    public M3u8DownLoader(String m3U8URL, int notificationId, Handler myHandler, Context context) {
         DOWNLOADURL = m3U8URL;
         id = notificationId;
         notificationBean = MyApplication.getDownLoadInfo(notificationId);
         handler = myHandler;
+        this.context = context;
     }
 
     public void setThreadCount(int threadCount) {
@@ -781,19 +784,22 @@ public class M3u8DownLoader {
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
         if (w == 0 || w == 10) {
-            Notification notificationX = notificationBean.getNotification();
-            RemoteViews contentView = notificationX.contentView;
-            contentView.setTextViewText(R.id.btn_state, "继续");
-            notificationBean.setState("继续");
-            if (w == 10) {
-                contentView.setProgressBar(R.id.pbDownload, 100, 0, false);
-                contentView.setTextViewText(R.id.tvProcess, "已下载0.00%");
-            }
-            NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(id, notificationX);
-            if (w == 10) {
-                notificationBean.setBytesum(0);
-                notificationBean.getM3u8Download().start();
+            // Notification notificationX = notificationBean.getNotification();
+            Notification notificationX = CommonUtils.getRunNotification(context, DOWNLOADURL);
+            if (notificationX != null) {
+                RemoteViews contentView = notificationX.contentView;
+                contentView.setTextViewText(R.id.btn_state, "继续");
+                notificationBean.setState("继续");
+                if (w == 10) {
+                    contentView.setProgressBar(R.id.pbDownload, 100, 0, false);
+                    contentView.setTextViewText(R.id.tvProcess, "已下载0.00%");
+                }
+                NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(id, notificationX);
+                if (w == 10) {
+                    notificationBean.setBytesum(0);
+                    notificationBean.getM3u8Download().start();
+                }
             }
         }
     }

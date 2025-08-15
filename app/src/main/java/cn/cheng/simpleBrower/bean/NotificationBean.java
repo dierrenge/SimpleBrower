@@ -12,7 +12,7 @@ import cn.cheng.simpleBrower.custom.M3u8DownLoader;
  * 下载任务消息
  */
 public class NotificationBean {
-    private Notification notification;
+    // private Notification notification;
     private String title;
     private String url;
     private String state; // 表示点击后呈现的状态
@@ -29,13 +29,13 @@ public class NotificationBean {
 
     private int hlsFinishedCount;
 
-    public Notification getNotification() {
-        return notification;
-    }
+    // public Notification getNotification() {
+    //     return notification;
+    // }
 
-    public void setNotification(Notification notification) {
-        this.notification = notification;
-    }
+    // public void setNotification(Notification notification) {
+    //     this.notification = notification;
+    // }
 
     public String getTitle() {
         return title;
