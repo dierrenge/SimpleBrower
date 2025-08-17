@@ -120,7 +120,7 @@ public class M3u8DownLoader {
     private Handler handler;
 
     public M3u8DownLoader(int notificationId) {
-        this.handler = new DownLoadHandler();
+        this.handler = DownLoadHandler.getInstance();
         this.id = notificationId;
         this.notificationBean = MyApplication.getDownLoadInfo(notificationId);
         this.DOWNLOADURL = notificationBean.getUrl();
@@ -572,13 +572,13 @@ public class M3u8DownLoader {
                 if (fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState()) && tsList.size() > finishedCount) {
                     // 部分下载完成提示
                     String str = "部分下载完成！下载" + finishedCount + "个ts文件，实际" + tsList.size() + "个，可继续尝试下载";
-                    stopAndSendMsg(str, 0);
+                    sendMsg(str, 0);
                     System.out.println(str);
                 }
                 if ("暂停".equals(notificationBean.getState()) && tsList.size() <= finishedCount){
                     // 下载成功提示
                     String str = "下载完成！共" + finishedCount + "个ts文件";
-                    stopAndSendMsg(str, 2);
+                    sendMsg(str, 2);
                     System.out.println(str);   
                 }
             } catch (Exception e) {
@@ -594,7 +594,7 @@ public class M3u8DownLoader {
      * 开始下载视频
      */
     public void start() {
-        new Thread(()->{
+        TaskExecutionManager.getInstance().executeTask(id, () -> {
             System.out.println("下载文件原始链接：" + DOWNLOADURL);
             if (DOWNLOADURL.endsWith(".m3u8")) {
                 try {
@@ -618,8 +618,7 @@ public class M3u8DownLoader {
             } else {
                 getUrlContentFile();
             }
-
-        }).start();
+        });
     }
 
     /**
@@ -670,7 +669,7 @@ public class M3u8DownLoader {
             if (file.exists()) {
                 if (notificationBean.getTotalSize() == 0) {
                     String m = "已存在相同文件";
-                    stopAndSendMsg(m, 2);
+                    stopAndSendMsg(m, 2, bytesum);
                     return;
                 }
                 if (bytesum > 0) {
@@ -685,12 +684,12 @@ public class M3u8DownLoader {
             if (responseCode == HttpURLConnection.HTTP_OK && bytesum > 0) {
                 String m = "不支持断点续传，请勿点击暂停";
                 // file.delete();
-                stopAndSendMsg(m, 10);
+                stopAndSendMsg(m, 10, 0);
                 return;
             }
             if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
                 String m = "网络请求错误：" + responseCode;
-                stopAndSendMsg(m, 2);
+                stopAndSendMsg(m, 2, bytesum);
                 return;
             }
 
@@ -702,7 +701,7 @@ public class M3u8DownLoader {
             if (bytesum > 0 && contentLength == -1) {
                 String m = "不支持断点续传，请勿点击暂停";
                 // file.delete();
-                stopAndSendMsg(m, 10);
+                stopAndSendMsg(m, 10, 0);
                 return;
             }
             // System.out.println("=======contentLength=====" +contentLength);
@@ -732,14 +731,16 @@ public class M3u8DownLoader {
                     Message msg = handler.obtainMessage(2, arr2);
                     handler.sendMessage(msg);
                 }
+                // 保存下载进度
+                notificationBean.setBytesum(bytesum);
             } catch (Exception e) {
                 String eMsg = e.getMessage();
                 if (eMsg != null && eMsg.contains("connection")) {
                     String m = "请检查网络：" + eMsg;
-                    stopAndSendMsg(m, 0);
+                    stopAndSendMsg(m, 0, bytesum);
                 } else {
                     String m = "下载异常：" + eMsg;
-                    stopAndSendMsg(m, 2);
+                    stopAndSendMsg(m, 2, bytesum);
                 }
                 e.printStackTrace();
             }
@@ -747,17 +748,13 @@ public class M3u8DownLoader {
             if ("Cannot set request property after connection is made".equals(e.getMessage())) {
                 String m = "不支持断点续传，请勿点击暂停";
                 // file.delete();
-                stopAndSendMsg(m, 10);
+                stopAndSendMsg(m, 10, 0);
             } else {
                 String m = "请检查网络：" + e.getMessage();
-                stopAndSendMsg(m, 0);
+                stopAndSendMsg(m, 0, bytesum);
             }
             e.printStackTrace();
         } finally {
-            if (notificationBean != null) {
-                // 保存下载进度
-                notificationBean.setBytesum(bytesum);
-            }
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
@@ -765,7 +762,10 @@ public class M3u8DownLoader {
     }
 
     // 暂停下载消息，发送指定提示
-    private void stopAndSendMsg(String m, int w) {
+    private void stopAndSendMsg(String m, int w, int bytesum) {
+        // 保存下载进度
+        notificationBean.setBytesum(bytesum);
+        // 消息提示
         String[] arr = new String[]{m, id+""};
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
@@ -782,12 +782,14 @@ public class M3u8DownLoader {
                 }
                 NotificationManager notificationManager = (NotificationManager) MyApplication.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(id, notificationX);
-                if (w == 10) {
-                    notificationBean.setBytesum(0);
-                    this.start();
-                }
             }
         }
+    }
+    private void sendMsg(String m, int w) {
+        // 消息提示
+        String[] arr = new String[]{m, id+""};
+        Message msg= handler.obtainMessage(w, arr);
+        handler.sendMessage(msg);
     }
 
     /**

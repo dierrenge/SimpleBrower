@@ -86,7 +86,7 @@ public class DownloadService extends Service {
 
         // 线程消息传递处理
         // myHandler = new MyHandler(Looper.myLooper(), MyApplication.getActivity());
-        myHandler = new DownLoadHandler();
+        myHandler =  DownLoadHandler.getInstance();
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 

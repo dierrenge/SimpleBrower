@@ -22,10 +22,19 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class DownLoadHandler extends Handler {
 
+    private static volatile DownLoadHandler instance;
     private Activity context;
     private NotificationManager nm;
 
-    public DownLoadHandler() {
+    // 单例
+    public static DownLoadHandler getInstance() {
+        if (instance == null) {
+            instance = new DownLoadHandler();
+        }
+        return instance;
+    }
+
+    private DownLoadHandler() {
         this.context = MyApplication.getActivity();
         this.nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
@@ -87,6 +96,8 @@ public class DownLoadHandler extends Handler {
                         context.stopService(intent);
                     }
                     break;
+                default:
+                    MyToast.getInstance(context, arr[0]).show();
             }
         }
     }
