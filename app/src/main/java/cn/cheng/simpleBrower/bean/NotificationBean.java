@@ -24,6 +24,7 @@ public class NotificationBean {
     private String state; // 表示点击后呈现的状态
     private int bytesum; // 记录已下载进度
     private int totalSize; // 文件总大小
+    private List<String> tsList = new ArrayList<>(); // 所有ts片段下载链接
     //private M3u8DownLoader m3u8Download;
     // private ExecutorService fixedThreadPool; // 线程池
 
@@ -157,5 +158,13 @@ public class NotificationBean {
 
     public void setHlsFinishedCount(int hlsFinishedCount) {
         this.hlsFinishedCount = hlsFinishedCount;
+    }
+
+    public List<String> getTsList() {
+        return tsList;
+    }
+
+    public void setTsList(List<String> tsList) {
+        this.tsList = tsList;
     }
 }

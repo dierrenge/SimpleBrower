@@ -476,6 +476,7 @@ public class M3u8DownLoader {
             finishedCount++;
             notificationBean.setHlsFinishedCount(finishedCount);
             notificationBean.setHlsFinishedNum(i);
+            notificationBean.setTsList(tsList);
             // System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
         });
     }
@@ -606,6 +607,7 @@ public class M3u8DownLoader {
                         getTsUrl(); // 首次获取ts片段
                     } else {
                         finishedCount = notificationBean.getHlsFinishedCount(); // 非首次继续上次进度
+                        tsList = notificationBean.getTsList();
                     }
                     // 下载存盘所以ts片段
                     startDownload0();
