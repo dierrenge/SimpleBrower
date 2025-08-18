@@ -49,7 +49,6 @@ public class TxtCatalogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyApplication.setActivity(this);
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
 
@@ -83,7 +82,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
             index = Integer.parseInt(chapters.get(0).get("index"));
             System.out.println(positionBean.getStartLine());
             System.out.println(index);
-            // MyToast.getInstance(this, "+" + index).show();
+            // MyToast.getInstance("+" + index).show();
 
             initHandler();
 
@@ -107,7 +106,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
                         recyclerView.getAdapter().notifyItemRangeChanged(0, chapters.size());
                     }
                 } else {
-                    MyToast.getInstance(TxtCatalogActivity.this, message.obj + "").show();
+                    MyToast.getInstance(message.obj + "").show();
                 }
                 return false;
             }
@@ -211,7 +210,6 @@ public class TxtCatalogActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        MyApplication.setActivity(this);
         super.onResume();
     }
 }

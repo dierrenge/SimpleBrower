@@ -61,8 +61,6 @@ public class TxtActivity extends AppCompatActivity {
     ArrayList<String> lines;
     // 当前小说进度
     PositionBean positionBean;
-    // 历史小说进度
-    PositionBean historyBean = new PositionBean();
 
     private ReadService readService;
 
@@ -88,7 +86,6 @@ public class TxtActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyApplication.setActivity(this);
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
 
@@ -110,7 +107,7 @@ public class TxtActivity extends AppCompatActivity {
                 @Override
                 public boolean handleMessage(@NonNull Message message) {
                     if (message.what == 0) {
-                        MyToast.getInstance(TxtActivity.this, message.obj + "").show();
+                        MyToast.getInstance(message.obj + "").show();
                     }
                     return false;
                 }
@@ -218,7 +215,7 @@ public class TxtActivity extends AppCompatActivity {
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             TxtActivity.this.startActivity(intent);
                         } catch (Throwable e) {
-                            MyToast.getInstance(TxtActivity.this, "设置失败！").show();
+                            MyToast.getInstance("设置失败！").show();
                             CommonUtils.saveLog("跳转到文字转语音设置界面:" + e.getMessage());
                         }
                         //topDialog.dismiss();
@@ -237,15 +234,15 @@ public class TxtActivity extends AppCompatActivity {
                                 // 判断当前APP是否有加入电池优化的白名单，如果没有，弹出加入电池优化的白名单的设置对话框。
                                 // hasIgnored = powerManager.isIgnoringBatteryOptimizations(TxtActivity.this.getPackageName());
                                 // 直接跳转设置省电策略
-                                MyToast.getInstance(TxtActivity.this, "设置后需稍等策略生效！").show();
+                                MyToast.getInstance("设置后需稍等策略生效！").show();
                                 Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                                 intent.setData(Uri.parse("package:" + TxtActivity.this.getPackageName()));
                                 startActivity(intent);
                             } else {
-                                MyToast.getInstance(TxtActivity.this, "该手机系统不支持此功能！").show();
+                                MyToast.getInstance("该手机系统不支持此功能！").show();
                             }
                         } catch (Throwable e) {
-                            MyToast.getInstance(TxtActivity.this, "设置失败！").show();
+                            MyToast.getInstance("设置失败！").show();
                             CommonUtils.saveLog("设置忽略电池优化:" + e.getMessage());
                         }
                     }
@@ -351,7 +348,7 @@ public class TxtActivity extends AppCompatActivity {
                                 Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
                                 TxtActivity.txtActivity.stopService(intentS);
                                 TxtActivity.flagRead = false;
-                                MyToast.getInstance(TxtActivity.txtActivity, "通话开始").show();
+                                MyToast.getInstance("通话开始").show();
                             }
                             break;
                         case TelephonyManager.CALL_STATE_IDLE:
@@ -362,7 +359,7 @@ public class TxtActivity extends AppCompatActivity {
             };
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         } catch (Throwable e) {
-            MyToast.getInstance(this, "打开异常咯").show();
+            MyToast.getInstance("打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("TxtActivity:" + e.getMessage());
             this.finish();
@@ -373,10 +370,6 @@ public class TxtActivity extends AppCompatActivity {
     private void setNextPosition() {
         int endLine = positionBean.getEndLine();
         int endNum = positionBean.getEndNum();
-        // 记录历史进度
-        historyBean.setEndLine(endLine);
-        historyBean.setEndNum(endNum);
-        MyApplication.setNovel(txtUrl, historyBean);
         if (endLine != 0 && (endLine < lines.size() - 1 || (endLine == lines.size() - 1 && endNum < lines.get(endLine).length()))) {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readNextPageDef(lines, positionBean);
@@ -401,10 +394,6 @@ public class TxtActivity extends AppCompatActivity {
     private void setPreviousPosition() {
         int startLine = positionBean.getStartLine();
         int startNum = positionBean.getStartNum();
-        // 记录历史进度
-        historyBean.setStartLine(startLine);
-        historyBean.setStartNum(startNum);
-        MyApplication.setNovel(txtUrl, historyBean);
         if (startLine != -1 && startLine <= lines.size() - 1 && !(startNum == 0 && startLine == 0)) {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readPreviousPageDef(lines, positionBean);
@@ -502,7 +491,6 @@ public class TxtActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        MyApplication.setActivity(this);
         super.onResume();
     }
 

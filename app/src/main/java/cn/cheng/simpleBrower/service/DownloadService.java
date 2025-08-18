@@ -85,7 +85,6 @@ public class DownloadService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         // 线程消息传递处理
-        // myHandler = new MyHandler(Looper.myLooper(), MyApplication.getActivity());
         myHandler =  DownLoadHandler.getInstance();
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -144,10 +143,10 @@ public class DownloadService extends Service {
         nBuilder.setWhen(System.currentTimeMillis());
 
         // 创建一个跳转原来Activity的Intent
-        Intent i = new Intent(MyApplication.getActivity(), MyApplication.getActivity().getClass());
+        Intent i = new Intent(MyApplication.getContext(), MainActivity.class);
         i.setAction(Intent.ACTION_MAIN);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
-        i.setComponent(new ComponentName(MyApplication.getActivity().getPackageName(), MyApplication.getActivity().getPackageName() + "." + MyApplication.getActivity().getLocalClassName()));
+        i.setComponent(new ComponentName("cn.cheng.simpleBrower.activity", "cn.cheng.simpleBrower.activity.MainActivity"));
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);//关键的一步，设置启动模式
         PendingIntent pendingIntent;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -223,67 +222,4 @@ public class DownloadService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    // 线程消息传递处理
-    /*private class MyHandler extends Handler {
-
-        private Activity context;
-
-        public MyHandler(Looper looper, Activity context) {
-            super(looper);
-            this.context = context;
-        }
-
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            super.handleMessage(msg);
-            if (!(msg.obj instanceof String[])) return;
-            int n = 0;
-            NotificationBean downLoadInfo = new NotificationBean();
-            String[] arr = (String[]) msg.obj;
-            if (arr.length >= 2) {
-                try {
-                    // 根据 notificationId 获取 notification
-                    n = Integer.parseInt(arr[1]);
-                    downLoadInfo = MyApplication.getDownLoadInfo(n);
-                } catch (Exception e) {}
-                switch (msg.what) {
-                    case 0:
-                        MyToast.getInstance(context, arr[0]).show();
-                        break;
-                    case 1:
-                        break;
-                    case 2:
-                        //下载完成后清除所有下载信息
-                        MyApplication.deleteDownloadList(downLoadInfo.getUrl());
-                        MyApplication.deleteDownLoadInfo(n);
-                        nm.cancel(n);
-                        MyToast.getInstance(context, arr[0]).show();
-                        //停止掉当前的服务
-                        stopSelf();
-                        break;
-                    case 3:
-                        // 获取进度信息
-                        String str = arr[0];
-                        // 更新状态栏上的下载进度等信息
-                        // Notification notificationX = downLoadInfo.getNotification();
-                        Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
-                        if (notificationX != null) {
-                            RemoteViews contentView = notificationX.contentView;
-                            if (CommonUtils.matchingNumber(str)) { // 判断数字
-                                contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
-                                str = "已下载" + str + "%";
-                            }
-                            contentView.setTextViewText(R.id.tvProcess, str);
-                            nm.notify(n, notificationX);
-                        }
-                        break;
-                    case 4:
-                        MyApplication.deleteDownloadList(downLoadInfo.getUrl());
-                        MyApplication.deleteDownLoadInfo(n);
-                        nm.cancel(n);
-                        break;
-                }
-            }
-        }
-    }*/
 }

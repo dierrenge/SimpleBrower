@@ -49,7 +49,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyApplication.setActivity(this);
         // 设置默认导航栏、状态栏样式
         SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
 
@@ -276,7 +275,6 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
     @Override
     protected void onResume() {
-        MyApplication.setActivity(this);
         super.onResume();
         /**
          * 设置为横屏

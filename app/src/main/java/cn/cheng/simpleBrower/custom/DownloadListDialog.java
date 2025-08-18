@@ -117,13 +117,12 @@ public class DownloadListDialog extends Dialog {
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
                     CommonUtils.requestNotificationPermissions((Activity) context); // 通知
-                    MyApplication.setActivity(MyApplication.getActivity());
-                    Intent intent = new Intent(MyApplication.getActivity(), DownloadService.class);
+                    Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
                     intent.putExtra("what", bean.getWhat());
                     intent.putExtra("url", bean.getUrl());
                     String title0 = editText.getText().toString();
                     intent.putExtra("title", title0.length() > 30 ? title0.substring(0, 24) + "···" + title0.substring(title0.length() - 6) : title0);
-                    MyApplication.getActivity().startService(intent);
+                    MyApplication.getContext().startService(intent);
                 });
             }
 

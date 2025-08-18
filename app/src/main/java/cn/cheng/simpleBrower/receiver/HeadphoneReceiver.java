@@ -26,7 +26,7 @@ public class HeadphoneReceiver extends BroadcastReceiver {
                 Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
                 TxtActivity.txtActivity.stopService(intentS);
                 TxtActivity.flagRead = false;
-                MyToast.getInstance(TxtActivity.txtActivity, "耳机已断开连接").show();
+                MyToast.getInstance("耳机已断开连接").show();
             }
         }
     }

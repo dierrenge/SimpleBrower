@@ -297,7 +297,7 @@ public class WebViewFragment extends Fragment {
                     }
 
                 } else {
-                    MyToast.getInstance(thisActivity, message.obj + "").show();
+                    MyToast.getInstance(message.obj + "").show();
                 }
                 return false;
             }
@@ -315,7 +315,6 @@ public class WebViewFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        MyApplication.setActivity(thisActivity);
         Intent intent = new Intent(thisActivity, DownloadService.class);
         intent.putExtra("what", what);
         intent.putExtra("url", url);
@@ -496,8 +495,8 @@ public class WebViewFragment extends Fragment {
             viewViewProgressbar.setVisibility(View.VISIBLE);
             url_flush2.setVisibility(View.GONE);
             url_stop.setVisibility(View.VISIBLE);
-            // 添加超时检测（例如 30 秒）
-            progressHandler.postDelayed(myRunnable, 30000);
+            // 添加超时检测（例如 60 秒）
+            progressHandler.postDelayed(myRunnable, 60000);
             super.onPageStarted(view, url, favicon);
         }
 
@@ -717,7 +716,7 @@ public class WebViewFragment extends Fragment {
                     webView.stopLoading();
                 }
                 hideProgress();
-                MyToast.getInstance(thisActivity, "加载超时").show();
+                MyToast.getInstance("加载超时").show();
             }
         }
     };

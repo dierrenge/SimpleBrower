@@ -79,8 +79,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        MyApplication.setActivity(this);
-
         new Handler().post(() -> {
             AssetsReader.init(this, "audioVideo.txt");
             AssetsReader.init(this, "like.txt");
@@ -241,7 +239,6 @@ public class MainActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        MyApplication.setActivity(this);
         super.onResume();
         // 有读写权限后只执行一次
         if (CommonUtils.hasStoragePermissions(this) && !CommonUtils.onlySet(this, "onlyLike")) {
@@ -267,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 this.finish();
             } else {
                 isExit = true;
-                MyToast.getInstance(this, "再按一下就退出了哦").show();
+                MyToast.getInstance("再按一下就退出了哦").show();
                 new Handler().postDelayed(() -> {
                     isExit = false;
                 }, 2000);
@@ -288,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                             // 权限授权失败
                             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
                                 // 返回 true，Toast 提示
-                                MyToast.getInstance(MainActivity.this, "无法访问该权限").show();
+                                MyToast.getInstance("无法访问该权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
                                 FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");

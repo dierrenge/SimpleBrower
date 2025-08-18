@@ -160,7 +160,7 @@ public class BrowserActivity extends AppCompatActivity {
             // 跳转到该网站
             loadUrl(currentUrl);
         } catch (Throwable e) {
-            MyToast.getInstance(this, "打开异常咯").show();
+            MyToast.getInstance("打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("BrowserActivity:" + e.getMessage());
             this.finish();
@@ -344,7 +344,7 @@ public class BrowserActivity extends AppCompatActivity {
             if (!flagVideo) {
                 msg = "影音下载监测已关闭";
             }
-            MyToast.getInstance(this, msg).show();
+            MyToast.getInstance(msg).show();
             SysBean sysBean = new SysBean();
             sysBean.setFlagGif(flagGif);
             sysBean.setFlagVideo(flagVideo);
@@ -504,7 +504,7 @@ public class BrowserActivity extends AppCompatActivity {
                     }
 
                 } else {
-                    MyToast.getInstance(BrowserActivity.this, message.obj + "").show();
+                    MyToast.getInstance(message.obj + "").show();
                 }
                 return false;
             }
@@ -528,7 +528,6 @@ public class BrowserActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if (what != 4 || true) {
-            MyApplication.setActivity(BrowserActivity.this);
             Intent intent = new Intent(BrowserActivity.this, DownloadService.class);
             intent.putExtra("what", what);
             intent.putExtra("url", url);
@@ -1038,7 +1037,7 @@ public class BrowserActivity extends AppCompatActivity {
                             // 权限授权失败
                             if (ActivityCompat.shouldShowRequestPermissionRationale(BrowserActivity.this, permissions[i])) {
                                 // 返回 true，Toast 提示
-                                MyToast.getInstance(BrowserActivity.this, "无法访问该权限").show();
+                                MyToast.getInstance("无法访问该权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
                                 FeetDialog feetDialog = new FeetDialog(BrowserActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");

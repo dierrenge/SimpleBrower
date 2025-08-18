@@ -55,7 +55,6 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyApplication.setActivity(this);
         try {
             // 隐藏状态栏和导航栏
             /*View decorView = getWindow().getDecorView();
@@ -116,7 +115,7 @@ public class VideoActivity extends AppCompatActivity {
             // 初始化视频设置
             initVideoView(videoList, name);
         } catch (Throwable e) {
-            MyToast.getInstance(this, "打开异常咯").show();
+            MyToast.getInstance("打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("VideoActivity:" + e.getMessage());
             this.finish();
@@ -279,7 +278,6 @@ public class VideoActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        MyApplication.setActivity(this);
         // SysWindowUi.hideStatusNavigationBar(this, true);
         super.onResume();
         if (mVideoPlayer != null) {

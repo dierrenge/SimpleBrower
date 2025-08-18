@@ -5,6 +5,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,7 +24,7 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 public class DownLoadHandler extends Handler {
 
     private static volatile DownLoadHandler instance;
-    private Activity context;
+    private Context context;
     private NotificationManager nm;
 
     // 单例
@@ -35,7 +36,7 @@ public class DownLoadHandler extends Handler {
     }
 
     private DownLoadHandler() {
-        this.context = MyApplication.getActivity();
+        this.context = MyApplication.getContext();
         this.nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
@@ -54,7 +55,7 @@ public class DownLoadHandler extends Handler {
             } catch (Exception e) {}
             switch (msg.what) {
                 case 0:
-                    MyToast.getInstance(context, arr[0]).show();
+                    MyToast.getInstance(arr[0]).show();
                     break;
                 case 1:
                     break;
@@ -63,7 +64,7 @@ public class DownLoadHandler extends Handler {
                     MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                     MyApplication.deleteDownLoadInfo(n);
                     nm.cancel(n);
-                    MyToast.getInstance(context, arr[0]).show();
+                    MyToast.getInstance(arr[0]).show();
                     //停止掉当前的服务
                     if (nm.getActiveNotifications().length == 0) {
                         Intent intent = new Intent(context, DownloadService.class);
@@ -97,7 +98,7 @@ public class DownLoadHandler extends Handler {
                     }
                     break;
                 default:
-                    MyToast.getInstance(context, arr[0]).show();
+                    MyToast.getInstance(arr[0]).show();
             }
         }
     }

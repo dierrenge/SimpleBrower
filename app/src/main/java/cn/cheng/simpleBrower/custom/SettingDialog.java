@@ -1,6 +1,7 @@
 package cn.cheng.simpleBrower.custom;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -26,13 +27,15 @@ import cn.cheng.simpleBrower.util.CommonUtils;
  */
 public class SettingDialog extends Dialog {
 
+    private Activity activity;
     private RadioButton downLoadTip;
     private RadioButton gifTip;
     private RadioGroup downLoadGroup;
     private RadioGroup gifGroup;
 
-    public SettingDialog(@NonNull Context context) {
-        super(context, R.style.dialog);
+    public SettingDialog(@NonNull Activity activity) {
+        super(activity, R.style.dialog);
+        this.activity = activity;
     }
 
     @SuppressLint("MissingInflatedId")
@@ -54,8 +57,8 @@ public class SettingDialog extends Dialog {
             public void onClick(View view) {
                 boolean checked = downLoadTip.isChecked();
                 // 会用到的权限
-                if (!checked && !CommonUtils.hasStoragePermissions(MyApplication.getActivity())) {
-                    CommonUtils.requestStoragePermissions(MyApplication.getActivity());
+                if (!checked && !CommonUtils.hasStoragePermissions(activity)) {
+                    CommonUtils.requestStoragePermissions(activity);
                     return;
                 }
                 SysBean sysBean = new SysBean();

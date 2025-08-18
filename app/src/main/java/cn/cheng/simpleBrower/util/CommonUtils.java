@@ -1190,7 +1190,7 @@ public class CommonUtils {
     public static File getFile(String dirPath, String fName, String key) {
         String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
         if ("SysSetting".equals(key)) {
-            dir = PhoneSysPath.getSandboxPath(MyApplication.getActivity());
+            dir = PhoneSysPath.getSandboxPath(MyApplication.getContext());
         }
         dir += "/" + dirPath;
         File dirFile = new File(dir);
@@ -1399,9 +1399,9 @@ public class CommonUtils {
     // 根据频道id获取正在运行的消息Notification
     public static Notification getRunNotification(String id) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Activity activity = MyApplication.getActivity();
-            if (activity == null || id == null) return null;
-            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            Context context = MyApplication.getContext();
+            if (context == null || id == null) return null;
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
                 Notification notification = activeNotification.getNotification();
                 if (notification != null) {

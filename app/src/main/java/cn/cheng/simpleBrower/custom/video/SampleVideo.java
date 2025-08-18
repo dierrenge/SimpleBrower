@@ -365,7 +365,7 @@ public class SampleVideo extends StandardGSYVideoPlayer {
                 if (mSourcePosition != position) {
                     start(position, name);
                 } else {
-                    MyToast.getInstance(MyApplication.getActivity(), "当前正在播放").show();
+                    MyToast.getInstance("当前正在播放").show();
                     // Toast.makeText(getContext(), "已经是 " + name, Toast.LENGTH_LONG).show();
                 }
             }
