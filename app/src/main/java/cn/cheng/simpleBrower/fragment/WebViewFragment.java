@@ -241,7 +241,12 @@ public class WebViewFragment extends Fragment {
             @Override
             public boolean handleMessage(@NonNull Message message) {
                 int what = message.what;
-                if (what != 1) {
+                if (what == 1) {
+                    MyToast.getInstance(message.obj + "").show();
+                } else if (what == 7) {
+                    // 自动关闭空白页面
+                    callListener.downLoad();
+                } else {
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
                     String url = arr[1];
@@ -293,8 +298,6 @@ public class WebViewFragment extends Fragment {
                         }
                     }
 
-                } else {
-                    MyToast.getInstance(message.obj + "").show();
                 }
                 return false;
             }
@@ -399,42 +402,44 @@ public class WebViewFragment extends Fragment {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
+                // 获取下载文件名
+                String name = URLUtil.guessFileName(url, disposition, mimetype);;
+                if (StringUtils.isEmpty(name)) {
+                    name = CommonUtils.getUrlName(url);
+                }
+                try {
+                    name = URLDecoder.decode(name, "utf-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 // 会用到的权限
+                Message msg = Message.obtain();
                 if (!flagVideo && !CommonUtils.hasStoragePermissions(requireContext())) {
                     CommonUtils.requestStoragePermissions(requireActivity());
+                    if (!name.contains(".html;") && !url.contains(".m3u8")) {
+                        // 记录点击下载的链接url
+                        MyApplication.setClickDownloadUrl(url);
+                        msg.what = 7;
+                        handler.sendMessage(msg);
+                    }
                     return;
                 }
                 // 调用系统下载处理
                 // downloadBySystem(url, disposition, mimetype);
                 // 使用自定义下载
-                Message msg = Message.obtain();
-                String name = URLUtil.guessFileName(url, disposition, mimetype);;
-                if (StringUtils.isEmpty(name)) {
-                    name = CommonUtils.getUrlName(url);
-                }
                 String finalName = name;
                 new Thread(() -> {
-                    // 用到的权限
-                    if (CommonUtils.hasStoragePermissions(requireContext())) {
-                        String title = finalName;
-                        try {
-                            title = URLDecoder.decode(title, "utf-8");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
-                        title = M3u8DownLoader.getUrlContentFileSize(url, title);
+                    String title = finalName;
+                    // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
+                    title = M3u8DownLoader.getUrlContentFileSize(url, title);
 
-                        if (!title.contains(".html;")) {
-                            // 记录点击下载的链接url
-                            MyApplication.setClickDownloadUrl(url);
-                            String[] arr = new String[]{finalName, url, title};
-                            msg.obj = arr;
-                            msg.what = 4;
-                            handler.sendMessage(msg);
-                        }
-                    } else {
-                        CommonUtils.requestStoragePermissions(requireActivity());
+                    if (!title.contains(".html;")) {
+                        // 记录点击下载的链接url
+                        MyApplication.setClickDownloadUrl(url);
+                        String[] arr = new String[]{finalName, url, title};
+                        msg.obj = arr;
+                        msg.what = 4;
+                        handler.sendMessage(msg);
                     }
                 }).start();
             }

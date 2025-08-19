@@ -116,6 +116,11 @@ public class DownloadListDialog extends Dialog {
                 editText.setText(bean.getTitle());
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
+                    // 会用到的权限
+                    if (!CommonUtils.hasStoragePermissions(context)) {
+                        CommonUtils.requestStoragePermissions((Activity) context);
+                        return;
+                    }
                     CommonUtils.requestNotificationPermissions((Activity) context); // 通知
                     Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
                     intent.putExtra("what", bean.getWhat());
