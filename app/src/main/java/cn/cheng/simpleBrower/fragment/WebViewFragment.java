@@ -99,16 +99,13 @@ public class WebViewFragment extends Fragment {
     private boolean flagGif = true; // 是否开启动图过滤
 
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
-    
-    private static Activity thisActivity;
 
     // 无参构造函数
     public WebViewFragment() {
     }
 
     // 静态工厂方法
-    public static WebViewFragment newInstance(String url, Activity activity) {
-        thisActivity = activity;
+    public static WebViewFragment newInstance(String url) {
         WebViewFragment fragment = new WebViewFragment();
         Bundle args = new Bundle();
         args.putString("url", url);
@@ -171,7 +168,7 @@ public class WebViewFragment extends Fragment {
         // 收藏
         url_like2.setOnClickListener(v -> {
             // 页面跳转后会用到的权限
-            if (CommonUtils.hasStoragePermissions(thisActivity)) {
+            if (CommonUtils.hasStoragePermissions(requireContext())) {
                 if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
                     //启动线程开始执行 收藏网址存档
                     new Thread(() -> {
@@ -214,7 +211,7 @@ public class WebViewFragment extends Fragment {
                     }).start();
                 }
             } else {
-                CommonUtils.requestStoragePermissions(thisActivity);
+                CommonUtils.requestStoragePermissions(requireActivity());
             }
         });
         // 刷新
@@ -235,7 +232,7 @@ public class WebViewFragment extends Fragment {
         }
 
         // 注册广告过滤器
-        AdBlocker.init(this.getContext());
+        AdBlocker.init(requireContext());
 
         initWebView();
 
@@ -271,10 +268,10 @@ public class WebViewFragment extends Fragment {
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
                         if (what == 4 && !url.contains(".m3u8")) {
                             String title2 = arr[2];
-                            feetDialog = new FeetDialog(thisActivity, "下载", title2, "下载", "取消");
+                            feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
                             callListener.downLoad(); // 下载的情况下自动关闭空白页面
                         } else {
-                            feetDialog = new FeetDialog(thisActivity);
+                            feetDialog = new FeetDialog(requireContext());
                         }
                         if (what == 4 || flagVideo) {
                             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
@@ -308,18 +305,18 @@ public class WebViewFragment extends Fragment {
 
     // 下载
     private void download(String url, String titleO, int what) {
-        CommonUtils.requestNotificationPermissions(thisActivity); // 通知
+        CommonUtils.requestNotificationPermissions(requireActivity()); // 通知
         String title = titleO;
         try {
             title = URLDecoder.decode(titleO, "utf-8");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Intent intent = new Intent(thisActivity, DownloadService.class);
+        Intent intent = new Intent(requireContext(), DownloadService.class);
         intent.putExtra("what", what);
         intent.putExtra("url", url);
         intent.putExtra("title", title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title);
-        thisActivity.startService(intent);
+        requireContext().startService(intent);
     }
 
     // 刷新网址栏
@@ -403,8 +400,8 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
                 // 会用到的权限
-                if (!flagVideo && !CommonUtils.hasStoragePermissions(thisActivity)) {
-                    CommonUtils.requestStoragePermissions(thisActivity);
+                if (!flagVideo && !CommonUtils.hasStoragePermissions(requireContext())) {
+                    CommonUtils.requestStoragePermissions(requireActivity());
                     return;
                 }
                 // 调用系统下载处理
@@ -418,7 +415,7 @@ public class WebViewFragment extends Fragment {
                 String finalName = name;
                 new Thread(() -> {
                     // 用到的权限
-                    if (CommonUtils.hasStoragePermissions(thisActivity)) {
+                    if (CommonUtils.hasStoragePermissions(requireContext())) {
                         String title = finalName;
                         try {
                             title = URLDecoder.decode(title, "utf-8");
@@ -437,7 +434,7 @@ public class WebViewFragment extends Fragment {
                             handler.sendMessage(msg);
                         }
                     } else {
-                        CommonUtils.requestStoragePermissions(thisActivity);
+                        CommonUtils.requestStoragePermissions(requireActivity());
                     }
                 }).start();
             }
@@ -519,72 +516,75 @@ public class WebViewFragment extends Fragment {
                 return AdBlocker.createEmptyResource();
             }
 
-            view.post(() -> {
-                // 去广告
-                String fun = "(function() {" +
-                        "try { document.querySelector('a[href=\"https://WIP2000.com\"]').parentElement.parentElement.parentElement.style.display=\"none\"; } catch (error) {}" +
-                        "try { document.querySelectorAll('.g').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
-                        "try { document.querySelectorAll('.ad').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
-                        "try { document.querySelectorAll('.ads').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
-                        "try { document.querySelectorAll('#divOyYSJd').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
-                        "})();";
-                try {
-                    webView.evaluateJavascript(fun, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String ret) {}
-                    });
-                } catch (Throwable e) {}
+            // 检查 Activity 状态
+            if (getActivity() != null && !isDetached()) {
+                view.post(() -> {
+                    // 去广告
+                    String fun = "(function() {" +
+                            "try { document.querySelector('a[href=\"https://WIP2000.com\"]').parentElement.parentElement.parentElement.style.display=\"none\"; } catch (error) {}" +
+                            "try { document.querySelectorAll('.g').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                            "try { document.querySelectorAll('.ad').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                            "try { document.querySelectorAll('.ads').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                            "try { document.querySelectorAll('#divOyYSJd').forEach(function(item) {item.style.display=\"none\"}); } catch (error) {}" +
+                            "})();";
+                    try {
+                        webView.evaluateJavascript(fun, new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String ret) {}
+                        });
+                    } catch (Throwable e) {}
 
-                String name = url.substring(url.lastIndexOf("/") + 1);
-                Message msg = Message.obtain();
-                if (name.contains(".")) {
-                    String type = name.substring(name.lastIndexOf("."));
-                    if (type.contains("?")) {
-                        type = type.substring(0, type.indexOf("?"));
+                    String name = url.substring(url.lastIndexOf("/") + 1);
+                    Message msg = Message.obtain();
+                    if (name.contains(".")) {
+                        String type = name.substring(name.lastIndexOf("."));
+                        if (type.contains("?")) {
+                            type = type.substring(0, type.indexOf("?"));
+                        }
+                        String[] arr = new String[]{view.getTitle(), urlOrg, type};
+                        msg.obj = arr;
                     }
-                    String[] arr = new String[]{view.getTitle(), urlOrg, type};
-                    msg.obj = arr;
-                }
 
-                // 判断视频请求
-                if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                        url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
-                    // 非m3u8链接 或者 链接中只包含一个m3u8
-                    if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
-                        msg.what = 2;
+                    // 判断视频请求
+                    if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
+                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
+                        // 非m3u8链接 或者 链接中只包含一个m3u8
+                        if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
+                            msg.what = 2;
+                            handler.sendMessage(msg);
+                        }
+                    }
+                    // 判断音频请求
+                    else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
+                            || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
+                        msg.what = 3;
                         handler.sendMessage(msg);
                     }
-                }
-                // 判断音频请求
-                else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
-                        || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                    msg.what = 3;
-                    handler.sendMessage(msg);
-                }
-                // 判断无格式的情况
-                else if (!name.contains(".")) {
-                    new Thread(() -> {
-                        String fileType = CommonUtils.getNetFileType(url, 1000);
-                        if (fileType != null) {
-                            if (fileType.contains("/")) {
-                                fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                    // 判断无格式的情况
+                    else if (!name.contains(".")) {
+                        new Thread(() -> {
+                            String fileType = CommonUtils.getNetFileType(url, 1000);
+                            if (fileType != null) {
+                                if (fileType.contains("/")) {
+                                    fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                                }
+                                if (fileType.contains("?")) {
+                                    fileType = fileType.substring(0, fileType.indexOf("?"));
+                                }
+                                // System.out.println(url + "*******************1***********************" + fileType);
+                                // 影音文件格式
+                                List<String> formats = AssetsReader.getList("audioVideo.txt");
+                                if (formats.contains(fileType)) {
+                                    String[] arr = new String[]{view.getTitle(), urlOrg, fileType};
+                                    msg.obj = arr;
+                                    msg.what = 9;
+                                    handler.sendMessage(msg);
+                                }
                             }
-                            if (fileType.contains("?")) {
-                                fileType = fileType.substring(0, fileType.indexOf("?"));
-                            }
-                            // System.out.println(url + "*******************1***********************" + fileType);
-                            // 影音文件格式
-                            List<String> formats = AssetsReader.getList("audioVideo.txt");
-                            if (formats.contains(fileType)) {
-                                String[] arr = new String[]{view.getTitle(), urlOrg, fileType};
-                                msg.obj = arr;
-                                msg.what = 9;
-                                handler.sendMessage(msg);
-                            }
-                        }
-                    }).start();
-                }
-            });
+                        }).start();
+                    }
+                });
+            }
             return super.shouldInterceptRequest(view, request);
         }
 

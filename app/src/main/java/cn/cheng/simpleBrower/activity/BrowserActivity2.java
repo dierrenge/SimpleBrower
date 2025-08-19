@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -30,7 +31,7 @@ import cn.cheng.simpleBrower.fragment.WebViewFragment;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
-public class BrowserActivity2 extends AppCompatActivity implements WebViewFragment.CallListener {
+public class BrowserActivity2 extends AppCompatActivity {
     private static final int MAX_HISTORY_SIZE = 20; // 最大历史记录数量
     private Stack<WebViewFragment> backStack = new Stack<>();
     private Stack<WebViewFragment> forwardStack = new Stack<>();
@@ -45,10 +46,21 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // 保存当前 URL 和栈状态
+        outState.putString("CURRENT_URL", currentUrl);
+    }
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 恢复状态
+        if (savedInstanceState != null) {
+            currentUrl = savedInstanceState.getString("CURRENT_URL");
+        }
         // 设置默认导航栏、状态栏样式
         SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
 
@@ -99,11 +111,14 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
 
         // 加载初始页面
-        navigateTo(WebViewFragment.newInstance(currentUrl, this));
+        navigateTo(WebViewFragment.newInstance(currentUrl));
     }
 
     // 跳转到新页面
     public void navigateTo(WebViewFragment fragment) {
+        // 检查 Activity 状态
+        if (isFinishing() || isDestroyed()) return;
+
         if (backStack.size() > 0) {
             preFragment = backStack.peek();
         }
@@ -125,7 +140,7 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
 
         forwardStack.clear(); // 清空前进栈
         backStack.push(fragment);
-        fragment.setFullScreenListener(this);
+        fragment.setFullScreenListener(callListener); // 设置回调监听
         showFragment(fragment);
     }
 
@@ -216,45 +231,48 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
         }
     }
 
-    // 全屏播放处理
-    @Override
-    public void onEnterFullScreen(View view, WebChromeClient.CustomViewCallback callback) {
-        SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_NAVIGATION);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        btn_menu2.setVisibility(View.GONE);
-    }
+    // 回调监听
+    private WebViewFragment.CallListener callListener = new WebViewFragment.CallListener() {
+        // 全屏播放处理
+        @Override
+        public void onEnterFullScreen(View view, WebChromeClient.CustomViewCallback callback) {
+            SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_NAVIGATION);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            btn_menu2.setVisibility(View.GONE);
+        }
 
-    @Override
-    public void onExitFullScreen() {
-        SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_STATE);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        btn_menu2.setVisibility(View.VISIBLE);
-    }
+        @Override
+        public void onExitFullScreen() {
+            SysWindowUi.setStatusBarNavigationBarStyle(BrowserActivity2.this, SysWindowUi.NO_STATE__NO_STATE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            btn_menu2.setVisibility(View.VISIBLE);
+        }
 
-    @Override
-    public LayoutInflater onProgressView() {
-        LayoutInflater inflater = LayoutInflater.from(BrowserActivity2.this);
-        return inflater;
-    }
+        @Override
+        public LayoutInflater onProgressView() {
+            LayoutInflater inflater = LayoutInflater.from(BrowserActivity2.this);
+            return inflater;
+        }
 
-    @Override
-    public void jump(String url) {
-        currentUrl = url;
-        navigateTo(WebViewFragment.newInstance(currentUrl, this));
-    }
+        @Override
+        public void jump(String url) {
+            currentUrl = url;
+            navigateTo(WebViewFragment.newInstance(currentUrl));
+        }
 
-    @Override
-    public void downLoad() {
-        goBackOrForward("back", b -> {
-            onBack();
-        });
-    }
+        @Override
+        public void downLoad() {
+            goBackOrForward("back", b -> {
+                onBack();
+            });
+        }
 
-    // 检测有下载的情况
-    @Override
-    public void sniffingDownload() {
-        btnMonitor.setBackgroundResource(R.drawable.btn_monitor2);
-    }
+        // 检测有下载的情况
+        @Override
+        public void sniffingDownload() {
+            btnMonitor.setBackgroundResource(R.drawable.btn_monitor2);
+        }
+    };
 
     // 处理物理返回键
     @Override
@@ -276,6 +294,14 @@ public class BrowserActivity2 extends AppCompatActivity implements WebViewFragme
     @Override
     protected void onResume() {
         super.onResume();
+        // 检查是否需要重建 WebView
+        if (backStack.isEmpty() && currentUrl != null) {
+            navigateTo(WebViewFragment.newInstance(currentUrl));
+        }
+        // 恢复可见的 Fragment
+        if (!backStack.isEmpty()) {
+            showFragment(backStack.peek());
+        }
         /**
          * 设置为横屏
          */
