@@ -40,6 +40,8 @@ import java.util.concurrent.Executors;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.BrowserActivity;
+import cn.cheng.simpleBrower.activity.BrowserActivity2;
+import cn.cheng.simpleBrower.activity.DownloadActivity;
 import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.DownLoadHandler;
@@ -142,12 +144,9 @@ public class DownloadService extends Service {
         // 设置发送时间
         nBuilder.setWhen(System.currentTimeMillis());
 
-        // 创建一个跳转原来Activity的Intent
-        Intent i = new Intent(MyApplication.getContext(), MainActivity.class);
-        i.setAction(Intent.ACTION_MAIN);
-        i.addCategory(Intent.CATEGORY_LAUNCHER);
-        i.setComponent(new ComponentName("cn.cheng.simpleBrower.activity", "cn.cheng.simpleBrower.activity.MainActivity"));
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);//关键的一步，设置启动模式
+        // 创建一个跳转指定Activity的Intent
+        Intent i = new Intent(this, DownloadActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pendingIntent;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             pendingIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_IMMUTABLE);

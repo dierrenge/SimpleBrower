@@ -47,8 +47,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                         state = "暂停";
                     }
                     contentView.setTextViewText(R.id.btn_state, state);
-                    downLoadInfo.setState(state);
                     notificationManager.notify(notificationId, notificationX);
+                    downLoadInfo.setState(state);
                     if (state.equals("暂停")) {
                         new M3u8DownLoader(notificationId).start();
                     }

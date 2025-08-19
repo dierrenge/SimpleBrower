@@ -777,13 +777,13 @@ public class M3u8DownLoader {
             if (notificationX != null) {
                 RemoteViews contentView = notificationX.contentView;
                 contentView.setTextViewText(R.id.btn_state, "继续");
-                notificationBean.setState("继续");
                 if (w == 10) {
                     contentView.setProgressBar(R.id.pbDownload, 100, 0, false);
                     contentView.setTextViewText(R.id.tvProcess, "已下载0.00%");
                 }
                 NotificationManager notificationManager = (NotificationManager) MyApplication.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(id, notificationX);
+                notificationBean.setState("继续");
             }
         }
     }
