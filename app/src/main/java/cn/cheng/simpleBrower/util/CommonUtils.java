@@ -690,7 +690,7 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static void requestNotificationPermissions(Activity context) {
+    public static boolean requestNotificationPermissions(Activity context) {
         if (!hasNotificationPermissions(context)) {
             FeetDialog feetDialog = new FeetDialog(context, "授权", "该功能将会使用通知", "授权", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
@@ -707,7 +707,9 @@ public class CommonUtils {
                 }
             });
             feetDialog.show();
+            return false;
         }
+        return true;
     }
 
     /**

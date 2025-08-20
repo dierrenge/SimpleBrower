@@ -121,7 +121,7 @@ public class DownloadListDialog extends Dialog {
                         CommonUtils.requestStoragePermissions((Activity) context);
                         return;
                     }
-                    CommonUtils.requestNotificationPermissions((Activity) context); // 通知
+                    if (!CommonUtils.requestNotificationPermissions((Activity) context)) return; // 通知
                     Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
                     intent.putExtra("what", bean.getWhat());
                     intent.putExtra("url", bean.getUrl());

@@ -308,7 +308,7 @@ public class WebViewFragment extends Fragment {
 
     // 下载
     private void download(String url, String titleO, int what) {
-        CommonUtils.requestNotificationPermissions(requireActivity()); // 通知
+        if (!CommonUtils.requestNotificationPermissions(requireActivity())) return; // 通知
         String title = titleO;
         try {
             title = URLDecoder.decode(titleO, "utf-8");
