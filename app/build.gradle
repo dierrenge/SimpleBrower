@@ -1,3 +1,61 @@
+/**
+ * @param filename  要打开的文件名字
+ * @param propName   文件里面的键名字
+ * @return  所选择的文件里面的propName对应的值
+ */
+def getProperty(String filename, String propName) {
+    def propsFile = file(filename)
+    if (propsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(propsFile))
+        if (props[propName] != null) {
+            //下面这个输出在android studio3.1里面 在Build窗口 右边一个锤子下面 toggle哪里，就是原来的message哪里
+            def v = props[propName] + ""
+            def versionName = v[0..-3] + "." + v[-2] + "." + v[-1]
+            println("versionName "+versionName)
+            return versionName
+        } else {
+            println("No such property " + propName + " in file " + filename);
+        }
+    } else {
+        println(filename + " does not exist!")
+    }
+}
+
+//version.properties  里面的versionName 自动更新
+def PropertyAdd(String filename, String propName) {
+    //这里必须用file  如果用rootProject的话 则找不到file为null
+    def propsFile = file(filename)
+    //只有在打正式版的情况下才继续运行，否则退出方法，这样是为了防止 编译时候versionCode 也自增 if里面的参数可以在Build窗口里面 message 最上边[]里面就是
+    def runTasks = gradle.startParameter.taskNames
+    if (!(':app:assembleRelease' in runTasks)) {
+        return
+    }
+    if (propsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(propsFile))
+        //这里要注意 props[propName] 是String 类型
+        if (props[propName] != null) {
+            def code = (props[propName]).toInteger() //转成Integer
+            props[propName]= (++code).toString()  //自增 且转成String
+        } else {
+            println("No such property " + propName + " in file " + filename);
+        }
+        //在这里提交 对version.properties的更改
+        props.store(propsFile.newWriter(),null)
+    } else {
+        println(filename + " does not exist!")
+    }
+}
+
+//用于生成时间
+def buildTime() {
+    def date = new Date()
+    //yy年 MM月 dd日 HH小时 mm分钟 ss秒
+    def formattedDate = date.format('yyMMdd_HHmm')
+    return formattedDate
+}
+
 plugins {
     id 'com.android.application'
 }
@@ -11,7 +69,8 @@ android {
         minSdk 24
         targetSdk 35
         versionCode 3
-        versionName "7.8.0"
+        //这里 注意啦 调用方法
+        versionName getProperty("version.properties","versionName")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,6 +86,26 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     buildToolsVersion '35.0.0'
+
+    //给文件重新命名的代码，记住是在Android 节点下
+    android.applicationVariants.all {
+        variant ->
+            variant.outputs.all {
+                output ->
+                    //拿到输出文件
+                    def outputFile = output.outputFile
+                    //这里也可以调用上面的 (':app:assembleRelease' in runTasks) 进行判断 感觉会更好一些
+                    if (outputFile.name.contains("release")) {
+                        //在字符串里面调用方法的话，得要${ }里面调用 切记
+                        outputFileName = new File("../release/","release-${getProperty("version.properties","versionName")}_DATE-${buildTime()}.apk");
+                        //调用方法 versionName 自动更新
+                        PropertyAdd("version.properties", "versionName")
+                    }
+                    if (outputFile.name.contains("debug")) {
+                        outputFileName = new File("../debug/","debug-${getProperty("version.properties","versionName")}_DATE-${buildTime()}.apk")
+                    }
+            }
+    }
 }
 // 上面修改Android版本(如34->35) compileSdk和buildToolsVersion都要改
 

@@ -1,18 +1,15 @@
 package cn.cheng.simpleBrower;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
-import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class MyApplication extends Application {
@@ -39,7 +36,7 @@ public class MyApplication extends Application {
     private static HashMap<String, Long> videoPosition = new HashMap<>();
 
     // 记录下载任务消息
-    private static HashMap<Integer, NotificationBean> downLoadBeanMap = new HashMap<>();
+    private static HashMap<Integer, NotificationBean> downLoadInfoMap = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -140,15 +137,19 @@ public class MyApplication extends Application {
     }
 
     public static NotificationBean getDownLoadInfo(int key) {
-        return downLoadBeanMap.get(key);
+        return downLoadInfoMap.get(key);
     }
 
     public static void setDownLoadInfo(int key, NotificationBean value) {
-        downLoadBeanMap.put(key, value);
+        downLoadInfoMap.put(key, value);
     }
 
     public static void deleteDownLoadInfo(int key) {
-        downLoadBeanMap.remove(key);
+        downLoadInfoMap.remove(key);
+    }
+
+    public static HashMap<Integer, NotificationBean> getDownLoadInfoMap() {
+        return downLoadInfoMap;
     }
 
 }

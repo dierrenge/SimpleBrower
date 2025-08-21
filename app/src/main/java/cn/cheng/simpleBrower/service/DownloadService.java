@@ -94,6 +94,9 @@ public class DownloadService extends Service {
         int what = intent.getIntExtra("what", 0);
         String title = intent.getStringExtra("title");
         String url = intent.getStringExtra("url");
+        if (StringUtils.isEmpty(url)) {
+            return super.onStartCommand(intent, flags, startId);
+        }
         // String urlName = url.substring(url.lastIndexOf("/") + 1);
         if (title == null || "".equals(title)) {
             title = System.currentTimeMillis() + "";

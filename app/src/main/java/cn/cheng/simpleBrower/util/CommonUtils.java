@@ -1371,7 +1371,7 @@ public class CommonUtils {
     public static int randomNum() {
         int num = 0;
         try {
-            String timeStr = new SimpleDateFormat("MMddHHmmss").format(new Date());
+            String timeStr = new SimpleDateFormat("HHmmssSSS").format(new Date());
             num = Integer.parseInt(timeStr);
         } catch (Exception e) {
             saveLog("randomNum:" + e.getMessage());

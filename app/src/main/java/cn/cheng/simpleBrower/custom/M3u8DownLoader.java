@@ -595,6 +595,7 @@ public class M3u8DownLoader {
      * 开始下载视频
      */
     public void start() {
+        if (notificationBean == null) return;
         TaskExecutionManager.getInstance().executeTask(id, () -> {
             System.out.println("下载文件原始链接：" + DOWNLOADURL);
             if (DOWNLOADURL.endsWith(".m3u8")) {

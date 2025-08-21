@@ -61,9 +61,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             downLoadInfo.setState("继续");
             // ExecutorService pool = downLoadInfo.getFixedThreadPool();
             // if (pool != null) pool.shutdownNow();
-            notificationManager.cancel(notificationId);
             MyApplication.deleteDownloadList(downLoadInfo.getUrl());
             MyApplication.deleteDownLoadInfo(notificationId);
+            notificationManager.cancel(notificationId);
         }
     }
 }

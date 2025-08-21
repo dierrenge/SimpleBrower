@@ -113,6 +113,7 @@ public class DownloadListDialog extends Dialog {
                 Button button = holder.itemView.findViewById(R.id.item_download);
 
                 DownloadBean bean = downloadList.get(position);
+                if (bean == null) return;
                 editText.setText(bean.getTitle());
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
@@ -167,7 +168,9 @@ public class DownloadListDialog extends Dialog {
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 // 处理滑动删除
                 int position = viewHolder.getAdapterPosition();
-                MyApplication.deleteDownloadList(downloadList.get(position).getUrl());
+                DownloadBean downloadBean = downloadList.get(position);
+                if (downloadBean == null) return;
+                MyApplication.deleteDownloadList(downloadBean.getUrl());
                 adapter.notifyItemRemoved(position);
                 if (callListener != null && downloadList.size() == 0) {
                     callListener.deleteAll();

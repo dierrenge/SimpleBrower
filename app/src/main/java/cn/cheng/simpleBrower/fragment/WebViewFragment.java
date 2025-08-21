@@ -95,7 +95,6 @@ public class WebViewFragment extends Fragment {
     private Handler handler; // 子线程与主线程通信
     private FeetDialog feetDialog;
     private boolean flag = true; // 是否展示检查下载的提示框
-    private boolean flagVideo = true; // 是否展示检查影音下载的提示框
     private boolean flagGif = true; // 是否开启动图过滤
 
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
@@ -227,7 +226,6 @@ public class WebViewFragment extends Fragment {
 
         SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
         if (sysBean != null) {
-            flagVideo = sysBean.isFlagVideo();
             flagGif = sysBean.isFlagGif();
         }
 
@@ -271,31 +269,29 @@ public class WebViewFragment extends Fragment {
 
                     // 弹框选择
                     if (flag && (feetDialog == null || !feetDialog.isShowing())) {
-                        if (what == 4 && !url.contains(".m3u8")) {
+                        if (!url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
                             callListener.downLoad(); // 下载的情况下自动关闭空白页面
                         } else {
                             feetDialog = new FeetDialog(requireContext());
                         }
-                        if (what == 4 || flagVideo) {
-                            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
-                                @Override
-                                public void close() {
-                                    flag = true;
-                                    feetDialog.dismiss();
-                                }
+                        feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                            @Override
+                            public void close() {
+                                flag = true;
+                                feetDialog.dismiss();
+                            }
 
-                                @Override
-                                public void ok(String txt) {
-                                    flag = true;
-                                    download(url, arr.length >= 3 && arr[2].contains(" / ") ? txt : title, what);
-                                    feetDialog.dismiss();
-                                }
-                            });
-                            flag = false;
-                            feetDialog.show();
-                        }
+                            @Override
+                            public void ok(String txt) {
+                                flag = true;
+                                download(url, arr.length >= 3 && arr[2].contains(" / ") ? txt : title, what);
+                                feetDialog.dismiss();
+                            }
+                        });
+                        flag = false;
+                        feetDialog.show();
                     }
 
                 }
@@ -413,12 +409,12 @@ public class WebViewFragment extends Fragment {
                     e.printStackTrace();
                 }
                 // 会用到的权限
-                Message msg = Message.obtain();
-                if (!flagVideo && !CommonUtils.hasStoragePermissions(requireContext())) {
+                if (!CommonUtils.hasStoragePermissions(requireContext())) {
                     CommonUtils.requestStoragePermissions(requireActivity());
                     if (!name.contains(".html;") && !url.contains(".m3u8")) {
                         // 记录点击下载的链接url
                         MyApplication.setClickDownloadUrl(url);
+                        Message msg = Message.obtain();
                         msg.what = 7;
                         handler.sendMessage(msg);
                     }
@@ -437,6 +433,7 @@ public class WebViewFragment extends Fragment {
                         // 记录点击下载的链接url
                         MyApplication.setClickDownloadUrl(url);
                         String[] arr = new String[]{finalName, url, title};
+                        Message msg = Message.obtain();
                         msg.obj = arr;
                         msg.what = 4;
                         handler.sendMessage(msg);
