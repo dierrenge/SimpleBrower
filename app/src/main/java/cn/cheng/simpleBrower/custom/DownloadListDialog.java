@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -117,18 +118,22 @@ public class DownloadListDialog extends Dialog {
                 editText.setText(bean.getTitle());
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
-                    // 会用到的权限
-                    if (!CommonUtils.hasStoragePermissions(context)) {
-                        CommonUtils.requestStoragePermissions((Activity) context);
-                        return;
+                    try {
+                        // 会用到的权限
+                        if (!CommonUtils.hasStoragePermissions(context)) {
+                            CommonUtils.requestStoragePermissions((Activity) context);
+                            return;
+                        }
+                        if (!CommonUtils.requestNotificationPermissions((Activity) context)) return; // 通知
+                        Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
+                        intent.putExtra("what", bean.getWhat());
+                        intent.putExtra("url", bean.getUrl());
+                        String title0 = editText.getText().toString();
+                        intent.putExtra("title", title0.length() > 30 ? title0.substring(0, 24) + "···" + title0.substring(title0.length() - 6) : title0);
+                        MyApplication.getContext().startService(intent);
+                    } catch (Throwable e) {
+                        CommonUtils.saveLog("=====底部对话框====点击下载=====" + e.getMessage());
                     }
-                    if (!CommonUtils.requestNotificationPermissions((Activity) context)) return; // 通知
-                    Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
-                    intent.putExtra("what", bean.getWhat());
-                    intent.putExtra("url", bean.getUrl());
-                    String title0 = editText.getText().toString();
-                    intent.putExtra("title", title0.length() > 30 ? title0.substring(0, 24) + "···" + title0.substring(title0.length() - 6) : title0);
-                    MyApplication.getContext().startService(intent);
                 });
             }
 
@@ -156,24 +161,32 @@ public class DownloadListDialog extends Dialog {
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
                                   @NonNull RecyclerView.ViewHolder target) {
-                // 处理拖拽换位
-                int fromPos = viewHolder.getAdapterPosition();
-                int toPos = target.getAdapterPosition();
-                Collections.swap(downloadList, fromPos, toPos);
-                adapter.notifyItemMoved(fromPos, toPos);
+                try {
+                    // 处理拖拽换位
+                    int fromPos = viewHolder.getAdapterPosition();
+                    int toPos = target.getAdapterPosition();
+                    Collections.swap(downloadList, fromPos, toPos);
+                    adapter.notifyItemMoved(fromPos, toPos);
+                } catch (Throwable e) {
+                    CommonUtils.saveLog("===底部对话框====处理拖拽换位=======" + e.getMessage());
+                }
                 return true;
             }
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // 处理滑动删除
-                int position = viewHolder.getAdapterPosition();
-                DownloadBean downloadBean = downloadList.get(position);
-                if (downloadBean == null) return;
-                MyApplication.deleteDownloadList(downloadBean.getUrl());
-                adapter.notifyItemRemoved(position);
-                if (callListener != null && downloadList.size() == 0) {
-                    callListener.deleteAll();
+                try {
+                    // 处理滑动删除
+                    int position = viewHolder.getAdapterPosition();
+                    DownloadBean downloadBean = downloadList.get(position);
+                    if (downloadBean == null) return;
+                    MyApplication.deleteDownloadList(downloadBean.getUrl());
+                    adapter.notifyItemRemoved(position);
+                    if (callListener != null && downloadList.size() == 0) {
+                        callListener.deleteAll();
+                    }
+                } catch (Throwable e) {
+                    CommonUtils.saveLog("==底部对话框===处理滑动删除=========" + e.getMessage());
                 }
             }
 

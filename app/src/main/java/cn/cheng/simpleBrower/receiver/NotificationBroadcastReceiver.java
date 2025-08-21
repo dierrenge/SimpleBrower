@@ -34,36 +34,44 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
-            //Notification notificationX = downLoadInfo.getNotification();
-            String channelId = intent.getStringExtra("channelId");
-            Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
-            if (notificationX != null) {
-                RemoteViews contentView = notificationX.contentView;
-                String state = downLoadInfo.getState();
-                if (state != null) {
-                    if (state.equals("暂停")) {
-                        state = "继续";
-                    } else {
-                        state = "暂停";
-                    }
-                    contentView.setTextViewText(R.id.btn_state, state);
-                    notificationManager.notify(notificationId, notificationX);
-                    downLoadInfo.setState(state);
-                    if (state.equals("暂停")) {
-                        new M3u8DownLoader(notificationId).start();
+            try {
+                //Notification notificationX = downLoadInfo.getNotification();
+                String channelId = intent.getStringExtra("channelId");
+                Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
+                if (notificationX != null) {
+                    RemoteViews contentView = notificationX.contentView;
+                    String state = downLoadInfo.getState();
+                    if (state != null) {
+                        if (state.equals("暂停")) {
+                            state = "继续";
+                        } else {
+                            state = "暂停";
+                        }
+                        contentView.setTextViewText(R.id.btn_state, state);
+                        notificationManager.notify(notificationId, notificationX);
+                        downLoadInfo.setState(state);
+                        if (state.equals("暂停")) {
+                            new M3u8DownLoader(notificationId).start();
+                        }
                     }
                 }
+            } catch (Throwable e) {
+                CommonUtils.saveLog("=======处理按钮点击事件notification_clicked=======" + e.getMessage());
             }
         }
 
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
-            downLoadInfo.setState("继续");
-            // ExecutorService pool = downLoadInfo.getFixedThreadPool();
-            // if (pool != null) pool.shutdownNow();
-            MyApplication.deleteDownloadList(downLoadInfo.getUrl());
-            MyApplication.deleteDownLoadInfo(notificationId);
-            notificationManager.cancel(notificationId);
+            try {
+                downLoadInfo.setState("继续");
+                // ExecutorService pool = downLoadInfo.getFixedThreadPool();
+                // if (pool != null) pool.shutdownNow();
+                MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                MyApplication.deleteDownLoadInfo(notificationId);
+                notificationManager.cancel(notificationId);
+            } catch (Throwable e) {
+                CommonUtils.saveLog("=======处理删除事件notification_cancelled=======" + e.getMessage());
+            }
         }
     }
 }
