@@ -77,7 +77,9 @@ public class DownLoadHandler extends Handler {
                         // 获取进度信息
                         String str = arr[0];
                         // 更新状态栏上的下载进度等信息
-                        // Notification notificationX = downLoadInfo.getNotification();
+                        CommonUtils.updateRemoteViews(n, downLoadInfo.getUrl(), str, null, nm);
+                        /*// Notification notificationX = downLoadInfo.getNotification();
+                        // 原方式：contentView可能为空
                         Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
                         if (notificationX != null) {
                             RemoteViews contentView = notificationX.contentView;
@@ -87,7 +89,7 @@ public class DownLoadHandler extends Handler {
                             }
                             contentView.setTextViewText(R.id.tvProcess, str);
                             nm.notify(n, notificationX);
-                        }
+                        }*/
                         break;
                     case 4:
                         if (downLoadInfo == null) return;

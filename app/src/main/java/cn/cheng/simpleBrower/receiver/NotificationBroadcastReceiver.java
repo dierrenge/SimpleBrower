@@ -35,8 +35,14 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
             try {
-                //Notification notificationX = downLoadInfo.getNotification();
                 String channelId = intent.getStringExtra("channelId");
+                String state = downLoadInfo.getState();
+                state = state.equals("暂停") ? "继续" : "暂停";
+                CommonUtils.updateRemoteViews(notificationId, channelId, null, state, notificationManager);
+                downLoadInfo.setState(state);
+                if (state.equals("暂停")) new M3u8DownLoader(notificationId).start();
+                /*//Notification notificationX = downLoadInfo.getNotification();
+                // 原方式：contentView可能为空
                 Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
                 if (notificationX != null) {
                     RemoteViews contentView = notificationX.contentView;
@@ -54,7 +60,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                             new M3u8DownLoader(notificationId).start();
                         }
                     }
-                }
+                }*/
             } catch (Throwable e) {
                 CommonUtils.saveLog("=======处理按钮点击事件notification_clicked=======" + e.getMessage());
             }

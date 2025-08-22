@@ -18,8 +18,10 @@ import android.os.Message;
 import android.provider.Settings;
 import android.service.notification.StatusBarNotification;
 import android.webkit.URLUtil;
+import android.widget.RemoteViews;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
@@ -70,6 +72,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import cn.cheng.simpleBrower.MyApplication;
+import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 
@@ -1430,5 +1433,35 @@ public class CommonUtils {
             }
         }
         return null;
+    }
+
+    // 更新消息通知视图
+    public static void updateRemoteViews(int id, String channelId, String progress, String btnText, NotificationManager nm) {
+        try {
+            Context context = MyApplication.getContext();
+            if (context == null || channelId == null || (progress == null && btnText == null)) return;
+            RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_download);
+            if (progress != null) {
+                if (CommonUtils.matchingNumber(progress)) { // 判断数字
+                    float progressF = Float.parseFloat(progress);
+                    contentView.setProgressBar(R.id.pbDownload, 100, (int) progressF, false);
+                    progress = "已下载" + String.format("%.2f", progressF) + "%";
+                }
+                contentView.setTextViewText(R.id.tvProcess, progress);
+            }
+            if (btnText != null) {
+                contentView.setTextViewText(R.id.btn_state, btnText);
+            }
+            Notification notification = new NotificationCompat.Builder(context, channelId)
+                    .setSmallIcon(R.mipmap.app_logo)
+                    .setCustomContentView(contentView)
+                    .build();
+            if (nm == null) {
+                nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            }
+            nm.notify(id, notification);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("=======更新消息通知视图=======" + e.getMessage());
+        }
     }
 }

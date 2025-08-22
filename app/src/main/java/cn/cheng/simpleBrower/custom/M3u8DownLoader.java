@@ -772,8 +772,16 @@ public class M3u8DownLoader {
         String[] arr = new String[]{m, id+""};
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
-        if (w == 0 || w == 10) {
+        if (w == 0) {
+            CommonUtils.updateRemoteViews(id, DOWNLOADURL, null, "继续", null);
+            notificationBean.setState("继续");
+        } else if (w == 10) {
+            CommonUtils.updateRemoteViews(id, DOWNLOADURL, "0", "继续", null);
+            notificationBean.setState("继续");
+        }
+        /*if (w == 0 || w == 10) {
             // Notification notificationX = notificationBean.getNotification();
+            // 原方式：contentView可能为空
             Notification notificationX = CommonUtils.getRunNotification(DOWNLOADURL);
             if (notificationX != null) {
                 RemoteViews contentView = notificationX.contentView;
@@ -786,7 +794,7 @@ public class M3u8DownLoader {
                 notificationManager.notify(id, notificationX);
                 notificationBean.setState("继续");
             }
-        }
+        }*/
     }
     private void sendMsg(String m, int w) {
         // 消息提示
