@@ -23,6 +23,7 @@ public class NotificationBean {
     private long timeoutMillisecond; // 连接超时时间（单位：毫秒）
     private String state; // 表示点击后呈现的状态
     private int bytesum; // 记录已下载进度
+    private String rangeRequest; // 是否支持断点续传
     private int totalSize; // 文件总大小
     private List<String> tsList = new ArrayList<>(); // 所有ts片段下载链接
     //private M3u8DownLoader m3u8Download;
@@ -118,6 +119,14 @@ public class NotificationBean {
 
     public void setBytesum(int bytesum) {
         this.bytesum = bytesum;
+    }
+
+    public String getRangeRequest() {
+        return rangeRequest;
+    }
+
+    public void setRangeRequest(String rangeRequest) {
+        this.rangeRequest = rangeRequest;
     }
 
     public int getTotalSize() {

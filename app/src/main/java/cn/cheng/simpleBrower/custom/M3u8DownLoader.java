@@ -619,6 +619,9 @@ public class M3u8DownLoader {
                     handler.sendMessage(msg);
                 }
             } else {
+                if (notificationBean.getRangeRequest() == null) {
+                    notificationBean.setRangeRequest(supportRR() + "");
+                }
                 getUrlContentFile();
             }
         });
@@ -635,7 +638,10 @@ public class M3u8DownLoader {
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        int bytesum = notificationBean.getBytesum(); // 尝试恢复进度
+        int bytesum = 0;
+        if ("true".equals(notificationBean.getRangeRequest())) {
+            bytesum = notificationBean.getBytesum(); // 尝试恢复进度
+        }
         try {
             URL url = new URL(DOWNLOADURL);
             httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -762,6 +768,58 @@ public class M3u8DownLoader {
                 httpURLConnection.disconnect();
             }
         }
+    }
+
+    /**
+     * 判断是否支持断点续传
+     * Support Range Request
+     * @return 内容
+     */
+    private boolean supportRR() {
+        HttpURLConnection httpURLConnection = null;
+        File dir = new File(supDir);
+        if (!dir.exists()) dir.mkdirs();
+        try {
+            URL url = new URL(DOWNLOADURL);
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout(2000);
+            httpURLConnection.setReadTimeout(2000);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setDoInput(true);
+            // 模拟电脑请求
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            // 跨域设置相关
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
+            //* 代办允许所有方法
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Methods", "*");
+            // Access-Control-Max-Age 用于 CORS 相关配置的缓存
+            httpURLConnection.setRequestProperty("Access-Control-Max-Age", "3600");
+            // 提示OPTIONS预检时，后端需要设置的两个常用自定义头
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
+            // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
+            // 以识别各种格式
+            httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+            // 断点开始位置 调试
+            httpURLConnection.setRequestProperty("Range", "bytes=100-");
+            // 连接
+            httpURLConnection.connect();
+            // 获取文件长度
+            int contentLength = httpURLConnection.getContentLength();
+            // 获取响应状态
+            int responseCode = httpURLConnection.getResponseCode();
+            // 判断是否支持断点续传
+            if (responseCode == HttpURLConnection.HTTP_PARTIAL && contentLength > 0) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
+            }
+        }
+        return false;
     }
 
     // 暂停下载消息，发送指定提示
