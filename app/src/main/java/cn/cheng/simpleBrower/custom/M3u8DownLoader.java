@@ -619,9 +619,9 @@ public class M3u8DownLoader {
                     handler.sendMessage(msg);
                 }
             } else {
-                if (notificationBean.getRangeRequest() == null) {
+                /*if (notificationBean.getRangeRequest() == null) {
                     notificationBean.setRangeRequest(supportRR() + "");
-                }
+                }*/
                 getUrlContentFile();
             }
         });
@@ -639,7 +639,7 @@ public class M3u8DownLoader {
             dir.mkdirs();
         }
         int bytesum = 0;
-        if ("true".equals(notificationBean.getRangeRequest())) {
+        if (!"false".equals(notificationBean.getRangeRequest())) {
             bytesum = notificationBean.getBytesum(); // 尝试恢复进度
         }
         try {
@@ -665,13 +665,18 @@ public class M3u8DownLoader {
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
 
             // 保存文件的绝对路径
-            String absolutePath = supDir + "/" + fileName;
-            if (!fileName.contains(".") || what != 4) {
-                // 获取格式
-                String contentType = httpURLConnection.getContentType();
-                String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
-                absolutePath = supDir + "/" + fileName + format;
+            String absolutePath = notificationBean.getAbsolutePath();
+            if (absolutePath == null) {
+                absolutePath = supDir + "/" + fileName;
+                if (!fileName.contains(".") || what != 4) {
+                    // 获取格式
+                    String contentType = httpURLConnection.getContentType();
+                    String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
+                    absolutePath = supDir + "/" + fileName + format;
+                }
+                notificationBean.setAbsolutePath(absolutePath);
             }
+
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
             File file = new File(absolutePath);
             // 检查本地文件是否存在
@@ -754,14 +759,8 @@ public class M3u8DownLoader {
                 e.printStackTrace();
             }
         } catch (Exception e) {
-            if ("Cannot set request property after connection is made".equals(e.getMessage())) {
-                String m = "不支持断点续传，请勿点击暂停";
-                // file.delete();
-                stopAndSendMsg(m, 10, 0);
-            } else {
-                String m = "请检查网络：" + e.getMessage();
-                stopAndSendMsg(m, 0, bytesum);
-            }
+            String m = "请检查网络：" + e.getMessage();
+            stopAndSendMsg(m, 0, bytesum);
             e.printStackTrace();
         } finally {
             if (httpURLConnection != null) {
@@ -801,7 +800,7 @@ public class M3u8DownLoader {
             // 以识别各种格式
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
             // 断点开始位置 调试
-            httpURLConnection.setRequestProperty("Range", "bytes=100-");
+            httpURLConnection.setRequestProperty("Range", "bytes=1-");
             // 连接
             httpURLConnection.connect();
             // 获取文件长度
@@ -822,6 +821,84 @@ public class M3u8DownLoader {
         return false;
     }
 
+    private boolean supportRR2() {
+        HttpURLConnection httpURLConnection = null;
+        File dir = new File(supDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        int bytesum = 1000;
+        try {
+            URL url = new URL(DOWNLOADURL);
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+            httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setDoInput(true);
+            // 模拟电脑请求
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            // 跨域设置相关
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
+            //* 代办允许所有方法
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Methods", "*");
+            // Access-Control-Max-Age 用于 CORS 相关配置的缓存
+            httpURLConnection.setRequestProperty("Access-Control-Max-Age", "3600");
+            // 提示OPTIONS预检时，后端需要设置的两个常用自定义头
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Headers", "*");
+            // 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
+            httpURLConnection.setRequestProperty("Access-Control-Allow-Credentials", "true");
+            // 以识别各种格式
+            httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+
+            // 保存文件的绝对路径
+            /*String absolutePath = supDir + "/" + fileName;
+            if (!fileName.contains(".") || what != 4) {
+                // 获取格式
+                String contentType = httpURLConnection.getContentType();
+                String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
+                absolutePath = supDir + "/" + fileName + format;
+            }
+            File file = new File(absolutePath);*/
+            httpURLConnection.setRequestProperty("Range", "bytes=" + bytesum + "-");
+
+            // 连接并判断请求状态
+            httpURLConnection.connect();
+
+            // 获取文件长度
+            int contentLength = httpURLConnection.getContentLength();
+            if (bytesum == 0) {
+                notificationBean.setTotalSize(contentLength > 0 ? contentLength : 1);
+            }
+            /*if (bytesum > 0 && contentLength == -1) {
+                String m = "不支持断点续传，请勿点击暂停";
+                // file.delete();
+                stopAndSendMsg(m, 10, 0);
+                return;
+            }*/
+            // System.out.println("=======contentLength=====" +contentLength);
+
+            int len;
+            byte[] buf = new byte[1024*8];
+            // 获取文件流
+            InputStream inputStream = httpURLConnection.getInputStream();
+        } catch (Exception e) {
+            if ("Cannot set request property after connection is made".equals(e.getMessage())) {
+                String m = "不支持断点续传，请勿点击暂停";
+                // file.delete();
+                // stopAndSendMsg(m, 10, 0);
+            } else {
+                String m = "请检查网络：" + e.getMessage();
+                // stopAndSendMsg(m, 0, bytesum);
+            }
+            e.printStackTrace();
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
+            }
+        }
+        return false;
+    }
+
     // 暂停下载消息，发送指定提示
     private void stopAndSendMsg(String m, int w, int bytesum) {
         // 保存下载进度
@@ -831,11 +908,12 @@ public class M3u8DownLoader {
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
         if (w == 0) {
-            CommonUtils.updateRemoteViews(id, DOWNLOADURL, null, "继续", null);
+            CommonUtils.updateRemoteViews(id, null, "继续", null);
             notificationBean.setState("继续");
         } else if (w == 10) {
-            CommonUtils.updateRemoteViews(id, DOWNLOADURL, "0", "继续", null);
+            CommonUtils.updateRemoteViews(id, "0", "继续", null);
             notificationBean.setState("继续");
+            notificationBean.setRangeRequest("false");
         }
         /*if (w == 0 || w == 10) {
             // Notification notificationX = notificationBean.getNotification();

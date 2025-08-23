@@ -22,6 +22,7 @@ public class NotificationBean {
     private int retryCount; // 重试次数
     private long timeoutMillisecond; // 连接超时时间（单位：毫秒）
     private String state; // 表示点击后呈现的状态
+    private String absolutePath; // 存储文件的绝对路径
     private int bytesum; // 记录已下载进度
     private String rangeRequest; // 是否支持断点续传
     private int totalSize; // 文件总大小
@@ -111,6 +112,14 @@ public class NotificationBean {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
+    public void setAbsolutePath(String absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     public int getBytesum() {

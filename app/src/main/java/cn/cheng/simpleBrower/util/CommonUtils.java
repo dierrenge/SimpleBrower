@@ -6,6 +6,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -73,8 +74,11 @@ import java.util.stream.Stream;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.activity.DownloadActivity;
+import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
 
 public class CommonUtils {
 
@@ -1436,10 +1440,14 @@ public class CommonUtils {
     }
 
     // 更新消息通知视图
-    public static void updateRemoteViews(int id, String channelId, String progress, String btnText, NotificationManager nm) {
+    public static void updateRemoteViews(int id, String progress, String btnText, NotificationManager nm) {
         try {
             Context context = MyApplication.getContext();
-            if (context == null || channelId == null || (progress == null && btnText == null)) return;
+            NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(id);
+            if (context == null || downLoadInfo == null || (progress == null && btnText == null)) return;
+            String channelId = downLoadInfo.getUrl();
+            String supDir = downLoadInfo.getSupDir();
+            String title = downLoadInfo.getTitle();
             RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_download);
             if (progress != null) {
                 if (CommonUtils.matchingNumber(progress)) { // 判断数字
@@ -1452,9 +1460,44 @@ public class CommonUtils {
             if (btnText != null) {
                 contentView.setTextViewText(R.id.btn_state, btnText);
             }
+
+            // 创建一个跳转指定Activity的Intent
+            Intent i = new Intent(context, DownloadActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent pendingIntent;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
+            }
+
+            // 创建一个用于记录滑动删除的intent 调用广播
+            Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
+            intentCancel.setAction("notification_cancelled");
+            intentCancel.putExtra("notificationId", id);
+            intentCancel.putExtra("fileName", supDir + "/" + title);
+            // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+            int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+            PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id, intentCancel, flag);
+
+            /*// 创建一个处理按钮点击事件的intent 调用广播
+            Intent intentClick = new Intent(context, NotificationBroadcastReceiver.class);
+            intentClick.setAction("notification_clicked");
+            intentClick.putExtra("notificationId", id);
+            intentClick.putExtra("channelId", channelId);
+            // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+            int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+            PendingIntent pendingIntentClick = PendingIntent.getBroadcast(context, id, intentClick, flag2);
+
+            contentView.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);*/
             Notification notification = new NotificationCompat.Builder(context, channelId)
+                    .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.app_logo)
+                    .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
+                    .setWhen(System.currentTimeMillis())
                     .setCustomContentView(contentView)
+                    .setContentIntent(pendingIntent)
+                    .setDeleteIntent(pendingIntentCancel)
                     .build();
             if (nm == null) {
                 nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

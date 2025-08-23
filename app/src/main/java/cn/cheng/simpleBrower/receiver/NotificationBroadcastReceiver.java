@@ -38,7 +38,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 String channelId = intent.getStringExtra("channelId");
                 String state = downLoadInfo.getState();
                 state = state.equals("暂停") ? "继续" : "暂停";
-                CommonUtils.updateRemoteViews(notificationId, channelId, null, state, notificationManager);
+                CommonUtils.updateRemoteViews(notificationId, null, state, notificationManager);
                 downLoadInfo.setState(state);
                 if (state.equals("暂停")) new M3u8DownLoader(notificationId).start();
                 /*//Notification notificationX = downLoadInfo.getNotification();
