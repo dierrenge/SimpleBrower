@@ -573,7 +573,7 @@ public class M3u8DownLoader {
                 if (fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState()) && tsList.size() > finishedCount) {
                     // 部分下载完成提示
                     String str = "部分下载完成！下载" + finishedCount + "个ts文件，实际" + tsList.size() + "个，可继续尝试下载";
-                    sendMsg(str, 0);
+                    stopAndSendMsg(str, 0, 0);
                     System.out.println(str);
                 }
                 if ("暂停".equals(notificationBean.getState()) && tsList.size() <= finishedCount){
