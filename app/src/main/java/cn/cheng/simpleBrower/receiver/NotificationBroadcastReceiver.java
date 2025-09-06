@@ -35,13 +35,13 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
             try {
-                String channelId = intent.getStringExtra("channelId");
                 String state = downLoadInfo.getState();
                 state = state.equals("暂停") ? "继续" : "暂停";
                 CommonUtils.updateRemoteViews(notificationId, null, state, notificationManager);
                 downLoadInfo.setState(state);
                 if (state.equals("暂停")) new M3u8DownLoader(notificationId).start();
-                /*//Notification notificationX = downLoadInfo.getNotification();
+                /*String channelId = intent.getStringExtra("channelId");
+                //Notification notificationX = downLoadInfo.getNotification();
                 // 原方式：contentView可能为空
                 Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
                 if (notificationX != null) {

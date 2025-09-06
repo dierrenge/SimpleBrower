@@ -551,44 +551,42 @@ public class M3u8DownLoader {
         // 关闭线程池
         fixedThreadPool.shutdown();
         // 下载过程监视
-        new Thread(() -> {
-            try {
-                //轮询是否下载成功
-                while (!fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState())) {
-                    try {
-                        if (closed()) return; // 标记为关闭的线程不再执行了
-                        Thread.sleep(1000L);
-                        if (tsList.size() != 0) {
-                            String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id+"", fileName};
-                            Message msg = handler.obtainMessage(3, arr);
-                            handler.sendMessage(msg);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        String[] arr = new String[]{e.getMessage(), id+""};
-                        Message msg= handler.obtainMessage(4, arr);
+        try {
+            //轮询是否下载成功
+            while (!fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState())) {
+                try {
+                    if (closed()) return; // 标记为关闭的线程不再执行了
+                    Thread.sleep(1000L);
+                    if (tsList.size() != 0) {
+                        String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id + "", fileName};
+                        Message msg = handler.obtainMessage(3, arr);
                         handler.sendMessage(msg);
                     }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    String[] arr = new String[]{e.getMessage(), id + ""};
+                    Message msg = handler.obtainMessage(4, arr);
+                    handler.sendMessage(msg);
                 }
-                if (fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState()) && tsList.size() > finishedCount) {
-                    // 部分下载完成提示
-                    String str = "部分下载完成！下载" + finishedCount + "个ts文件，实际" + tsList.size() + "个，可继续尝试下载";
-                    stopAndSendMsg(str, 0, 0);
-                    System.out.println(str);
-                }
-                if ("暂停".equals(notificationBean.getState()) && tsList.size() <= finishedCount){
-                    // 下载成功提示
-                    String str = "下载完成！共" + finishedCount + "个ts文件";
-                    sendMsg(str, 2);
-                    System.out.println(str);   
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                String[] arr = new String[]{e.getMessage(), id+""};
-                Message msg= handler.obtainMessage(4, arr);
-                handler.sendMessage(msg);
             }
-        }).start();
+            if (fixedThreadPool.isTerminated() && "暂停".equals(notificationBean.getState()) && tsList.size() > finishedCount) {
+                // 部分下载完成提示
+                String str = "部分下载完成！下载" + finishedCount + "个ts文件，实际" + tsList.size() + "个，可继续尝试下载";
+                stopAndSendMsg(str, 0, 0);
+                System.out.println(str);
+            }
+            if ("暂停".equals(notificationBean.getState()) && tsList.size() <= finishedCount) {
+                // 下载成功提示
+                String str = "下载完成！共" + finishedCount + "个ts文件";
+                sendMsg(str, 2);
+                System.out.println(str);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            String[] arr = new String[]{e.getMessage(), id + ""};
+            Message msg = handler.obtainMessage(4, arr);
+            handler.sendMessage(msg);
+        }
     }
 
     /**

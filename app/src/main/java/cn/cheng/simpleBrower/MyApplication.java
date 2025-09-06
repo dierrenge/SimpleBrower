@@ -42,6 +42,12 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         context=getApplicationContext();
+
+        // 全局异常捕获
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            // 打印崩溃日志（写入文件）
+            CommonUtils.saveLog("全局异常捕获：" + ex.getMessage());
+        });
     }
 
     public static Context getContext() {

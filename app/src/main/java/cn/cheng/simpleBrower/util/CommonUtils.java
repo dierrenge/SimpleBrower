@@ -1449,6 +1449,7 @@ public class CommonUtils {
             String supDir = downLoadInfo.getSupDir();
             String title = downLoadInfo.getTitle();
             RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_download);
+            contentView.setTextViewText(R.id.task_name, title);
             if (progress != null) {
                 if (CommonUtils.matchingNumber(progress)) { // 判断数字
                     float progressF = Float.parseFloat(progress);
@@ -1480,7 +1481,7 @@ public class CommonUtils {
             int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
             PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id, intentCancel, flag);
 
-            /*// 创建一个处理按钮点击事件的intent 调用广播
+            // 创建一个处理按钮点击事件的intent 调用广播
             Intent intentClick = new Intent(context, NotificationBroadcastReceiver.class);
             intentClick.setAction("notification_clicked");
             intentClick.putExtra("notificationId", id);
@@ -1489,7 +1490,7 @@ public class CommonUtils {
             int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
             PendingIntent pendingIntentClick = PendingIntent.getBroadcast(context, id, intentClick, flag2);
 
-            contentView.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);*/
+            contentView.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);
             Notification notification = new NotificationCompat.Builder(context, channelId)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.app_logo)
