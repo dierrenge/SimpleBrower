@@ -148,6 +148,8 @@ public class BrowserActivity2 extends AppCompatActivity {
     public void onBack() {
         if (backStack.size() > 1) {
             WebViewFragment fragment = backStack.pop();
+            // 当前网页停止加载
+            fragment.getWebView().stopLoading();
             // System.out.println("*************************" + fragment.getWebView().getUrl());
             WebViewFragment backFragment = backStack.peek();
             // System.out.println("*************************" + backFragment.getWebView().getUrl());

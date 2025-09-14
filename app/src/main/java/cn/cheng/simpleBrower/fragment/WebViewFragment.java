@@ -504,6 +504,18 @@ public class WebViewFragment extends Fragment {
             MyApplication.setUrl(url); // 记录为历史网址
             hideProgress();
             super.onPageFinished(view, url);
+
+            // 打印网页源码
+            /*webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String html) {
+                    String[] split = html.split("u003C");
+                    for (String s : split) {
+                        // 在这里处理获取到的HTML源码
+                        System.out.println("<" + s.replace("\\t", "").replace("\\n", "").replace("\\", ""));
+                    }
+                }
+            });*/
         }
 
         // 网址 过滤
