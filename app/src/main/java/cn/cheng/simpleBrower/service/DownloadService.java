@@ -89,6 +89,13 @@ public class DownloadService extends Service {
             // 线程消息传递处理
             myHandler =  DownLoadHandler.getInstance();
 
+            // 剩余内存判断
+            if (CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) > 85) {
+                Message message = myHandler.obtainMessage(0, new String[]{"可用内存过低", ""});
+                myHandler.sendMessage(message);
+                return super.onStartCommand(intent, flags, startId);
+            }
+
             nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
             int what = intent.getIntExtra("what", 0);

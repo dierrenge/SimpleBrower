@@ -4,6 +4,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -1507,5 +1508,15 @@ public class CommonUtils {
         } catch (Throwable e) {
             CommonUtils.saveLog("=======更新消息通知视图=======" + e.getMessage());
         }
+    }
+
+    // 获取剩余可用内存占比
+    // 返回值范围： 0.0 ~ 100.0（百分比值）
+    public static double getAvailableMemoryRatio(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+        // 转换为百分比（保留两位小数）
+        return Math.round(((double) memoryInfo.availMem / memoryInfo.totalMem) * 10000) / 100.0;
     }
 }
