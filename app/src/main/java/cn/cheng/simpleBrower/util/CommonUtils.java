@@ -1284,29 +1284,29 @@ public class CommonUtils {
 
     /**
      * 保存日志到本地
-     *
+     * 异步
      */
-    public static boolean saveLog(String txt) {
-        try {
-            File file = CommonUtils.getFile("SimpleBrower/log", "log.txt", "");
-            String oldTxt = "";
-            if (file.exists()) {
-                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                    String line = "";
-                    while ((line = br.readLine()) != null) {
-                        oldTxt += line + "\n";
+    public static void saveLog(String txt) {
+        new Handler().post(() -> {
+            try {
+                File file = CommonUtils.getFile("SimpleBrower/log", "log.txt", "");
+                String oldTxt = "";
+                if (file.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                        String line = "";
+                        while ((line = br.readLine()) != null) {
+                            oldTxt += line + "\n";
+                        }
                     }
                 }
+                oldTxt += txt + "\n";
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                    bw.write(oldTxt);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            oldTxt += txt + "\n";
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                bw.write(oldTxt);
-            }
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        });
     }
 
     // 手机目录文件url修正
@@ -1511,12 +1511,11 @@ public class CommonUtils {
     }
 
     // 获取剩余可用内存占比
-    // 返回值范围： 0.0 ~ 100.0（百分比值）
     public static double getAvailableMemoryRatio(Context context) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         activityManager.getMemoryInfo(memoryInfo);
-        // 转换为百分比（保留两位小数）
-        return Math.round(((double) memoryInfo.availMem / memoryInfo.totalMem) * 10000) / 100.0;
+        // 保留两位小数
+        return (double) memoryInfo.availMem / memoryInfo.totalMem;
     }
 }

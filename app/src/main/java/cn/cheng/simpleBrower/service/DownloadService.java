@@ -90,7 +90,7 @@ public class DownloadService extends Service {
             myHandler =  DownLoadHandler.getInstance();
 
             // 剩余内存判断
-            if (CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) > 85) {
+            if (CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.1) {
                 Message message = myHandler.obtainMessage(0, new String[]{"可用内存过低", ""});
                 myHandler.sendMessage(message);
                 return super.onStartCommand(intent, flags, startId);
@@ -116,7 +116,7 @@ public class DownloadService extends Service {
 
             // 高版本通知Notification 必须先定义NotificationChannel
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (nm.getActiveNotifications().length > 5) {
+                if (nm.getActiveNotifications().length > 7) {
                     Message message = myHandler.obtainMessage(0, new String[]{"下载任务数已到上限", ""});
                     myHandler.sendMessage(message);
                     return super.onStartCommand(intent, flags, startId);

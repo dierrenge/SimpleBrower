@@ -22,7 +22,7 @@ public class HeadphoneReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
             // 停止TTS服务
-            if (TxtActivity.txtActivity != null) {
+            if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
                 Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
                 TxtActivity.txtActivity.stopService(intentS);
                 TxtActivity.flagRead = false;

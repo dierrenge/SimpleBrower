@@ -31,6 +31,16 @@ public class MyToast {
         return toast;
     }
 
+    public static Toast getInstance(Activity activity, String message) {
+        View toastView = activity.getLayoutInflater().inflate(R.layout.toast_view, null);
+        TextView textView = toastView.findViewById(R.id.toast_msg);
+        textView.setText(message);
+        Toast toast = new Toast(activity);
+        toast.setView(toastView);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        return toast;
+    }
+
     public static Message getMessage(String msg) {
         Message message = new Message();
         message.obj = msg;

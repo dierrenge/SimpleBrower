@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -81,6 +82,9 @@ public class TxtActivity extends AppCompatActivity {
     // 电话状态监听
     private TelephonyManager telephonyManager;
     private PhoneStateListener phoneStateListener;
+    // 微信等通话状态监听
+    private AudioManager audioManager;
+    private AudioManager.OnAudioFocusChangeListener audioListener;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -145,7 +149,7 @@ public class TxtActivity extends AppCompatActivity {
                 flagRead = true;
             }
 
-            // 历史进度
+            // 读取内存中的小说行
             Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
             ArrayList<String> list = novelLinesMap.get(txtUrl);
             if (list != null) {
@@ -343,13 +347,7 @@ public class TxtActivity extends AppCompatActivity {
                             break;
                         case TelephonyManager.CALL_STATE_OFFHOOK:
                             // 通话开始（接听或拨出）
-                            // 停止TTS服务
-                            if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
-                                Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                                TxtActivity.txtActivity.stopService(intentS);
-                                TxtActivity.flagRead = false;
-                                MyToast.getInstance("通话开始").show();
-                            }
+                            stopDuringCall();
                             break;
                         case TelephonyManager.CALL_STATE_IDLE:
                             // 通话结束
@@ -358,11 +356,52 @@ public class TxtActivity extends AppCompatActivity {
                 }
             };
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+
+            // 设置微信等通话状态监听（请求音频焦点开始监听）
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audioListener = new AudioManager.OnAudioFocusChangeListener() {
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+                    switch (focusChange) {
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            // 焦点临时丢失：可能微信通话开始
+                            stopDuringCall();
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            // 焦点永久丢失：微信通话接管
+                            break;
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            // 焦点恢复：微信通话结束
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                            // 焦点临时丢失，可降低音量（较少用于通话）
+                            break;
+                    }
+                }
+            };
+            int result = audioManager.requestAudioFocus(
+                    audioListener,
+                    AudioManager.STREAM_VOICE_CALL, // 使用语音通话流，与微信通话一致
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT // 临时请求焦点
+            );
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                CommonUtils.saveLog("TxtActivity:" + "音频焦点请求失败");
+            }
         } catch (Throwable e) {
             MyToast.getInstance("打开异常咯").show();
             e.printStackTrace();
             CommonUtils.saveLog("TxtActivity:" + e.getMessage());
             this.finish();
+        }
+    }
+
+    // 通话时停止朗读
+    private void stopDuringCall() {
+        if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
+            Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+            TxtActivity.txtActivity.stopService(intentS);
+            TxtActivity.flagRead = false;
+            MyToast.getInstance(TxtActivity.this, "通话开始").show();
         }
     }
 
@@ -500,7 +539,6 @@ public class TxtActivity extends AppCompatActivity {
         super.onDestroy();
         // 绑定式service
         // unbindService(conn);
-
         if (flagRead) {
             MyApplication.setTxtUrl(txtUrl);
         } else {

@@ -72,6 +72,7 @@ public class MyApplication extends Application {
     }
 
     public static void setNovelLines(String name, ArrayList<String> lines) {
+        novelLinesMap.clear(); // 内存只保留一个文本，减少没必要的内存占用
         MyApplication.novelLinesMap.put(name, lines);
     }
 
