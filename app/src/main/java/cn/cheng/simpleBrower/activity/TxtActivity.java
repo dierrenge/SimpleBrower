@@ -365,7 +365,8 @@ public class TxtActivity extends AppCompatActivity {
                     switch (focusChange) {
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                             // 焦点临时丢失：可能微信通话开始
-                            stopDuringCall();
+                            // 发现朗读时再次进入该页面也会触发该项监听，故需在onResume中设置标记
+                            if (MyApplication.isOpenFlag()) stopDuringCall();
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS:
                             // 焦点永久丢失：微信通话接管
@@ -530,6 +531,10 @@ public class TxtActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
+        MyApplication.setOpenFlag(false);
+        new Handler().postDelayed(() -> {
+            MyApplication.setOpenFlag(true);
+        }, 1500);
         super.onResume();
     }
 

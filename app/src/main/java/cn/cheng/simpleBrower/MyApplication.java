@@ -38,6 +38,9 @@ public class MyApplication extends Application {
     // 记录下载任务消息
     private static HashMap<Integer, NotificationBean> downLoadInfoMap = new HashMap<>();
 
+    // 标记打开txtActivity
+    private static boolean openFlag;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -159,4 +162,11 @@ public class MyApplication extends Application {
         return downLoadInfoMap;
     }
 
+    public static boolean isOpenFlag() {
+        return openFlag;
+    }
+
+    public static void setOpenFlag(boolean openFlag) {
+        MyApplication.openFlag = openFlag;
+    }
 }
