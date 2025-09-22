@@ -182,9 +182,7 @@ public class DownloadListDialog extends Dialog {
                     if (downloadBean == null) return;
                     MyApplication.deleteDownloadList(downloadBean.getUrl());
                     adapter.notifyItemRemoved(position);
-                    if (callListener != null && downloadList.size() == 0) {
-                        callListener.deleteAll();
-                    }
+                    updateMonitorUI();
                 } catch (Throwable e) {
                     CommonUtils.saveLog("==底部对话框===处理滑动删除=========" + e.getMessage());
                 }
@@ -204,11 +202,13 @@ public class DownloadListDialog extends Dialog {
 
     @Override
     public void show() {
+        updateMonitorUI();
         super.show();
     }
 
     @Override
     public void dismiss() {
+        updateMonitorUI();
         DownloadListDialog.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         super.dismiss();
     }
@@ -225,6 +225,13 @@ public class DownloadListDialog extends Dialog {
 
     public interface CallListener {
         void deleteAll();
+    }
+
+    // 更新下载检测按钮图标
+    private void updateMonitorUI() {
+        if (callListener != null && downloadList != null && downloadList.isEmpty()) {
+            callListener.deleteAll();
+        }
     }
 
 }
