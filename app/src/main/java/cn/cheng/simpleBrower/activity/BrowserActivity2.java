@@ -124,7 +124,7 @@ public class BrowserActivity2 extends AppCompatActivity {
         }
 
         // 内存优化：限制历史栈大小
-        if (backStack.size() >= MAX_HISTORY_SIZE || CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.1) {
+        if (backStack.size() >= MAX_HISTORY_SIZE || CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.2) {
             WebViewFragment oldest = backStack.remove(0);
             if (oldest.getWebView() != null) {
                 oldest.getWebView().destroy();

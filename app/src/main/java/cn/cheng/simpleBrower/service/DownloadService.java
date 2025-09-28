@@ -90,7 +90,7 @@ public class DownloadService extends Service {
             myHandler =  DownLoadHandler.getInstance();
 
             // 剩余内存判断
-            if (CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.1) {
+            if (CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.2) {
                 Message message = myHandler.obtainMessage(0, new String[]{"可用内存过低", ""});
                 myHandler.sendMessage(message);
                 return super.onStartCommand(intent, flags, startId);
