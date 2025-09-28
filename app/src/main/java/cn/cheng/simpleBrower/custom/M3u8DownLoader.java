@@ -906,10 +906,12 @@ public class M3u8DownLoader {
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
         if (w == 0) {
-            CommonUtils.updateRemoteViews(id, null, "继续", null);
+            // 在子线程修改界面UI得使用handler
+            new Handler().post(() -> CommonUtils.updateRemoteViews(id, null, "继续", null));
             notificationBean.setState("继续");
         } else if (w == 10) {
-            CommonUtils.updateRemoteViews(id, "0", "继续", null);
+            // 在子线程修改界面UI得使用handler
+            new Handler().post(() -> CommonUtils.updateRemoteViews(id, "0", "继续", null));
             notificationBean.setState("继续");
             notificationBean.setRangeRequest("false");
         }
