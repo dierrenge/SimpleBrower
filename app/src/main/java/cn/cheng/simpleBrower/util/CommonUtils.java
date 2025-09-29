@@ -1516,7 +1516,7 @@ public class CommonUtils {
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         activityManager.getMemoryInfo(memoryInfo);
         double r = (double) memoryInfo.availMem / memoryInfo.totalMem;
-        saveLog("剩余内存====" + memoryInfo.availMem + "***总内存====" + memoryInfo.totalMem + "***占比====" + r);
+        // saveLog("剩余内存====" + memoryInfo.availMem + "***总内存====" + memoryInfo.totalMem + "***占比====" + r);
         // 保留两位小数
         return r;
     }

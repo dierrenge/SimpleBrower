@@ -129,7 +129,7 @@ public class TxtActivity extends AppCompatActivity {
                 // 获取上一界面传过来的数据
                 txtUrl = intent.getStringExtra("txtUrl");
             }
-            CommonUtils.saveLog("打开方式-txt文件：" + txtUrl);
+            // CommonUtils.saveLog("打开方式-txt文件：" + txtUrl);
 
             String catalog = intent.getStringExtra("catalog");
             String title = txtUrl.substring(txtUrl.lastIndexOf("/") + 1);

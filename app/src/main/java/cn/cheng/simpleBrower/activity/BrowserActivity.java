@@ -155,7 +155,7 @@ public class BrowserActivity extends AppCompatActivity {
                 // 获取上个页面传过来的网址
                 currentUrl = intent.getStringExtra("webInfo");
             }
-            CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
+            // CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
             url_box.setText(currentUrl);
             // 跳转到该网站
             loadUrl(currentUrl);

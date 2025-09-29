@@ -79,7 +79,7 @@ public class VideoActivity extends AppCompatActivity {
                 // 获取上个页面传递的信息
                 videoUrl = intent.getStringExtra("videoUrl");
             }
-            CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
+            // CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
 
             if (videoUrl == null || !videoUrl.contains("/")) {
                 return;

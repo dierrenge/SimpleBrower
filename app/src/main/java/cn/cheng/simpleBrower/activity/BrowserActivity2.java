@@ -124,7 +124,8 @@ public class BrowserActivity2 extends AppCompatActivity {
         }
 
         // 内存优化：限制历史栈大小
-        if (backStack.size() >= MAX_HISTORY_SIZE || CommonUtils.getAvailableMemoryRatio(this.getApplicationContext()) < 0.2) {
+        double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(this.getApplicationContext());
+        if (backStack.size() >= MAX_HISTORY_SIZE || (backStack.size() > 0 && availableMemoryRatio < 0.2)) {
             WebViewFragment oldest = backStack.remove(0);
             if (oldest.getWebView() != null) {
                 oldest.getWebView().destroy();
@@ -320,11 +321,13 @@ public class BrowserActivity2 extends AppCompatActivity {
                 fragment.getWebView().destroy();
             }
         }
+        backStack.clear();
         for (WebViewFragment fragment : forwardStack) {
             if (fragment.getWebView() != null) {
                 fragment.getWebView().destroy();
             }
         }
+        forwardStack.clear();
         // 退出浏览器页面后 清空可下载列表
         MyApplication.clearDownloadList();
         super.onDestroy();
