@@ -1004,7 +1004,7 @@ public class CommonUtils {
                 if (otherTxt.length() < 12) {
                     return lineTxt;
                 }
-            } else if (s.length == 2 && s[0].matches("\\d+")) {
+            } else if (s.length == 2 && s[0].replace("章", "").replace("节", "").replace("集", "").matches("\\d+")) {
                 String otherTxt = lineTxt.substring(s[0].length());
                 if (otherTxt.length() < 12) {
                     return lineTxt;
