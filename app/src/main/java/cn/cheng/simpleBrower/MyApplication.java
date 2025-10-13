@@ -14,6 +14,8 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 
 public class MyApplication extends Application {
 
+    public static final double MIN_AVL_MEM_PCT = 0.16; // 最小可用内存占比
+
     private static Context context;
 
     // 存放 当前网页 路径

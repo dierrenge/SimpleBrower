@@ -32,7 +32,6 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class BrowserActivity2 extends AppCompatActivity {
-    private static final int MAX_HISTORY_SIZE = 20; // 最大历史记录数量
     private Stack<WebViewFragment> backStack = new Stack<>();
     private Stack<WebViewFragment> forwardStack = new Stack<>();
 
@@ -125,7 +124,7 @@ public class BrowserActivity2 extends AppCompatActivity {
 
         // 内存优化：限制历史栈大小
         double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(this.getApplicationContext());
-        if (backStack.size() >= MAX_HISTORY_SIZE || (backStack.size() > 0 && availableMemoryRatio < 0.2)) {
+        if (backStack.size() > 1 && availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
             WebViewFragment oldest = backStack.remove(0);
             if (oldest.getWebView() != null) {
                 oldest.getWebView().destroy();
@@ -147,6 +146,11 @@ public class BrowserActivity2 extends AppCompatActivity {
 
     // 返回操作
     public void onBack() {
+        /*String str = "";
+        for (int i = 0; i < backStack.size(); i++) {
+            str += backStack.get(i).getWebView().getUrl() + "\n";
+        }
+        CommonUtils.saveLog("返回栈：\n" + str);*/
         if (backStack.size() > 1) {
             WebViewFragment fragment = backStack.pop();
             // 当前网页停止加载
