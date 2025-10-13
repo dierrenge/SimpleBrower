@@ -1520,4 +1520,13 @@ public class CommonUtils {
         // 保留两位小数
         return r;
     }
+
+    // 字符数字转换
+    public static int str2int(String str, int def) {
+        int n = def;
+        try {
+            n = Integer.parseInt(str);
+        } catch (Exception ignored) {}
+        return n;
+    }
 }

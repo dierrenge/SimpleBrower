@@ -902,19 +902,9 @@ public class M3u8DownLoader {
         // 保存下载进度
         notificationBean.setBytesum(bytesum);
         // 消息提示
-        String[] arr = new String[]{m, id+""};
+        String[] arr = new String[]{m, id+"", w+""};
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
-        if (w == 0) {
-            // 在子线程修改界面UI得使用handler
-            new Handler().post(() -> CommonUtils.updateRemoteViews(id, null, "继续", null));
-            notificationBean.setState("继续");
-        } else if (w == 10) {
-            // 在子线程修改界面UI得使用handler
-            new Handler().post(() -> CommonUtils.updateRemoteViews(id, "0", "继续", null));
-            notificationBean.setState("继续");
-            notificationBean.setRangeRequest("false");
-        }
         /*if (w == 0 || w == 10) {
             // Notification notificationX = notificationBean.getNotification();
             // 原方式：contentView可能为空
