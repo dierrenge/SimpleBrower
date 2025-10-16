@@ -701,7 +701,7 @@ public class M3u8DownLoader {
             }
             if (responseCode != HttpURLConnection.HTTP_PARTIAL && responseCode != HttpURLConnection.HTTP_OK) {
                 String m = "网络请求错误：" + responseCode;
-                stopAndSendMsg(m, 2, bytesum);
+                stopAndSendMsg(m, 0, bytesum);
                 return;
             }
 
@@ -752,7 +752,7 @@ public class M3u8DownLoader {
                     stopAndSendMsg(m, 0, bytesum);
                 } else {
                     String m = "下载异常：" + eMsg;
-                    stopAndSendMsg(m, 2, bytesum);
+                    stopAndSendMsg(m, 0, bytesum);
                 }
                 e.printStackTrace();
             }
