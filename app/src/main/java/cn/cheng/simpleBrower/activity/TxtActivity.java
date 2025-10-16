@@ -569,11 +569,11 @@ public class TxtActivity extends AppCompatActivity {
             // 绑定式service
             // readService.startRead(txt, flagRead);
 
-            if (flagRead) {
+            /*if (flagRead) {
                 intentS.putExtra("flagRead", false);
                 startService(intentS);
                 stopService(intentS);
-            }
+            }*/
 
             intentS.putExtra("txtUrl", txtUrl);
             Bundle bundle = new Bundle();
