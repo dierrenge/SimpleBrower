@@ -56,7 +56,6 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
         } else txt = "";
         flag = intent.getBooleanExtra("flagRead", false);
         // 朗读开始
-        textToSpeech.stop();// 先暂停
         startRead(txt, flag);
 
         return START_STICKY;
