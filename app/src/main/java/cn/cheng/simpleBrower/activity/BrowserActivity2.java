@@ -107,7 +107,7 @@ public class BrowserActivity2 extends AppCompatActivity {
             // 获取上个页面传过来的网址
             currentUrl = intent.getStringExtra("webInfo");
         }
-        CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
+        // CommonUtils.saveLog("打开方式-网络链接：" + currentUrl);
 
         // 加载初始页面
         navigateTo(WebViewFragment.newInstance(currentUrl));
@@ -124,7 +124,7 @@ public class BrowserActivity2 extends AppCompatActivity {
 
         // 内存优化：限制历史栈大小
         double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(this.getApplicationContext());
-        if (backStack.size() > 1 && availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
+        if (backStack.size() > 3 && availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
             WebViewFragment oldest = backStack.remove(0);
             if (oldest.getWebView() != null) {
                 oldest.getWebView().destroy();
@@ -147,10 +147,11 @@ public class BrowserActivity2 extends AppCompatActivity {
     // 返回操作
     public void onBack() {
         /*String str = "";
-        for (int i = 0; i < backStack.size(); i++) {
+        for (int i = backStack.size() - 1; i >= 0; i--) {
             str += backStack.get(i).getWebView().getUrl() + "\n";
+            if (i < backStack.size() - 2) break;
         }
-        CommonUtils.saveLog("返回栈：\n" + str);*/
+        CommonUtils.saveLog(backStack.size() + "返回栈：\n" + str);*/
         if (backStack.size() > 1) {
             WebViewFragment fragment = backStack.pop();
             // 当前网页停止加载
@@ -284,7 +285,7 @@ public class BrowserActivity2 extends AppCompatActivity {
     // 处理物理返回键
     @Override
     public void onBackPressed() {
-        if (backStack.size() > 1) {
+        if (backStack.size() > 0) {
             preFragment = backStack.peek();
             if (preFragment.inCustomView()) {
                 preFragment.hideCustomView();
