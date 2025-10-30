@@ -94,7 +94,7 @@ public class MyApplication extends Application {
         String title = bean.getTitle();
         // title去重处理(算法还能优化，先这样吧)
         while ((ret = compareDownload(bean)) == 1) {
-            title = CommonUtils.preventDuplication(title);
+            title = CommonUtils.preventDuplication(title + "_");
             bean.setTitle(title);
         }
         if (ret == 0) {

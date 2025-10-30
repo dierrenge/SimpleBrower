@@ -68,6 +68,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -1435,14 +1436,19 @@ public class CommonUtils {
 
     // 字符串放重复处理（末尾累加数字）
     public static String preventDuplication(String str) {
-        String patternStr = "(\\d+)\\s*$"; // 这个正则表达式匹配末尾的整数序列
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(str);
         int num = 1;
-        if (matcher.find()) {
-            num = Integer.parseInt(matcher.group(1));
-            str = str.substring(0, str.lastIndexOf("" + num));
-            num++;
+        try {
+            String patternStr = "(\\d+)\\s*$"; // 这个正则表达式匹配末尾的整数序列
+            Pattern pattern = Pattern.compile(patternStr);
+            Matcher matcher = pattern.matcher(str);
+            if (matcher.find()) {
+                num = Integer.parseInt(matcher.group(1));
+                str = str.substring(0, str.lastIndexOf("" + num));
+                num++;
+            }
+        } catch (Exception e) {
+            num = new Random().nextInt();
+            saveLog("preventDuplication==============" + e.getMessage());
         }
         return str + num;
     }
