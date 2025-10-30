@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -1084,6 +1085,19 @@ public class CommonUtils {
             return false;
         }
     }
+    public static boolean writeObjectIntoLocal(String fileDir, String fileName, Object bean) {
+        try {
+            String jsonStr = new Gson().toJson(bean);
+            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(jsonStr);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     /**
      * 删除对象保存到本地
@@ -1114,6 +1128,15 @@ public class CommonUtils {
             return false;
         }
     }
+    public static boolean writeLocalObject(String fileDir, String fileName) {
+        try {
+            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            return file.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     /**
      * 读取本地对象
@@ -1139,6 +1162,29 @@ public class CommonUtils {
             if (jsonObject.has(key)) {
                 Gson gson = new Gson();
                 bean = gson.fromJson(jsonObject.get(key).toString(), classOfT);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bean;
+    }
+    public static <T> T readObjectFromLocal(String fileDir, String fileName, Class<T> classOfT) {
+        T bean = null;
+        try {
+            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            if (!file.exists()) {
+                return null;
+            }
+            String json = "";
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line = "";
+                while ((line = br.readLine()) != null) {
+                    json = json + line;
+                }
+            }
+            if (StringUtils.isNotEmpty(json)) {
+                Gson gson = new Gson();
+                bean = gson.fromJson(json, classOfT);
             }
         } catch (Exception e) {
             e.printStackTrace();
