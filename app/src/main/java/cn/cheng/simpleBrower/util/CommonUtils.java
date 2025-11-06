@@ -49,6 +49,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
 import java.io.StreamCorruptedException;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -69,6 +70,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -263,6 +265,75 @@ public class CommonUtils {
                 }
             }
         });
+    }
+
+    /**
+     * 综合分析缓存和磁盘中的下载列表 进行过滤
+     * @param dir
+     * @param fileList
+     */
+    public static void downloadListFileWalk(String dir, List<String> fileList) {
+        try {
+            // 遍历获取缓存列表
+            HashMap<Integer, NotificationBean> downLoadInfoMap = MyApplication.getDownLoadInfoMap();
+            Set<Map.Entry<Integer, NotificationBean>> entries = downLoadInfoMap.entrySet();
+            for (Map.Entry<Integer, NotificationBean> entry : entries) {
+                Integer notificationId = entry.getKey();
+                NotificationBean bean = entry.getValue();
+                if (bean != null) {
+                    fileList.add(bean.getDate() + notificationId);
+                }
+            }
+            // 过滤获取磁盘列表
+            List<String> fileList2 = new ArrayList<>();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                try (Stream<Path> paths = Files.walk(Paths.get(dir), 1)) { // 递归指定层数目录
+                    paths.map(path -> path.toString()).filter(path -> {
+                        if (path.contains("/") && !path.endsWith("/")) {
+                            String name = CommonUtils.getUrlName(path);
+                            // 排除指定文件
+                            if (!fileList.contains(name)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }).forEach(fileList2::add);
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+            }
+            // 缓存列表排序
+            Collections.sort(fileList, new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    try {
+                        long l1 = Long.parseLong(o1);
+                        long l2 = Long.parseLong(o2);
+                        return Long.valueOf(l2-l1).intValue();
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+            // 磁盘列表排序
+            Collections.sort(fileList2, new Comparator<String>() {
+                @Override
+                public int compare(String s1, String s2) {
+                    String o1 = CommonUtils.getUrlName(s1);
+                    String o2 = CommonUtils.getUrlName(s2);
+                    try {
+                        long l1 = Long.parseLong(o1);
+                        long l2 = Long.parseLong(o2);
+                        return Long.valueOf(l2-l1).intValue();
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+            fileList.addAll(fileList2);
+        } catch (Exception e) {
+            CommonUtils.saveLog("downloadListFileWalk==========" + e.getMessage());
+        }
     }
 
     /**
@@ -491,6 +562,21 @@ public class CommonUtils {
             e.getMessage();
         }
         return "".equals(name) ? System.currentTimeMillis() + "" : name;
+    }
+
+    // 获取地址中的文件名称（保留格式）
+    public static String getUrlName2(String url) {
+        String name = "";
+        try {
+            if (url.contains("?")) {
+                name = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+            } else {
+                name = url.substring(url.lastIndexOf("/") + 1);
+            }
+        } catch (Exception e) {
+            e.getMessage();
+        }
+        return name;
     }
 
     /**
@@ -1089,7 +1175,7 @@ public class CommonUtils {
     public static boolean writeObjectIntoLocal(String fileDir, String fileName, Object bean) {
         try {
             String jsonStr = new Gson().toJson(bean);
-            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".json", "");
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 bw.write(jsonStr);
             }
@@ -1129,9 +1215,9 @@ public class CommonUtils {
             return false;
         }
     }
-    public static boolean writeLocalObject(String fileDir, String fileName) {
+    public static boolean deleteLocalObject(String fileDir, String fileName) {
         try {
-            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".json", "");
             return file.delete();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1169,10 +1255,10 @@ public class CommonUtils {
         }
         return bean;
     }
-    public static <T> T readObjectFromLocal(String fileDir, String fileName, Class<T> classOfT) {
+    public static <T> T readObjectFromLocal(Class<T> classOfT, String fileName) {
         T bean = null;
         try {
-            File file = CommonUtils.getFile("SimpleBrower/0_like/" + fileDir, fileName + ".js", "");
+            File file = new File(fileName);
             if (!file.exists()) {
                 return null;
             }
@@ -1580,5 +1666,17 @@ public class CommonUtils {
             n = Integer.parseInt(str);
         } catch (Exception ignored) {}
         return n;
+    }
+
+    // 计算两个数百分比值
+    public static Float getPercentage(int a, int b) {
+        if (b == 0) {
+            return 0F;
+        } else {
+            return new BigDecimal(a)
+                    .divide(new BigDecimal(b), 4, BigDecimal.ROUND_HALF_UP) // 除以b (四舍五入保留4位小数)
+                    .multiply(new BigDecimal(100)) // 乘以100
+                    .floatValue();
+        }
     }
 }

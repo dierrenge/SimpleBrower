@@ -42,7 +42,7 @@
             android:textColor="@color/gray2"
             android:textSize="15dp"
             android:gravity="center"
-            android:text="编辑"/>
+            android:text="···"/>
 
     </LinearLayout>
 

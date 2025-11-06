@@ -209,6 +209,7 @@
 
         <activity
             android:name=".activity.DownloadActivity"
+            android:launchMode="singleTop"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

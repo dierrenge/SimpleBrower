@@ -34,6 +34,8 @@ public class NotificationBean {
 
     private int hlsFinishedCount;
 
+    private String date; // 下载日期
+
     // public Notification getNotification() {
     //     return notification;
     // }
@@ -170,6 +172,10 @@ public class NotificationBean {
         this.hlsFinishedNumList.add(hlsFinishedNum);
     }
 
+    public void setHlsFinishedNumList(List<Integer> hlsFinishedNumList) {
+        this.hlsFinishedNumList = hlsFinishedNumList;
+    }
+
     public int getHlsFinishedCount() {
         return hlsFinishedCount;
     }
@@ -184,5 +190,13 @@ public class NotificationBean {
 
     public void setTsList(List<String> tsList) {
         this.tsList = tsList;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

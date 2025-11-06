@@ -62,6 +62,7 @@ public class DownLoadHandler extends Handler {
                             downLoadInfo.setState("继续");
                             downLoadInfo.setRangeRequest("false");
                         }
+                        CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
                     }
                     break;
                 case 1:
@@ -78,6 +79,7 @@ public class DownLoadHandler extends Handler {
                         Intent intent = new Intent(context, DownloadService.class);
                         context.stopService(intent);
                     }
+                    CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
                     break;
                 case 3:
                     if (downLoadInfo == null) return;
@@ -85,6 +87,7 @@ public class DownLoadHandler extends Handler {
                     String str = arr[0];
                     // 更新状态栏上的下载进度等信息
                     CommonUtils.updateRemoteViews(n, str, null, nm);
+                    // CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
                     /*// Notification notificationX = downLoadInfo.getNotification();
                     // 原方式：contentView可能为空
                     Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
@@ -100,9 +103,10 @@ public class DownLoadHandler extends Handler {
                     break;
                 case 4:
                     if (downLoadInfo == null) return;
-                    MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                    // MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                     MyApplication.deleteDownLoadInfo(n);
                     nm.cancel(n);
+                    MyToast.getInstance(arr[0]).show();
                     //停止掉当前的服务
                     if (nm.getActiveNotifications().length == 0) {
                         Intent intent = new Intent(context, DownloadService.class);

@@ -143,7 +143,7 @@ public class DownloadService extends Service {
                 nm.createNotificationChannel(channel);
             }
 
-            notificationId = CommonUtils.randomNum();
+            notificationId = intent.getIntExtra("notificationId", CommonUtils.randomNum());
 
             // 创建一个Notification对象
             NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
@@ -222,6 +222,8 @@ public class DownloadService extends Service {
             notificationBean.setTimeoutMillisecond(10000L);
             // 设置下载文件初始消息显示的状态
             notificationBean.setState("暂停");
+            // 设置日期
+            notificationBean.setDate(new SimpleDateFormat("yyyyMMdd").format(new Date()));
             MyApplication.setDownLoadInfo(notificationId, notificationBean);
 
             //启动线程开始执行下载任务

@@ -107,17 +107,15 @@
             android:textSize="16dp"
             android:text="文本"/>
 
-        <!--已不用-->
         <Button
-            android:id="@+id/exitBtn"
+            android:id="@+id/downloadBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="20dp"
-            android:visibility="gone"
             android:background="@drawable/btn_bg1"
             android:textColor="@color/blackGray"
             android:textSize="16dp"
-            android:text="退出"/>
+            android:text="下载"/>
 
     </LinearLayout>
 

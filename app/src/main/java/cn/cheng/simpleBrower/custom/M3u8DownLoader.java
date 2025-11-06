@@ -323,7 +323,9 @@ public class M3u8DownLoader {
             if (!dir.exists()) {
                 dir.mkdirs();
             }
-            File file = new File(supDir + "/" + fileName + ".m3u8");
+            String absolutePath = supDir + "/" + fileName + ".m3u8";
+            notificationBean.setAbsolutePath(absolutePath);
+            File file = new File(absolutePath);
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 StringBuffer buffer = new StringBuffer();
                 for (String line : m3u8Lines) {
@@ -558,14 +560,14 @@ public class M3u8DownLoader {
                     if (closed()) return; // 标记为关闭的线程不再执行了
                     Thread.sleep(1000L);
                     if (tsList.size() != 0) {
-                        String[] arr = new String[]{new BigDecimal(finishedCount).divide(new BigDecimal(tsList.size()), 4, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_HALF_UP) + "", id + "", fileName};
+                        String[] arr = new String[]{CommonUtils.getPercentage(finishedCount, tsList.size()) + "", id + "", fileName};
                         Message msg = handler.obtainMessage(3, arr);
                         handler.sendMessage(msg);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     String[] arr = new String[]{e.getMessage(), id + ""};
-                    Message msg = handler.obtainMessage(4, arr);
+                    Message msg = handler.obtainMessage(2, arr);
                     handler.sendMessage(msg);
                 }
             }
@@ -584,7 +586,7 @@ public class M3u8DownLoader {
         } catch (Exception e) {
             e.printStackTrace();
             String[] arr = new String[]{e.getMessage(), id + ""};
-            Message msg = handler.obtainMessage(4, arr);
+            Message msg = handler.obtainMessage(2, arr);
             handler.sendMessage(msg);
         }
     }
@@ -681,7 +683,7 @@ public class M3u8DownLoader {
             if (file.exists()) {
                 if (notificationBean.getTotalSize() == 0) {
                     String m = "已存在相同文件";
-                    stopAndSendMsg(m, 2, bytesum);
+                    stopAndSendMsg(m, 4, bytesum);
                     return;
                 }
                 if (bytesum > 0) {
@@ -730,7 +732,8 @@ public class M3u8DownLoader {
                     randomAccessFile.write(buf, 0, len);
                     // 更新进度
                     bytesum += len;
-                    String index = String.format("%.2f", bytesum * 100F / notificationBean.getTotalSize());
+                    notificationBean.setBytesum(bytesum); // 保存下载进度
+                    String index = String.format("%.2f", CommonUtils.getPercentage(bytesum, notificationBean.getTotalSize()));
                     if (len > 0 && System.currentTimeMillis() - time > 1000) {
                         time = System.currentTimeMillis();
                         String[] arr = new String[]{index, id+"", fileName};
@@ -743,8 +746,7 @@ public class M3u8DownLoader {
                     Message msg = handler.obtainMessage(2, arr2);
                     handler.sendMessage(msg);
                 }
-                // 保存下载进度
-                notificationBean.setBytesum(bytesum);
+                // notificationBean.setBytesum(bytesum);
             } catch (Exception e) {
                 String eMsg = e.getMessage();
                 if (eMsg != null && eMsg.contains("connection")) {

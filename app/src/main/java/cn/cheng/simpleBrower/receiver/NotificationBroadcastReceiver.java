@@ -39,7 +39,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 state = state.equals("暂停") ? "继续" : "暂停";
                 CommonUtils.updateRemoteViews(notificationId, null, state, notificationManager);
                 downLoadInfo.setState(state);
-                if (state.equals("暂停")) new M3u8DownLoader(notificationId).start();
+                if (state.equals("暂停")) {
+                    new M3u8DownLoader(notificationId).start();
+                }
                 /*String channelId = intent.getStringExtra("channelId");
                 //Notification notificationX = downLoadInfo.getNotification();
                 // 原方式：contentView可能为空
@@ -72,9 +74,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 downLoadInfo.setState("继续");
                 // ExecutorService pool = downLoadInfo.getFixedThreadPool();
                 // if (pool != null) pool.shutdownNow();
-                MyApplication.deleteDownloadList(downLoadInfo.getUrl());
+                // MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                 MyApplication.deleteDownLoadInfo(notificationId);
                 notificationManager.cancel(notificationId);
+                CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
             } catch (Throwable e) {
                 CommonUtils.saveLog("=======处理删除事件notification_cancelled=======" + e.getMessage());
             }

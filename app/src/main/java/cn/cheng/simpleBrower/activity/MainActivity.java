@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView settingBtn;
     private Button jumpBtn;
     private Button txtBtn;
-    private Button exitBtn;
+    private Button downloadBtn;
     private Button videoBtn;
     private Button likesBtn;
     private EditText edit;
@@ -184,9 +184,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        exitBtn = this.findViewById(R.id.exitBtn);
-        exitBtn.setOnClickListener(view -> {
-            this.finish();
+        downloadBtn = this.findViewById(R.id.downloadBtn);
+        downloadBtn.setOnClickListener(view -> {
+            Intent i = new Intent(this, DownloadActivity.class);
+            this.startActivity(i);
         });
     }
 
