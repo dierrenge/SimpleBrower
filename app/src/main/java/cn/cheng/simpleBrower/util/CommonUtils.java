@@ -289,7 +289,7 @@ public class CommonUtils {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 try (Stream<Path> paths = Files.walk(Paths.get(dir), 1)) { // 递归指定层数目录
                     paths.map(path -> path.toString()).filter(path -> {
-                        if (path.contains("/") && !path.endsWith("/")) {
+                        if (path.contains("/") && !path.endsWith("/") && path.contains(".")) {
                             String name = CommonUtils.getUrlName(path);
                             // 排除指定文件
                             if (!fileList.contains(name)) {

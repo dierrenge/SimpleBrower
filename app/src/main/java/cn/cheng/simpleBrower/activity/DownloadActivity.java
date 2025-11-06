@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -110,6 +112,10 @@ public class DownloadActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 try {
+                    LinearLayout item_l = holder.itemView.findViewById(R.id.item_download_l);
+                    TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
+                    TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
+                    Button button = holder.itemView.findViewById(R.id.item_download_btn);
                     String fileRecordUrl = fileUrls.get(position);
                     NotificationBean bean;
                     if (fileRecordUrl.contains("/")) {
@@ -121,10 +127,6 @@ public class DownloadActivity extends AppCompatActivity {
                         bean = MyApplication.getDownLoadInfo(notificationId);
                         if (bean == null) return;
                     }
-                    LinearLayout item_l = holder.itemView.findViewById(R.id.item_download_l);
-                    TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
-                    TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
-                    Button button = holder.itemView.findViewById(R.id.item_download_btn);
                     textView.setOnClickListener(view -> {
                         // click();
                     });
@@ -163,16 +165,17 @@ public class DownloadActivity extends AppCompatActivity {
                             CommonUtils.saveLog("=======处理按钮点击事件notification_clicked2=======" + e.getMessage());
                         }
                     });
-                    // 进度
+
+                    // 刷新ui
+                    textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
                     float process = 0;
                     if (bean.getTsList() != null && bean.getTsList().size() > 0) {
                         process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
                     } else if (bean.getTotalSize() > 0) {
                         process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
                     }
-                    processView.setText(String.format("%.2f", process) + "%");
-                    textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
-                    // 状态
+                    String processStr = String.format("%.2f", process) + "%";
+                    processView.setText(processStr);
                     if (process == 100) {
                         button.setText("完成");
                     } else {
@@ -318,48 +321,32 @@ public class DownloadActivity extends AppCompatActivity {
                 if (recyclerView == null) return;
                 int num = recyclerView.getAdapter().getItemCount();
                 if (num != fileUrls.size()) return;
-                boolean flushUi = false;
                 for (int i = 0; i < num; i++) {
                     String fileRecordUrl = fileUrls.get(i);
-                    NotificationBean bean = null;
                     if (!fileRecordUrl.contains("/")) {
-                        int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
-                        bean = MyApplication.getDownLoadInfo(notificationId);
-                    }
-                    if (bean == null) continue;
-                    // 更新ui
-                    RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                    if (viewHolder != null) {
-                        Button button = viewHolder.itemView.findViewById(R.id.item_download_btn);
-                        TextView processView = viewHolder.itemView.findViewById(R.id.downloadProcess);
-                        TextView textView = viewHolder.itemView.findViewById(R.id.item_download_txt);
-                        String btnTxt = button.getText().toString();
-                        String viewTxt = processView.getText().toString();
-                        if ("完成".equals(btnTxt)) continue;
-                        // 进度
-                        float process = 0;
-                        if (bean.getTsList() != null && bean.getTsList().size() > 0) {
-                            process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
-                        } else if (bean.getTotalSize() > 0) {
-                            process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
+                        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
+                        if (holder != null) {
+                            TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
+                            Button button = holder.itemView.findViewById(R.id.item_download_btn);
+                            String btnTxt = button.getText().toString();
+                            String procTxt = processView.getText().toString();
+                            if ("完成".equals(btnTxt)) continue;
+                            int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
+                            NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
+                            if (bean == null) continue;
+                            float process = 0;
+                            if (bean.getTsList() != null && bean.getTsList().size() > 0) {
+                                process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
+                            } else if (bean.getTotalSize() > 0) {
+                                process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
+                            }
+                            String processStr = String.format("%.2f", process) + "%";
+                            if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
+                            recyclerView.getAdapter().notifyItemChanged(i);
                         }
-                        String processStr = String.format("%.2f", process) + "%";
-                        if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(viewTxt)) continue;
-                        processView.setText(processStr);
-                        textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
-                        // 状态
-                        if (process == 100) {
-                            button.setText("完成");
-                        } else {
-                            button.setText(bean.getState());
-                        }
-                        flushUi = true;
                     }
                 }
-                if (flushUi) {
-                    recyclerView.getAdapter().notifyDataSetChanged();
-                    recyclerView.getAdapter().notifyItemRangeChanged(0, num);
-                }
+                // recyclerView.getAdapter().notifyDataSetChanged();
                 timer.postDelayed(this, 1000);
             } catch (Exception e) {
                 CommonUtils.saveLog("runnable=====" + e.getMessage());

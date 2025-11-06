@@ -71,7 +71,7 @@ public class DownLoadHandler extends Handler {
                     if (downLoadInfo == null) return;
                     //下载完成后清除所有下载信息，执行安装提示
                     MyApplication.deleteDownloadList(downLoadInfo.getUrl());
-                    MyApplication.deleteDownLoadInfo(n);
+                    new Handler().postDelayed(() -> MyApplication.deleteDownLoadInfo(n), 3000);
                     nm.cancel(n);
                     MyToast.getInstance(arr[0]).show();
                     //停止掉当前的服务
