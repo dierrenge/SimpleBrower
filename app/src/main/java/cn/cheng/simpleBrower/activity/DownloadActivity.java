@@ -134,33 +134,54 @@ public class DownloadActivity extends AppCompatActivity {
                         // click();
                     });
                     button.setOnClickListener(view -> {
-                        if ("完成".equals(button.getText().toString())) return;
                         try {
+                            if ("完成".equals(button.getText().toString())) return;
+                            button.setClickable(false);
                             String state = bean.getState();
                             state = state.equals("暂停") ? "继续" : "暂停";
+                            bean.setState(state);
                             int notificationId = bean.getNotificationId();
-                            if (fileRecordUrl.contains("/")) {
-                                NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
-                                if (info != null) return; // 说明重复了
-                                // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + bean.getNotificationId());
-                                Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
-                                intent.putExtra("what", bean.getWhat());
-                                intent.putExtra("url", bean.getUrl());
-                                intent.putExtra("title", bean.getTitle());
-                                intent.putExtra("notificationId", notificationId);
-                                DownloadActivity.this.startService(intent);
-                                fileUrls.set(position, CommonUtils.getUrlName(fileRecordUrl));
-                            } else {
-                                NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
-                                if (info != null) info.setState(state);
-                                CommonUtils.updateRemoteViews(notificationId, null, state, null);
-                                // bean.setState(state);
-                                // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + bean.getNotificationId(), bean);
+                            if (fileRecordUrl.contains("/")) { // 从磁盘中读取记录
                                 if (state.equals("暂停")) {
-                                    new M3u8DownLoader(notificationId).start();
+                                    NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
+                                    if (info == null) { // 内存中没用 说明没重复
+                                        // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + bean.getNotificationId());
+                                        Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
+                                        intent.putExtra("what", bean.getWhat());
+                                        intent.putExtra("url", bean.getUrl());
+                                        intent.putExtra("title", bean.getTitle());
+                                        intent.putExtra("notificationId", notificationId);
+                                        DownloadActivity.this.startService(intent);
+                                        fileUrls.set(position, CommonUtils.getUrlName(fileRecordUrl));
+                                        MyApplication.setDownLoadInfo(notificationId, bean);
+                                    }
+                                }
+                            } else { // 从内存中读取
+                                NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
+                                if (info != null) {
+                                    info.setState(state);
+                                    CommonUtils.updateRemoteViews(notificationId, null, state, null);
+                                    // bean.setState(state);
+                                    // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + bean.getNotificationId(), bean);
+                                    if (state.equals("暂停")) {
+                                        new M3u8DownLoader(notificationId).start();
+                                    }
+                                } else if (state.equals("暂停")) { // 内存中的记录被删除的情况
+                                    // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + bean.getNotificationId());
+                                    Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
+                                    intent.putExtra("what", bean.getWhat());
+                                    intent.putExtra("url", bean.getUrl());
+                                    intent.putExtra("title", bean.getTitle());
+                                    intent.putExtra("notificationId", notificationId);
+                                    DownloadActivity.this.startService(intent);
+                                    String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+                                    String url = dir + "/SimpleBrower/0_like/downloadList/" + fileRecordUrl + ".json";
+                                    fileUrls.set(position, url);
+                                    MyApplication.setDownLoadInfo(notificationId, bean);
                                 }
                             }
                             button.setText(state);
+                            button.setClickable(true);
                         } catch (Throwable e) {
                             CommonUtils.saveLog("=======处理按钮点击事件notification_clicked2=======" + e.getMessage());
                         }
@@ -310,10 +331,6 @@ public class DownloadActivity extends AppCompatActivity {
         }
     }
 
-    private void flushUi() {
-        
-    }
-
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -324,24 +341,24 @@ public class DownloadActivity extends AppCompatActivity {
                 for (int i = 0; i < num; i++) {
                     String fileRecordUrl = fileUrls.get(i);
                     if (!fileRecordUrl.contains("/")) {
+                        int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
+                        NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
+                        if (bean == null || !"暂停".equals(bean.getState())) continue;
                         RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
                         if (holder != null) {
-                            TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                             Button button = holder.itemView.findViewById(R.id.item_download_btn);
                             String btnTxt = button.getText().toString();
-                            String procTxt = processView.getText().toString();
                             if ("完成".equals(btnTxt)) continue;
-                            int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
-                            NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
-                            if (bean == null) continue;
-                            float process = 0;
-                            if (bean.getTsList() != null && bean.getTsList().size() > 0) {
-                                process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
-                            } else if (bean.getTotalSize() > 0) {
-                                process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
-                            }
-                            String processStr = String.format("%.2f", process) + "%";
-                            if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
+                            // TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
+                            // String procTxt = processView.getText().toString();
+                            // float process = 0;
+                            // if (bean.getTsList() != null && bean.getTsList().size() > 0) {
+                            //     process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
+                            // } else if (bean.getTotalSize() > 0) {
+                            //     process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
+                            // }
+                            // String processStr = String.format("%.2f", process) + "%";
+                            // if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
                             recyclerView.getAdapter().notifyItemChanged(i);
                         }
                     }

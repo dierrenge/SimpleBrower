@@ -555,6 +555,20 @@ public class WebViewFragment extends Fragment {
                         if (type.contains("?")) {
                             type = type.substring(0, type.indexOf("?"));
                         }
+                        if (type.contains("json; charset=utf-8")) {
+                            CommonUtils.saveLog("type===" + url);
+                        }
+                        try {
+                            String testType = URLDecoder.decode(type, "utf-8");
+                            if (testType.contains("json; charset=utf-8")) {
+                                CommonUtils.saveLog("testType===" + url);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        if (type.contains(";")) {
+                            type = type.substring(0, type.indexOf(";"));
+                        }
                         String[] arr = new String[]{view.getTitle(), urlOrg, type};
                         msg.obj = arr;
                     }

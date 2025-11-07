@@ -202,29 +202,32 @@ public class DownloadService extends Service {
             nm.notify(notificationId, notification);
 
             // 设置消息属性
-            NotificationBean notificationBean = new NotificationBean();
-            // notificationBean.setNotification(notification);
-            // 设置消息id
-            notificationBean.setNotificationId(notificationId);
-            // 设置下载文件名称
-            notificationBean.setTitle(title);
-            // 设置下载文件地址
-            notificationBean.setUrl(url);
-            // 设置下载类型（网站自身提供的下载为4）
-            notificationBean.setWhat(what);
-            // 设置生成目录
-            notificationBean.setSupDir(supDir);
-            // 设置线程数
-            notificationBean.setThreadCount(150);
-            // 设置重试次数
-            notificationBean.setRetryCount(4);
-            // 设置连接超时时间（单位：毫秒）
-            notificationBean.setTimeoutMillisecond(10000L);
-            // 设置下载文件初始消息显示的状态
-            notificationBean.setState("暂停");
-            // 设置日期
-            notificationBean.setDate(new SimpleDateFormat("yyyyMMdd").format(new Date()));
-            MyApplication.setDownLoadInfo(notificationId, notificationBean);
+            NotificationBean notificationBean = MyApplication.getDownLoadInfo(notificationId);
+            if (notificationBean == null) {
+                notificationBean = new NotificationBean();
+                // notificationBean.setNotification(notification);
+                // 设置消息id
+                notificationBean.setNotificationId(notificationId);
+                // 设置下载文件名称
+                notificationBean.setTitle(title);
+                // 设置下载文件地址
+                notificationBean.setUrl(url);
+                // 设置下载类型（网站自身提供的下载为4）
+                notificationBean.setWhat(what);
+                // 设置生成目录
+                notificationBean.setSupDir(supDir);
+                // 设置线程数
+                notificationBean.setThreadCount(150);
+                // 设置重试次数
+                notificationBean.setRetryCount(4);
+                // 设置连接超时时间（单位：毫秒）
+                notificationBean.setTimeoutMillisecond(10000L);
+                // 设置日期
+                notificationBean.setDate(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+                // 设置下载文件初始消息显示的状态
+                notificationBean.setState("暂停");
+                MyApplication.setDownLoadInfo(notificationId, notificationBean);
+            }
 
             //启动线程开始执行下载任务
             if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
