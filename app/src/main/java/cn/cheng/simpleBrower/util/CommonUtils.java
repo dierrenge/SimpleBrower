@@ -596,9 +596,6 @@ public class CommonUtils {
             }
             if (format.contains(".")) {
                 format = format.substring(format.lastIndexOf("."));
-                if (format.toLowerCase().endsWith("php")) {
-                    format = "";
-                }
             } else {
                 format = "";
             }

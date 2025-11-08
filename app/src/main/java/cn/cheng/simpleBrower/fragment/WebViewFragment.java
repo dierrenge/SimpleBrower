@@ -548,60 +548,41 @@ public class WebViewFragment extends Fragment {
                         });
                     } catch (Throwable e) {}
 
-                    String name = url.substring(url.lastIndexOf("/") + 1);
+                    // 判断格式
+                    String format = CommonUtils.getUrlFormat(url);
                     Message msg = Message.obtain();
-                    if (name.contains(".")) {
-                        String type = name.substring(name.lastIndexOf("."));
-                        if (type.contains("?")) {
-                            type = type.substring(0, type.indexOf("?"));
-                        }
-                        if (type.contains("json; charset=utf-8")) {
-                            CommonUtils.saveLog("type===" + url);
-                        }
-                        try {
-                            String testType = URLDecoder.decode(type, "utf-8");
-                            if (testType.contains("json; charset=utf-8")) {
-                                CommonUtils.saveLog("testType===" + url);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        if (type.contains(";")) {
-                            type = type.substring(0, type.indexOf(";"));
-                        }
-                        String[] arr = new String[]{view.getTitle(), urlOrg, type};
-                        msg.obj = arr;
-                    }
-
-                    // 判断视频请求
-                    if (url.contains(".mp4") || url.contains(".avi") || url.contains(".mov") || url.contains(".mkv") ||
-                            url.contains(".flv") || url.contains(".f4v") || url.contains(".rmvb") || url.endsWith(".m3u8")) {
-                        // 非m3u8链接 或者 链接中只包含一个m3u8
-                        if (!url.contains(".m3u8") || (!url.substring(url.indexOf(".m3u8")+5).contains(".m3u8") && !url.contains("?"))) {
+                    if (StringUtils.isNotEmpty(format)) {// 有格式的情况
+                        // 判断视频请求
+                        if (format.equals(".mp4") || format.equals(".avi") || format.equals(".mov") || format.equals(".mkv") ||
+                                format.equals(".flv") || format.equals(".f4v") || format.equals(".rmvb") || format.equals(".m3u8")) {
                             msg.what = 2;
+                        }
+                        // 判断音频请求
+                        else if (format.equals(".mp3") || format.equals(".wav") || format.equals(".ape") || format.equals(".flac")
+                                || format.equals(".ogg") || format.equals(".aac") || format.equals(".wma")) {
+                            msg.what = 3;
+                        }
+                        if (msg.what != 0) {
+                            msg.obj = new String[]{view.getTitle(), urlOrg, format};
                             handler.sendMessage(msg);
                         }
-                    }
-                    // 判断音频请求
-                    else if (url.contains(".mp3") || url.contains(".wav") || url.contains(".ape") || url.contains(".flac")
-                            || url.contains(".ogg") || url.contains(".aac") || url.contains(".wma")) {
-                        msg.what = 3;
-                        handler.sendMessage(msg);
-                    }
-                    // 判断无格式的情况
-                    else if (!name.contains(".")) {
+                    } else { // 无格式的情况
                         new Thread(() -> {
                             String fileType = CommonUtils.getNetFileType(url, 1000);
                             if (fileType != null) {
                                 if (fileType.contains("/")) {
-                                    fileType = "." + fileType.substring(fileType.lastIndexOf("/") + 1);
+                                    fileType = fileType.substring(fileType.lastIndexOf("/") + 1);
                                 }
                                 if (fileType.contains("?")) {
                                     fileType = fileType.substring(0, fileType.indexOf("?"));
                                 }
+                                if (fileType.contains(";")) {
+                                    fileType = fileType.substring(0, fileType.indexOf(";"));
+                                }
                                 // System.out.println(url + "*******************1***********************" + fileType);
                                 // 影音文件格式
                                 List<String> formats = AssetsReader.getList("audioVideo.txt");
+                                fileType = "." + fileType;
                                 if (formats.contains(fileType)) {
                                     String[] arr = new String[]{view.getTitle(), urlOrg, fileType};
                                     msg.obj = arr;
