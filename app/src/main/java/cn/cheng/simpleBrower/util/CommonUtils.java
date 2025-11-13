@@ -235,7 +235,7 @@ public class CommonUtils {
                         return 0;
                     } else {
                         if (nums1.size() == 0 || nums2.size() == 0) {
-                            return nums1.size() - nums2.size();
+                            return nums1.size() - nums2.size() > 0 ? 1 : -1;
                         } else {
                             for (int i = 0; i < nums1.size(); i++) {
                                 if (nums2.size() > i) {
@@ -252,7 +252,7 @@ public class CommonUtils {
                                         }
                                         num1 = Double.parseDouble(numStr1);
                                         num2 = Double.parseDouble(numStr2);
-                                        return (int) Math.ceil(num1 - num2);
+                                        return num1 - num2 > 0 ? 1 : -1;
                                     }
                                 }
                             }
@@ -261,7 +261,7 @@ public class CommonUtils {
                     }
                 } else {
                     // 去除数字后的字符串长度 不同时
-                    return o1X.length() - o2X.length();
+                    return o1X.length() - o2X.length() > 0 ? 1 : -1;
                 }
             }
         });
@@ -309,7 +309,7 @@ public class CommonUtils {
                     try {
                         long l1 = Long.parseLong(o1);
                         long l2 = Long.parseLong(o2);
-                        return Long.valueOf(l2-l1).intValue();
+                        return l2-l1 > 0 ? 1 : -1;
                     } catch (Exception e) {
                         return 0;
                     }
@@ -324,7 +324,7 @@ public class CommonUtils {
                     try {
                         long l1 = Long.parseLong(o1);
                         long l2 = Long.parseLong(o2);
-                        return Long.valueOf(l2-l1).intValue();
+                        return l2-l1 > 0 ? 1 : -1;
                     } catch (Exception e) {
                         return 0;
                     }
