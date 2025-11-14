@@ -130,10 +130,10 @@ public class DownloadActivity extends AppCompatActivity {
                         if (bean == null) return;
                     }
                     textView.setOnClickListener(view -> {
-                        // click();
+                        click(button.getText().toString(), bean);
                     });
                     item_l.setOnClickListener(view -> {
-                        // click();
+                        click(button.getText().toString(), bean);
                     });
                     button.setOnClickListener(view -> {
                         try {
@@ -212,11 +212,23 @@ public class DownloadActivity extends AppCompatActivity {
                 return fileUrls.size();
             }
 
-            public void click(String fileUrl) {
-                // 跳转该网址
-                Intent intent = new Intent(DownloadActivity.this, TxtActivity.class);
-                intent.putExtra("FileUrl", fileUrl);
-                DownloadActivity.this.startActivity(intent);
+            public void click(String btnTxt, NotificationBean bean) {
+                if ("完成".equals(btnTxt) && bean != null) {
+                    String absolutePath = bean.getAbsolutePath();
+                    if (absolutePath == null || !new File(absolutePath).exists()) return;
+                    String format = CommonUtils.getUrlFormat(absolutePath);
+                    List<String> formats = AssetsReader.getList("audioVideo.txt");
+                    // 跳转该网址
+                    Intent intent = null;
+                    if (".txt".equalsIgnoreCase(format)) {
+                        intent = new Intent(DownloadActivity.this, TxtActivity.class);
+                        intent.putExtra("txtUrl", absolutePath);
+                    } else if (formats.contains(format)) {
+                        intent = new Intent(DownloadActivity.this, VideoActivity.class);
+                        intent.putExtra("videoUrl", absolutePath);
+                    }
+                    if (intent != null) DownloadActivity.this.startActivity(intent);
+                }
             }
         };
         recyclerView.setAdapter(adapter);
@@ -355,17 +367,7 @@ public class DownloadActivity extends AppCompatActivity {
                                 String btnTxt = button.getText().toString();
                                 String processTxt = processView.getText().toString();
                                 String process = getProcess(bean);
-                                if ("完成".equals(btnTxt) || (!"暂停".equals(bean.getState()) && process.equals(processTxt))) continue;
-                                // TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
-                                // String procTxt = processView.getText().toString();
-                                // float process = 0;
-                                // if (bean.getTsList() != null && bean.getTsList().size() > 0) {
-                                //     process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
-                                // } else if (bean.getTotalSize() > 0) {
-                                //     process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
-                                // }
-                                // String processStr = String.format("%.2f", process) + "%";
-                                // if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
+                                if ("完成".equals(btnTxt) || (btnTxt.equals(bean.getState()) && process.equals(processTxt))) continue;
                                 recyclerView.getAdapter().notifyItemChanged(i);
                             }
                         }

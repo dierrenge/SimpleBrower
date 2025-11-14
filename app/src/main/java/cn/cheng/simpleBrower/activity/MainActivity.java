@@ -186,8 +186,13 @@ public class MainActivity extends AppCompatActivity {
 
         downloadBtn = this.findViewById(R.id.downloadBtn);
         downloadBtn.setOnClickListener(view -> {
-            Intent i = new Intent(this, DownloadActivity.class);
-            this.startActivity(i);
+            // 页面跳转后会用到的权限
+            if (CommonUtils.hasStoragePermissions(this)) {
+                Intent i = new Intent(this, DownloadActivity.class);
+                this.startActivity(i);
+            } else {
+                CommonUtils.requestStoragePermissions(this);
+            }
         });
     }
 

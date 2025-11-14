@@ -28,6 +28,7 @@ import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.activity.DownloadActivity;
 import cn.cheng.simpleBrower.activity.LikeActivity;
 import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.activity.TxtListActivity;
@@ -44,6 +45,7 @@ public class MoreFunctionDialog extends Dialog {
     private Context context;
     private Button historyBtn;
     private Button novelBtn;
+    private Button downloadMoreBtn;
     private CallListener callListener;
 
     public MoreFunctionDialog(@NonNull Context context) {
@@ -83,6 +85,12 @@ public class MoreFunctionDialog extends Dialog {
         novelBtn.setOnClickListener(view -> {
             Intent intent = new Intent(context, TxtListActivity.class);
             context.startActivity(intent);
+        });
+
+        downloadMoreBtn = this.findViewById(R.id.downloadMoreBtn);
+        downloadMoreBtn.setOnClickListener(view -> {
+            Intent i = new Intent(context, DownloadActivity.class);
+            context.startActivity(i);
         });
     }
 
