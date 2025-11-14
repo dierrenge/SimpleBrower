@@ -91,13 +91,21 @@
             android:layout_height="wrap_content"
             android:layout_weight="1">
 
-            <ImageButton
-                android:id="@+id/btnMore"
-                android:layout_width="23dp"
-                android:layout_height="23dp"
-                android:background="@drawable/btn_more"
+            <LinearLayout
+                android:id="@+id/btnMoreL"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:scaleType="fitCenter" />
+                android:layout_width="36dp"
+                android:layout_height="28.5dp"
+                android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/btnMore"
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:background="@drawable/btn_more"
+                    android:gravity="center"
+                    android:scaleType="fitCenter" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

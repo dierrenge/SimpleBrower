@@ -41,6 +41,7 @@ public class BrowserActivity2 extends AppCompatActivity {
     private ImageButton btnHome;
     private ImageButton btnMonitor;
     private ImageButton btnMore;
+    private LinearLayout btnMoreL;
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
@@ -71,6 +72,7 @@ public class BrowserActivity2 extends AppCompatActivity {
         btnHome = findViewById(R.id.btnHome);
         btnMonitor = findViewById(R.id.btnMonitor);
         btnMore = findViewById(R.id.btnMore);
+        btnMoreL = findViewById(R.id.btnMoreL);
         btnBack.setOnClickListener(v -> {
             goBackOrForward("back", b -> {
                 onBack();
@@ -92,6 +94,10 @@ public class BrowserActivity2 extends AppCompatActivity {
             dialog.show();
         });
         btnMore.setOnClickListener(v -> {
+            MoreFunctionDialog dialog = new MoreFunctionDialog(BrowserActivity2.this);
+            dialog.show();
+        });
+        btnMoreL.setOnClickListener(v -> {
             MoreFunctionDialog dialog = new MoreFunctionDialog(BrowserActivity2.this);
             dialog.show();
         });
