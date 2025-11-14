@@ -191,15 +191,9 @@ public class DownloadActivity extends AppCompatActivity {
 
                     // 刷新ui
                     textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
-                    float process = 0;
-                    if (bean.getTsList() != null && bean.getTsList().size() > 0) {
-                        process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
-                    } else if (bean.getTotalSize() > 0) {
-                        process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
-                    }
-                    String processStr = String.format("%.2f", process) + "%";
+                    String processStr = getProcess(bean);
                     processView.setText(processStr);
-                    if (process == 100) {
+                    if (processStr.contains("100")) {
                         if (!"完成".equals(button.getText().toString())) {
                             button.setText("完成");
                         }
@@ -353,12 +347,15 @@ public class DownloadActivity extends AppCompatActivity {
                         if (!fileRecordUrl.contains("/")) {
                             int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
                             NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
-                            if (bean == null || !"暂停".equals(bean.getState())) continue;
+                            if (bean == null) continue;
                             RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
                             if (holder != null) {
                                 Button button = holder.itemView.findViewById(R.id.item_download_btn);
+                                TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                                 String btnTxt = button.getText().toString();
-                                if ("完成".equals(btnTxt)) continue;
+                                String processTxt = processView.getText().toString();
+                                String process = getProcess(bean);
+                                if ("完成".equals(btnTxt) || (!"暂停".equals(bean.getState()) && process.equals(processTxt))) continue;
                                 // TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                                 // String procTxt = processView.getText().toString();
                                 // float process = 0;
@@ -381,6 +378,17 @@ public class DownloadActivity extends AppCompatActivity {
             }
         }
     };
+
+    // 获取下载进度
+    private String getProcess(NotificationBean bean) {
+        float process = 0;
+        if (bean.getTsList() != null && bean.getTsList().size() > 0) {
+            process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
+        } else if (bean.getTotalSize() > 0) {
+            process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
+        }
+        return String.format("%.2f", process) + "%";
+    }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
