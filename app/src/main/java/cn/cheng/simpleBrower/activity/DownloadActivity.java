@@ -59,6 +59,8 @@ public class DownloadActivity extends AppCompatActivity {
 
     private List<String> fileUrls = new ArrayList<>();
 
+    private volatile int notificationNum; // 消息数
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -198,9 +200,13 @@ public class DownloadActivity extends AppCompatActivity {
                     String processStr = String.format("%.2f", process) + "%";
                     processView.setText(processStr);
                     if (process == 100) {
-                        button.setText("完成");
+                        if (!"完成".equals(button.getText().toString())) {
+                            button.setText("完成");
+                        }
                     } else {
-                        button.setText(bean.getState());
+                        if (!bean.getState().equals(button.getText().toString())) {
+                            button.setText(bean.getState());
+                        }
                     }
                 } catch (Exception e) {
                     CommonUtils.saveLog("onBindViewHolder========" + e.getMessage());
@@ -295,6 +301,7 @@ public class DownloadActivity extends AppCompatActivity {
     }
 
     private void initFileUrls() {
+        notificationNum = MyApplication.getDownLoadInfoMap().size();
         fileUrls.clear();
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
@@ -338,28 +345,32 @@ public class DownloadActivity extends AppCompatActivity {
                 if (recyclerView == null) return;
                 int num = recyclerView.getAdapter().getItemCount();
                 if (num != fileUrls.size()) return;
-                for (int i = 0; i < num; i++) {
-                    String fileRecordUrl = fileUrls.get(i);
-                    if (!fileRecordUrl.contains("/")) {
-                        int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
-                        NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
-                        if (bean == null || !"暂停".equals(bean.getState())) continue;
-                        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
-                        if (holder != null) {
-                            Button button = holder.itemView.findViewById(R.id.item_download_btn);
-                            String btnTxt = button.getText().toString();
-                            if ("完成".equals(btnTxt)) continue;
-                            // TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
-                            // String procTxt = processView.getText().toString();
-                            // float process = 0;
-                            // if (bean.getTsList() != null && bean.getTsList().size() > 0) {
-                            //     process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
-                            // } else if (bean.getTotalSize() > 0) {
-                            //     process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
-                            // }
-                            // String processStr = String.format("%.2f", process) + "%";
-                            // if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
-                            recyclerView.getAdapter().notifyItemChanged(i);
+                if (notificationNum != MyApplication.getDownLoadInfoMap().size()) {
+                    initFileUrls();
+                } else {
+                    for (int i = 0; i < num; i++) {
+                        String fileRecordUrl = fileUrls.get(i);
+                        if (!fileRecordUrl.contains("/")) {
+                            int notificationId = Integer.parseInt(fileRecordUrl.substring(8));
+                            NotificationBean bean = MyApplication.getDownLoadInfo(notificationId);
+                            if (bean == null || !"暂停".equals(bean.getState())) continue;
+                            RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
+                            if (holder != null) {
+                                Button button = holder.itemView.findViewById(R.id.item_download_btn);
+                                String btnTxt = button.getText().toString();
+                                if ("完成".equals(btnTxt)) continue;
+                                // TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
+                                // String procTxt = processView.getText().toString();
+                                // float process = 0;
+                                // if (bean.getTsList() != null && bean.getTsList().size() > 0) {
+                                //     process = CommonUtils.getPercentage(bean.getHlsFinishedCount(), bean.getTsList().size());
+                                // } else if (bean.getTotalSize() > 0) {
+                                //     process = CommonUtils.getPercentage(bean.getBytesum(), bean.getTotalSize());
+                                // }
+                                // String processStr = String.format("%.2f", process) + "%";
+                                // if ("继续".equals(bean.getState()) && "继续".equals(btnTxt) && processStr.equals(procTxt)) continue;
+                                recyclerView.getAdapter().notifyItemChanged(i);
+                            }
                         }
                     }
                 }
