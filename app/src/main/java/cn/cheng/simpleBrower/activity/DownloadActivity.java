@@ -146,7 +146,7 @@ public class DownloadActivity extends AppCompatActivity {
                             if (fileRecordUrl.contains("/")) { // 从磁盘中读取记录
                                 if (state.equals("暂停")) {
                                     NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
-                                    if (info == null) { // 内存中没用 说明没重复
+                                    if (info == null) { // 内存中没有 说明没重复
                                         // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + bean.getNotificationId());
                                         Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
                                         intent.putExtra("what", bean.getWhat());
@@ -161,11 +161,12 @@ public class DownloadActivity extends AppCompatActivity {
                             } else { // 从内存中读取
                                 NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
                                 if (info != null) {
+                                    String processStr = getProcess(info);
                                     info.setState(state);
                                     CommonUtils.updateRemoteViews(notificationId, null, state, null);
                                     // bean.setState(state);
                                     // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + bean.getNotificationId(), bean);
-                                    if (state.equals("暂停")) {
+                                    if (state.equals("暂停") && !processStr.contains("100")) {
                                         new M3u8DownLoader(notificationId).start();
                                     }
                                 } else if (state.equals("暂停")) { // 内存中的记录被删除的情况
