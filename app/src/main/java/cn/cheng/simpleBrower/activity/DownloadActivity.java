@@ -100,6 +100,9 @@ public class DownloadActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
+        // 设置无动画（解决闪烁问题）
+        recyclerView.setItemAnimator(null);
+
         // 给recyclerview设置适配器
         RecyclerView.Adapter adapter = new RecyclerView.Adapter() {
             @NonNull
@@ -244,14 +247,16 @@ public class DownloadActivity extends AppCompatActivity {
 
         // 配置触摸事件
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
+                // ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
+                0, // 不允许拖拽
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
         ) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
                                   @NonNull RecyclerView.ViewHolder target) {
-                return true;
+                // 不允许拖拽，所以返回false
+                return false;
             }
 
             @Override
