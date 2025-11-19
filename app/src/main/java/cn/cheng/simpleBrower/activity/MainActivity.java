@@ -7,6 +7,9 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.DownloadManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -47,6 +50,7 @@ import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.custom.SettingDialog;
+import cn.cheng.simpleBrower.receiver.MyDeviceAdminReceiver;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.service.ReadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
@@ -71,9 +75,19 @@ public class MainActivity extends AppCompatActivity {
     // 测试m3u8视频（正常）
     //private final static String BAIDU = "https://baikevideo.cdn.bcebos.com/media/mda-Og7wRzKHv5Z824nu/5e24506044a8dca815e9b106eab60de9.m3u8";
 
+    private static final int REQUEST_CODE_ENABLE_ADMIN = 1;
+    private DevicePolicyManager mDevicePolicyManager;
+    private ComponentName mComponentName;
+    private ImageView lockBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 初始化设备策略管理器和组件
+        mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        mComponentName = new ComponentName(this, MyDeviceAdminReceiver.class);
+
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
 
@@ -110,6 +124,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
         // 初始化控件 并绑定事件
+        lockBtn = findViewById(R.id.lockBtn);
+        lockBtn.setOnClickListener(view -> {
+            if (mDevicePolicyManager.isAdminActive(mComponentName)) {
+                // 如果设备管理员权限已激活 立即锁屏
+                mDevicePolicyManager.lockNow();
+                // 关闭应用
+                finish();
+            } else {
+                // 请求激活设备管理员权限
+                requestDeviceAdminPermission();
+            }
+        });
         settingBtn = findViewById(R.id.settingBtn);
         settingBtn.setOnClickListener(view -> {
             SettingDialog dialog = new SettingDialog(MainActivity.this);
@@ -240,6 +266,14 @@ public class MainActivity extends AppCompatActivity {
         final DownloadManager downloadManager = (DownloadManager) this.getSystemService(DOWNLOAD_SERVICE);
         // 添加一个下载任务
         long downLoadId = downloadManager.enqueue(request);
+    }
+
+    // 锁屏权限请求
+    private void requestDeviceAdminPermission() {
+        Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+        intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
+        intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.device_admin_activation_message));
+        startActivityForResult(intent, REQUEST_CODE_ENABLE_ADMIN);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)

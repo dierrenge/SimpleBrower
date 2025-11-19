@@ -1676,4 +1676,12 @@ public class CommonUtils {
                     .floatValue();
         }
     }
+
+    // 返回桌面
+    public static void backHome(Activity activity) {
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory(Intent.CATEGORY_HOME);
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        activity.startActivity(homeIntent);
+    }
 }

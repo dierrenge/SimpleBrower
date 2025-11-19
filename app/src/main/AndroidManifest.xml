@@ -41,6 +41,13 @@
         </intent>
     </queries>
 
+    <!-- 禁用锁屏权限（Android 15 要求） -->
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"
+        tools:ignore="ProtectedPermissions" />
+    <!-- 设备管理员权限 用于锁屏-->
+    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN"
+        tools:ignore="ProtectedPermissions" />
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -54,105 +61,13 @@
         android:supportsRtl="true"
         android:theme="@style/NoTitle"
         android:usesCleartextTraffic="true"
-        tools:targetApi="33">
-        <activity
-            android:name=".activity.TxtCatalogActivity"
-            android:exported="false"><!--android:launchMode="singleInstance" -->
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <activity
-            android:name=".activity.TxtActivity"
-            android:exported="true"
-            tools:ignore="AppLinkUrlError"><!-- android:launchMode="singleInstance" -->
-            <!-- 设置此activity可用于打开 txt文件 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <activity
-            android:name=".activity.TxtListActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <receiver
-            android:name=".receiver.NotificationBroadcastReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="notification_cancelled" />
-                <action android:name="notification_clicked" />
-            </intent-filter>
-        </receiver>
-
-        <activity
-            android:name=".activity.VideoListActivity"
-            android:exported="false">
-
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <!-- 以下两行 防止旋转时重新播放 -->
-        <!-- android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-             android:screenOrientation="portrait" -->
-        <activity
-            android:name=".activity.VideoActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:exported="true"
-            android:hardwareAccelerated="true"
-            android:screenOrientation="portrait"
-            tools:ignore="AppLinkUrlError">
-            <!-- 设置此activity可用于打开 视频文件 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="audio/*" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="video/*" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <activity
-            android:name=".activity.LikeActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <service
-            android:name=".service.ReadService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
-
-        <service
-            android:name=".service.DownloadService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
-
+        tools:targetApi="35">
+        <!--android:excludeFromRecents=“true” // 不在最近任务中显示
+            android:noHistory=“true” // 不保留历史，即用户离开后销毁该Activity-->
         <activity
             android:name=".activity.MainActivity"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
@@ -208,6 +123,81 @@
         </activity>
 
         <activity
+            android:name=".activity.TxtCatalogActivity"
+            android:exported="false"><!--android:launchMode="singleInstance" -->
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".activity.TxtActivity"
+            android:exported="true"
+            tools:ignore="AppLinkUrlError"><!-- android:launchMode="singleInstance" -->
+            <!-- 设置此activity可用于打开 txt文件 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".activity.TxtListActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".activity.VideoListActivity"
+            android:exported="false">
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <!-- 以下两行 防止旋转时重新播放 -->
+        <!-- android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+             android:screenOrientation="portrait" -->
+        <activity
+            android:name=".activity.VideoActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="portrait"
+            tools:ignore="AppLinkUrlError">
+            <!-- 设置此activity可用于打开 视频文件 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".activity.LikeActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
             android:name=".activity.DownloadActivity"
             android:launchMode="singleTop"
             android:exported="false">
@@ -215,6 +205,42 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <service
+            android:name=".service.ReadService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+        <service
+            android:name=".service.DownloadService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+        <receiver
+            android:name=".receiver.NotificationBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="notification_cancelled" />
+                <action android:name="notification_clicked" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 声明设备管理员接收器 -->
+        <receiver
+            android:name=".receiver.MyDeviceAdminReceiver"
+            android:description="@string/device_admin_description"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_receiver" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

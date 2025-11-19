@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">彼黍</string>
+    <string name="device_admin_description">需要设备管理员权限来锁定屏幕。</string>
+    <string name="device_admin_activation_message">请激活设备管理员权限以使用一键锁屏功能。</string>
 </resources>
