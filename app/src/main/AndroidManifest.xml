@@ -66,8 +66,6 @@
             android:noHistory=“true” // 不保留历史，即用户离开后销毁该Activity-->
         <activity
             android:name=".activity.MainActivity"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>

@@ -75,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     // 测试m3u8视频（正常）
     //private final static String BAIDU = "https://baikevideo.cdn.bcebos.com/media/mda-Og7wRzKHv5Z824nu/5e24506044a8dca815e9b106eab60de9.m3u8";
 
-    private static final int REQUEST_CODE_ENABLE_ADMIN = 1;
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mComponentName;
     private ImageView lockBtn;
@@ -127,10 +126,11 @@ public class MainActivity extends AppCompatActivity {
         lockBtn = findViewById(R.id.lockBtn);
         lockBtn.setOnClickListener(view -> {
             if (mDevicePolicyManager.isAdminActive(mComponentName)) {
-                // 如果设备管理员权限已激活 立即锁屏
+                // 如果设备管理员权限已激活
+                // 返回桌面
+                CommonUtils.backHome(this);
+                // 立即锁屏
                 mDevicePolicyManager.lockNow();
-                // 关闭应用
-                finish();
             } else {
                 // 请求激活设备管理员权限
                 requestDeviceAdminPermission();
@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
         intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
         intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.device_admin_activation_message));
-        startActivityForResult(intent, REQUEST_CODE_ENABLE_ADMIN);
+        startActivityForResult(intent, 1);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
