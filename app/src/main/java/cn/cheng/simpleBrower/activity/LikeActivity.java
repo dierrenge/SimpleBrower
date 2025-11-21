@@ -232,7 +232,8 @@ public class LikeActivity extends AppCompatActivity {
         // 配置触摸事件
         ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
+                0 // 左右不滑动
+                // ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
         ) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView,

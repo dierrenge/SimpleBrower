@@ -281,7 +281,7 @@ public class CommonUtils {
                 Integer notificationId = entry.getKey();
                 NotificationBean bean = entry.getValue();
                 if (bean != null) {
-                    fileList.add(bean.getDate() + notificationId);
+                    fileList.add(bean.getDate() + CommonUtils.zeroPadding(notificationId));
                 }
             }
             // 过滤获取磁盘列表
@@ -1515,6 +1515,11 @@ public class CommonUtils {
             saveLog("randomNum:" + e.getMessage());
         }
         return num;
+    }
+
+    // HHmmssSSS 数字字符转换缺位补零
+    public static String zeroPadding(Integer id) {
+        return ("" + id).length() < 9 ? ("0" + id) : ("" + id);
     }
 
     // 字符串放重复处理（末尾累加数字）

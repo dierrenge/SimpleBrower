@@ -728,12 +728,13 @@ public class M3u8DownLoader {
                  RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
                 randomAccessFile.seek(bytesum);
                 long time = 0;
+                String index = "0.00%";
                 while ((len = bis.read(buf)) != -1 && "暂停".equals(notificationBean.getState())) {
                     randomAccessFile.write(buf, 0, len);
                     // 更新进度
                     bytesum += len;
                     notificationBean.setBytesum(bytesum); // 保存下载进度
-                    String index = String.format("%.2f", CommonUtils.getPercentage(bytesum, notificationBean.getTotalSize()));
+                    index = String.format("%.2f", CommonUtils.getPercentage(bytesum, notificationBean.getTotalSize()));
                     if (len > 0 && System.currentTimeMillis() - time > 1000) {
                         time = System.currentTimeMillis();
                         String[] arr = new String[]{index, id+"", fileName};
@@ -741,6 +742,10 @@ public class M3u8DownLoader {
                         handler.sendMessage(msg0);
                     }
                 }
+                // 可能不到一秒间隔就被暂停了，再刷新下进度
+                String[] arr = new String[]{index, id+"", fileName};
+                Message msg0 = handler.obtainMessage(3, arr);
+                handler.sendMessage(msg0);
                 if ("暂停".equals(notificationBean.getState()) && bytesum >= notificationBean.getTotalSize()) {
                     String[] arr2 = new String[]{"下载文件成功", id+""};
                     Message msg = handler.obtainMessage(2, arr2);

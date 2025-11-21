@@ -77,7 +77,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 // MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                 MyApplication.deleteDownLoadInfo(notificationId);
                 notificationManager.cancel(notificationId);
-                CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
+                CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
             } catch (Throwable e) {
                 CommonUtils.saveLog("=======处理删除事件notification_cancelled=======" + e.getMessage());
             }

@@ -62,7 +62,7 @@ public class DownLoadHandler extends Handler {
                             downLoadInfo.setState("继续");
                             downLoadInfo.setRangeRequest("false");
                         }
-                        CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
+                        CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
                     }
                     break;
                 case 1:
@@ -79,7 +79,7 @@ public class DownLoadHandler extends Handler {
                         Intent intent = new Intent(context, DownloadService.class);
                         context.stopService(intent);
                     }
-                    CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
+                    CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
                     break;
                 case 3:
                     if (downLoadInfo == null) return;
@@ -95,7 +95,7 @@ public class DownLoadHandler extends Handler {
                         downLoadInfo.setState(state);
                         MyToast.getInstance("可用内存过低").show();
                     }
-                    // CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + downLoadInfo.getNotificationId(), downLoadInfo);
+                    // CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
                     /*// Notification notificationX = downLoadInfo.getNotification();
                     // 原方式：contentView可能为空
                     Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
