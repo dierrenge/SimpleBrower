@@ -74,7 +74,7 @@ public class VideoActivity extends AppCompatActivity {
             Uri uri = intent.getData();
             if (Intent.ACTION_VIEW.equals(action) && uri != null) {
                 // 设置此activity可用于打开 视频文件
-                videoUrl = CommonUtils.correctUrl(uri.getPath());
+                videoUrl = CommonUtils.correctUrl(uri, this);
             } else {
                 // 获取上个页面传递的信息
                 videoUrl = intent.getStringExtra("videoUrl");
@@ -82,11 +82,16 @@ public class VideoActivity extends AppCompatActivity {
             // CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
 
             if (videoUrl == null || !videoUrl.contains("/")) {
+                MyToast.getInstance("无权访问").show();
+                this.finish();
                 return;
             }
             String name = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
             // 获取影音列表
             List<String> formats = AssetsReader.getList("audioVideo.txt");
+            if (formats == null) {
+                formats = AssetsReader.getList(this, "audioVideo.txt");
+            }
             List<SwitchVideoModel> videoList = new ArrayList<>();
             if (name.contains(".") && formats.contains(name.substring(name.lastIndexOf(".")))) {
                 // 测试用2

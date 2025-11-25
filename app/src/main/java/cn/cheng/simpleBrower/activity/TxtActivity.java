@@ -123,11 +123,16 @@ public class TxtActivity extends AppCompatActivity {
             Uri uri = intent.getData();
             if (Intent.ACTION_VIEW.equals(action) && uri != null) {
                 // 设置此activity可用于打开 txt文件
-                txtUrl = CommonUtils.correctUrl(uri.getPath());
+                txtUrl = CommonUtils.correctUrl(uri, this);
                 otherFlag = true;
             } else {
                 // 获取上一界面传过来的数据
                 txtUrl = intent.getStringExtra("txtUrl");
+            }
+            if (txtUrl == null || !txtUrl.contains("/")) {
+                MyToast.getInstance("无权访问").show();
+                this.finish();
+                return;
             }
             // CommonUtils.saveLog("打开方式-txt文件：" + txtUrl);
 

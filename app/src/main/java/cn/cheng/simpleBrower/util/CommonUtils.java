@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.provider.Settings;
 import android.service.notification.StatusBarNotification;
 import android.webkit.URLUtil;
@@ -37,6 +38,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -1440,19 +1442,48 @@ public class CommonUtils {
     }
 
     // 手机目录文件url修正
-    public static String correctUrl(String txtUrl) {
-        // 红米手机
-        if (txtUrl.contains("Android/data")) {
-            // 访问沙盒目录时
-            txtUrl = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + txtUrl.substring(txtUrl.indexOf("Android/data"));
-        } else if (txtUrl.contains("/external_files")) {
+    public static String correctUrl(Uri uri, Activity activity) {
+        String txtUrl = uri.getPath();
+        CommonUtils.saveLog("打开方式-原文件地址uri.getPath()：" + txtUrl);
+        if (txtUrl == null) return null;
+        String urlHead = Environment.getExternalStorageDirectory().getAbsolutePath();
+        /*红米手机*/
+        if (txtUrl.startsWith("/document/primary:")) {
+            // 安卓存储访问框架查看文件时
+            txtUrl = urlHead + "/" + txtUrl.split("document/primary:")[1];
+        } else if (txtUrl.startsWith("/external_files")) {
             // 访问正常SD卡目录时
-            txtUrl = txtUrl.replace("/external_files", Environment.getExternalStorageDirectory().getAbsolutePath());
+            txtUrl = txtUrl.replace("/external_files", urlHead);
         }
-        // 荣耀手机
+        if (txtUrl.startsWith(urlHead + "/Android/data") && !txtUrl.contains(activity.getPackageName())) {
+            // 访问非本应用沙盒目录的情况
+            // 复制到本应用沙盒目录
+            String dir = PhoneSysPath.getSandboxPath(activity) + "/other";
+            File dirFile = new File(dir);
+            if (!dirFile.exists()) {
+                dirFile.mkdirs();
+            }
+            txtUrl = dir + "/" + getUrlName2(txtUrl);
+            try (ParcelFileDescriptor pfd = activity.getContentResolver().openFileDescriptor(uri, "r");
+                 FileInputStream fis = new FileInputStream(pfd.getFileDescriptor());
+                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(txtUrl))) {
+                byte[] buff = new byte[1024 * 8];
+                int len;
+                while((len = fis.read(buff)) != -1) {
+                    bos.write(buff, 0, len);
+                }
+                return txtUrl;
+            } catch (Exception e) {
+                CommonUtils.saveLog("打开方式-访问非本应用沙盒目录异常：" + e.getMessage());
+                return null;
+            }
+        }
+
+        /*荣耀手机*/
         if (txtUrl.startsWith("/root")) {
             txtUrl = txtUrl.substring(5);
         }
+        CommonUtils.saveLog("打开方式-解析后文件地址：" + txtUrl);
         return txtUrl;
     }
 
