@@ -1451,12 +1451,15 @@ public class CommonUtils {
         if (txtUrl.startsWith("/document/primary:")) {
             // 安卓存储访问框架查看文件时
             txtUrl = txtUrl.split("document/primary:")[1];
+            if (!txtUrl.startsWith("/")) {
+                txtUrl = "/" + txtUrl;
+            }
         } else if (txtUrl.startsWith("/external_files/")) {
             // 访问正常SD卡目录时
-            txtUrl = txtUrl.split("/external_files/")[1];
+            txtUrl = txtUrl.split("external_files")[1];
         }
         if (!txtUrl.startsWith(urlHead)) {
-            txtUrl = urlHead + "/" + txtUrl;
+            txtUrl = urlHead + txtUrl;
         }
         if (txtUrl.startsWith(urlHead + "/Android/data") && !txtUrl.contains(activity.getPackageName())) {
             // 访问非本应用沙盒目录的情况
