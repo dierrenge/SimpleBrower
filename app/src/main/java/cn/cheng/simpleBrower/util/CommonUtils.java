@@ -1478,16 +1478,19 @@ public class CommonUtils {
                 while((len = fis.read(buff)) != -1) {
                     bos.write(buff, 0, len);
                 }
-                return txtUrl;
             } catch (Exception e) {
                 CommonUtils.saveLog("打开方式-访问非本应用沙盒目录异常：" + e.getMessage());
                 return null;
             }
         }
-
         /*荣耀手机*/
         if (txtUrl.startsWith("/root")) {
             txtUrl = txtUrl.substring(5);
+        }
+        if (!CommonUtils.hasStoragePermissions(activity) && !txtUrl.startsWith(urlHead + "/Android/data/" + activity.getPackageName())) {
+            // CommonUtils.requestStoragePermissions(activity);
+            // 访问非沙盒目录 需要读写权限
+            return "授权";
         }
         CommonUtils.saveLog("打开方式-解析后文件地址：" + txtUrl);
         return txtUrl;

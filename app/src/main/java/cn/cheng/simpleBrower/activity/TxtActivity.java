@@ -130,7 +130,7 @@ public class TxtActivity extends AppCompatActivity {
                 txtUrl = intent.getStringExtra("txtUrl");
             }
             if (txtUrl == null || !txtUrl.contains("/")) {
-                MyToast.getInstance("无权访问").show();
+                MyToast.getInstance("尚需授权").show();
                 this.finish();
                 return;
             }
