@@ -1,5 +1,7 @@
 package cn.cheng.simpleBrower.activity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
@@ -79,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
     private ComponentName mComponentName;
     private ImageView lockBtn;
 
+    // 授权回调
+    private String type = "";
+    ActivityResultLauncher<Intent> allFilesAccessLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +128,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+        // 注册权限请求的返回监听
+        allFilesAccessLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> { // 授权返回后的处理
+                    if (!CommonUtils.hasStoragePermissions(this)) return;
+                    Intent intent = null;
+                    switch (type) {
+                        case "like" :
+                            intent = new Intent(MainActivity.this, LikeActivity.class);
+                            break;
+                        case "video" :
+                            intent = new Intent(MainActivity.this, VideoListActivity.class);
+                            break;
+                        case "txt" :
+                            intent = new Intent(MainActivity.this, TxtListActivity.class);
+                            break;
+                        case "download" :
+                            intent = new Intent(this, DownloadActivity.class);
+                            break;
+                    }
+                    type = "";
+                    if (intent != null) this.startActivity(intent);
+                }
+        );
         // 初始化控件 并绑定事件
         lockBtn = findViewById(R.id.lockBtn);
         lockBtn.setOnClickListener(view -> {
@@ -184,7 +214,8 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, LikeActivity.class);
                 this.startActivity(intent);
             } else {
-                CommonUtils.requestStoragePermissions(this);
+                type = "like";
+                CommonUtils.requestStoragePermissions(this, allFilesAccessLauncher);
             }
         });
 
@@ -195,7 +226,8 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, VideoListActivity.class);
                 this.startActivity(intent);
             } else {
-                CommonUtils.requestStoragePermissions(this);
+                type = "video";
+                CommonUtils.requestStoragePermissions(this, allFilesAccessLauncher);
             }
         });
 
@@ -206,7 +238,8 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, TxtListActivity.class);
                 this.startActivity(intent);
             } else {
-                CommonUtils.requestStoragePermissions(this);
+                type = "txt";
+                CommonUtils.requestStoragePermissions(this, allFilesAccessLauncher);
             }
         });
 
@@ -217,7 +250,8 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(this, DownloadActivity.class);
                 this.startActivity(i);
             } else {
-                CommonUtils.requestStoragePermissions(this);
+                type = "download";
+                CommonUtils.requestStoragePermissions(this, allFilesAccessLauncher);
             }
         });
     }

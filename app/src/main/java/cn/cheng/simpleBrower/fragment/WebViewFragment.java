@@ -210,7 +210,7 @@ public class WebViewFragment extends Fragment {
                     }).start();
                 }
             } else {
-                CommonUtils.requestStoragePermissions(requireActivity());
+                CommonUtils.requestStoragePermissions(requireActivity(), null);
             }
         });
         // 刷新
@@ -410,7 +410,7 @@ public class WebViewFragment extends Fragment {
                 }
                 // 会用到的权限
                 if (!CommonUtils.hasStoragePermissions(requireContext())) {
-                    CommonUtils.requestStoragePermissions(requireActivity());
+                    CommonUtils.requestStoragePermissions(requireActivity(), null);
                     if (!name.contains(".html;") && !url.contains(".m3u8")) {
                         // 记录点击下载的链接url
                         MyApplication.setClickDownloadUrl(url);

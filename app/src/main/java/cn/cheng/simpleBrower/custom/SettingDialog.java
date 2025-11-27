@@ -58,7 +58,7 @@ public class SettingDialog extends Dialog {
                 boolean checked = downLoadTip.isChecked();
                 // 会用到的权限
                 if (!checked && !CommonUtils.hasStoragePermissions(activity)) {
-                    CommonUtils.requestStoragePermissions(activity);
+                    CommonUtils.requestStoragePermissions(activity, null);
                     return;
                 }
                 SysBean sysBean = new SysBean();

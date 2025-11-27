@@ -23,6 +23,7 @@ import android.service.notification.StatusBarNotification;
 import android.webkit.URLUtil;
 import android.widget.RemoteViews;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -741,7 +742,7 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static void requestStoragePermissions(Activity context) {
+    public static void requestStoragePermissions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
         // android 11 所有文件管理权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             FeetDialog feetDialog = new FeetDialog(context, "授权", "需授权后才能使用该功能", "授权", "取消");
@@ -754,7 +755,11 @@ public class CommonUtils {
                 public void ok(String txt) {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                     intent.setData(Uri.parse("package:" + context.getPackageName()));
-                    context.startActivityForResult(intent, 100);
+                    if (allFilesAccessLauncher != null) {
+                        allFilesAccessLauncher.launch(intent);
+                    } else {
+                        context.startActivityForResult(intent, 100);
+                    }
                     feetDialog.dismiss();
                 }
             });
@@ -1488,7 +1493,6 @@ public class CommonUtils {
             txtUrl = txtUrl.substring(5);
         }
         if (!CommonUtils.hasStoragePermissions(activity) && !txtUrl.startsWith(urlHead + "/Android/data/" + activity.getPackageName())) {
-            // CommonUtils.requestStoragePermissions(activity);
             // 访问非沙盒目录 需要读写权限
             return "授权";
         }

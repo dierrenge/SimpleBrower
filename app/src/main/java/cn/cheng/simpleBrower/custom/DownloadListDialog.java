@@ -121,7 +121,7 @@ public class DownloadListDialog extends Dialog {
                     try {
                         // 会用到的权限
                         if (!CommonUtils.hasStoragePermissions(context)) {
-                            CommonUtils.requestStoragePermissions((Activity) context);
+                            CommonUtils.requestStoragePermissions((Activity) context, null);
                             return;
                         }
                         if (!CommonUtils.requestNotificationPermissions((Activity) context)) return; // 通知

@@ -82,7 +82,7 @@ public class VideoActivity extends AppCompatActivity {
             // CommonUtils.saveLog("打开方式-视频文件：" + videoUrl);
 
             if (videoUrl == null || !videoUrl.contains("/")) {
-                MyToast.getInstance("尚需授权").show();
+                MyToast.getInstance("还未访问授权喔").show();
                 this.finish();
                 return;
             }

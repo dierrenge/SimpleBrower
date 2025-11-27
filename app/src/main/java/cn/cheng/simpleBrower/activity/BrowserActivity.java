@@ -271,7 +271,7 @@ public class BrowserActivity extends AppCompatActivity {
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
                 // 会用到的权限
                 if (!flagVideo && !CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
-                    CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                    CommonUtils.requestStoragePermissions(BrowserActivity.this, null);
                     return;
                 }
                 // 调用系统下载处理
@@ -302,7 +302,7 @@ public class BrowserActivity extends AppCompatActivity {
                             handler.sendMessage(msg);
                         }
                     } else {
-                        CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                        CommonUtils.requestStoragePermissions(BrowserActivity.this, null);
                     }
                 }).start();
             }
@@ -336,7 +336,7 @@ public class BrowserActivity extends AppCompatActivity {
         flagBtn.setOnClickListener(view -> {
             // 会用到的权限
             if (!flagVideo && !CommonUtils.hasStoragePermissions(BrowserActivity.this)) {
-                CommonUtils.requestStoragePermissions(BrowserActivity.this);
+                CommonUtils.requestStoragePermissions(BrowserActivity.this, null);
                 return;
             }
             flagVideo = !flagVideo;
@@ -397,7 +397,7 @@ public class BrowserActivity extends AppCompatActivity {
                     }).start();
                 }
             } else {
-                CommonUtils.requestStoragePermissions(this);
+                CommonUtils.requestStoragePermissions(this, null);
             }
         });
         // 返回主页按钮
