@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- 网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 下载时 安卓6.0以下的直接将读写权限写入AndroidManifest.xml之中 -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><!--允许获取网络状态-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /><!--允许获取wifi网络信息-->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" /><!--允许获取wifi状态改变-->
 
     <!-- 通知权限 -->
     <uses-permission
@@ -48,6 +50,16 @@
     <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- 地图定位权限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /><!--允许获取精确位置，实时导航为必选-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /><!--允许获取粗略位置，实时导航为必选-->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /><!--后台获取位置信息，若需后台定位或持续导航则必选-->
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" /><!--用于申请调用A-GPS模块,卫星定位加速-->
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"
+        tools:ignore="MockLocation" />
+    <!--设备兼容性-->
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -62,6 +74,10 @@
         android:theme="@style/NoTitle"
         android:usesCleartextTraffic="true"
         tools:targetApi="35">
+        <!--高德地图api使用的key-->
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="a4bd2a7d1e3216b4aa0b2eb2112deaa2" />
         <!--android:excludeFromRecents=“true” // 不在最近任务中显示
             android:noHistory=“true” // 不保留历史，即用户离开后销毁该Activity-->
         <activity
@@ -204,6 +220,15 @@
                 android:value="" />
         </activity>
 
+        <activity
+            android:name=".activity.MapActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|navigation"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
         <service
             android:name=".service.ReadService"
             android:enabled="true"
@@ -215,6 +240,14 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+        <service android:name="com.amap.api.location.APSService"/>
+
+        <service
+            android:name=".service.MockLocationService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.ACCESS_MOCK_LOCATION" />
 
         <receiver
             android:name=".receiver.NotificationBroadcastReceiver"

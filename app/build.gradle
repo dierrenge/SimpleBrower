@@ -164,4 +164,7 @@ dependencies {
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x86:v10.2.0'
     implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x64:v10.2.0'
 
+    // 高德地图
+    implementation 'com.amap.api:navi-3dmap:7.4.0_3dmap7.4.0'
+    implementation 'com.amap.api:location:6.4.3' // 定位
 }

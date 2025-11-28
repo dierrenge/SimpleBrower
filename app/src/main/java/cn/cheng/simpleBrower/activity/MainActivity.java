@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mComponentName;
     private ImageView lockBtn;
+    private ImageView mapBtn;
 
     // 授权回调
     private String type = "";
@@ -253,6 +254,12 @@ public class MainActivity extends AppCompatActivity {
                 type = "download";
                 CommonUtils.requestStoragePermissions(this, allFilesAccessLauncher);
             }
+        });
+
+        mapBtn = this.findViewById(R.id.mapBtn);
+        mapBtn.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, MapActivity.class);
+            this.startActivity(intent);
         });
     }
 
