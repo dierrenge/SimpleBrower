@@ -88,12 +88,14 @@ public class DownLoadHandler extends Handler {
                     // 更新状态栏上的下载进度等信息
                     CommonUtils.updateRemoteViews(n, str, null, nm);
                     // 内存监控
-                    double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(context.getApplicationContext());
-                    if (availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
-                        String state = "继续";
-                        CommonUtils.updateRemoteViews(n, null, state, nm);
-                        downLoadInfo.setState(state);
-                        MyToast.getInstance("可用内存过低").show();
+                    if ("暂停".equals(downLoadInfo.getState())) {
+                        double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(context.getApplicationContext());
+                        if (availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
+                            String state = "继续";
+                            CommonUtils.updateRemoteViews(n, null, state, nm);
+                            downLoadInfo.setState(state);
+                            MyToast.getInstance("可用内存过低").show();
+                        }
                     }
                     // CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
                     /*// Notification notificationX = downLoadInfo.getNotification();

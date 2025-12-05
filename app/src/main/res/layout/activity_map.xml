@@ -55,6 +55,19 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             tools:ignore="MissingConstraints" />
+        <Button
+            android:id="@+id/btnTestLocation"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/btn_bg1"
+            android:text="测试"
+            android:textColor="@color/blackGray"
+            android:textSize="16dp"
+            android:layout_marginBottom="60dp"
+            android:layout_marginLeft="90dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            tools:ignore="MissingConstraints" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

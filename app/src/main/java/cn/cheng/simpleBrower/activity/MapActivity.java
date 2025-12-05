@@ -2,8 +2,9 @@ package cn.cheng.simpleBrower.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,7 +16,6 @@ import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
-import com.amap.api.maps.MapsInitializer;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
@@ -28,11 +28,12 @@ import cn.cheng.simpleBrower.service.MockLocationService;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
-public class MapActivity extends AppCompatActivity implements LocationSource, AMap.OnMapClickListener, AMapLocationListener {
+public class MapActivity extends AppCompatActivity implements AMap.OnMapClickListener, LocationSource, AMapLocationListener {
     private Button back;
     private MapView mapView;
     private AMap aMap;
     private LatLng selectedLocation; // 用户选择的坐标
+    private Intent intentS;
     private OnLocationChangedListener mListener;//声明位置监听
     private AMapLocationClient mlocationClient;//声明定位客户端
     private AMapLocationClientOption mLocationOption;//声明定位参数配置选项
@@ -54,7 +55,7 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
             this.finish();
         });
 
-        //隐私合规接口
+        // 隐私合规接口
         // MapsInitializer.updatePrivacyShow(this, true, true);
         // MapsInitializer.updatePrivacyAgree(this, true);
         AMapLocationClient.updatePrivacyAgree(this, true);
@@ -65,8 +66,7 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
         if (aMap == null) aMap = mapView.getMap();
         // 设置地图点击监听
         aMap.setOnMapClickListener(this);
-        aMap.setLocationSource(this);
-        //初始化地图控制器对象
+        // 初始化地图控制器对象
         // aMap.setTrafficEnabled(true);// 显示实时交通状况
         aMap.getUiSettings().setZoomControlsEnabled(false);//设置地图缩放按钮不显示
         //初始化定位蓝点样式类
@@ -85,6 +85,10 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
             if (selectedLocation != null) {
                 startMockLocationService();
             }
+        });
+
+        findViewById(R.id.btnTestLocation).setOnClickListener(v -> {
+
         });
     }
 
@@ -124,7 +128,6 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
 
     /**
      * 监听定位回调
-     * @param aMapLocation
      */
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
@@ -147,16 +150,16 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
                 aMapLocation.getStreetNum();//街道门牌号信息
                 aMapLocation.getCityCode();//城市编码
                 aMapLocation.getAdCode();//地区编码
+                aMapLocation.getAltitude();// 海拔
                 // 是否第一次定位
                 if (isFirstLoc) {
                     aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
                     currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
                     aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
-                    //点击定位按钮 能够将地图的中心移动到定位点
+                    // 点击定位按钮 能够将地图的中心移动到定位点
                     mListener.onLocationChanged(aMapLocation);
                     isFirstLoc = false;
                 }
-
             } else {
                 // 错误信息
                 CommonUtils.saveLog("AmapError location Error, ErrCode:"
@@ -171,25 +174,34 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
         selectedLocation = latLng;
         aMap.clear(); // 清除旧标记
         aMap.addMarker(new MarkerOptions().position(latLng));
-        Location myLocation = aMap.getMyLocation();
     }
 
     // 处理地图生命周期方法
     @Override
     protected void onResume() {
         mapView.onResume();
+        // if (mlocationClient != null && !isFirstLoc) {
+        //     new Handler().postDelayed(() -> mlocationClient.startLocation(), 100);
+        // }
         super.onResume();
     }
 
     @Override
     protected void onPause() {
         mapView.onPause();
+        if (mlocationClient != null && !isFirstLoc) {
+            new Handler().postDelayed(() -> mlocationClient.stopLocation(), 1000*10);
+        }
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         mapView.onDestroy();
+        if (intentS != null) {
+            stopService(intentS);
+        }
+        deactivate();
         super.onDestroy();
     }
     /**
@@ -202,9 +214,15 @@ public class MapActivity extends AppCompatActivity implements LocationSource, AM
     }
 
     private void startMockLocationService() {
-        Intent intent = new Intent(this, MockLocationService.class);
-        intent.putExtra("latitude", selectedLocation.latitude);
-        intent.putExtra("longitude", selectedLocation.longitude);
-        startService(intent);
+        if (intentS == null) {
+            intentS = new Intent(this, MockLocationService.class);
+        }
+        intentS.putExtra("latitude", selectedLocation.latitude);
+        intentS.putExtra("longitude", selectedLocation.longitude);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intentS);
+        } else {
+            startService(intentS);
+        }
     }
 }

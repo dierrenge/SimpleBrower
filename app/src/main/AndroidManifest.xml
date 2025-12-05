@@ -55,10 +55,11 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /><!--允许获取粗略位置，实时导航为必选-->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /><!--后台获取位置信息，若需后台定位或持续导航则必选-->
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" /><!--用于申请调用A-GPS模块,卫星定位加速-->
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"
-        tools:ignore="MockLocation" />
-    <!--设备兼容性-->
-    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" tools:ignore="MockLocation" /><!--模拟定位-->
+
+    <!--后台悬浮窗口-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".MyApplication"
@@ -247,6 +248,7 @@
             android:name=".service.MockLocationService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="location"
             android:permission="android.permission.ACCESS_MOCK_LOCATION" />
 
         <receiver
