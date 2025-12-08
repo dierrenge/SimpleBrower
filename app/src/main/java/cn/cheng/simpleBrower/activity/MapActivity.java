@@ -66,6 +66,8 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         if (aMap == null) aMap = mapView.getMap();
         // 设置地图点击监听
         aMap.setOnMapClickListener(this);
+        // 设置地图定位监听
+        aMap.setLocationSource(this);
         // 初始化地图控制器对象
         // aMap.setTrafficEnabled(true);// 显示实时交通状况
         aMap.getUiSettings().setZoomControlsEnabled(false);//设置地图缩放按钮不显示
@@ -151,15 +153,12 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
                 aMapLocation.getCityCode();//城市编码
                 aMapLocation.getAdCode();//地区编码
                 aMapLocation.getAltitude();// 海拔
-                // 是否第一次定位
-                if (isFirstLoc) {
-                    aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
-                    currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
-                    aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
-                    // 点击定位按钮 能够将地图的中心移动到定位点
-                    mListener.onLocationChanged(aMapLocation);
-                    isFirstLoc = false;
-                }
+                aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
+                currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
+                aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
+                // 点击定位按钮 能够将地图的中心移动到定位点
+                mListener.onLocationChanged(aMapLocation);
+                isFirstLoc = false; // 是否第一次定位
             } else {
                 // 错误信息
                 CommonUtils.saveLog("AmapError location Error, ErrCode:"
@@ -172,7 +171,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     @Override
     public void onMapClick(LatLng latLng) {
         selectedLocation = latLng;
-        aMap.clear(); // 清除旧标记
+        // aMap.clear(); // 清除旧标记
         aMap.addMarker(new MarkerOptions().position(latLng));
     }
 
@@ -180,9 +179,9 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     @Override
     protected void onResume() {
         mapView.onResume();
-        // if (mlocationClient != null && !isFirstLoc) {
-        //     new Handler().postDelayed(() -> mlocationClient.startLocation(), 100);
-        // }
+         if (mlocationClient != null && !isFirstLoc) {
+             mlocationClient.startLocation();
+         }
         super.onResume();
     }
 
@@ -190,7 +189,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     protected void onPause() {
         mapView.onPause();
         if (mlocationClient != null && !isFirstLoc) {
-            new Handler().postDelayed(() -> mlocationClient.stopLocation(), 1000*10);
+            mlocationClient.stopLocation();
         }
         super.onPause();
     }
