@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="50dp"
-    android:layout_height="50dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="10dp"
+    android:layout_height="10dp"
     android:background="@color/translucent"
     android:gravity="center"
     android:orientation="vertical">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        app:cardBackgroundColor="@color/white">
-    </androidx.cardview.widget.CardView>
+    <Button
+        android:id="@+id/locationBtn"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="@drawable/btn_bg4"
+        android:textColor="@color/gray0"
+        android:textSize="10dp"
+        android:text="" />
 
 </LinearLayout>

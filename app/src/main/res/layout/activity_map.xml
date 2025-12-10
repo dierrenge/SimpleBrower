@@ -38,7 +38,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.amap.api.maps.MapView
+        <com.amap.api.maps2d.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -57,6 +57,7 @@
             tools:ignore="MissingConstraints" />
         <Button
             android:id="@+id/btnTestLocation"
+            android:visibility="gone"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/btn_bg1"

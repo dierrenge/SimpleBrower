@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -12,13 +11,13 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
-import com.amap.api.maps.AMap;
-import com.amap.api.maps.CameraUpdateFactory;
-import com.amap.api.maps.LocationSource;
-import com.amap.api.maps.MapView;
-import com.amap.api.maps.model.LatLng;
-import com.amap.api.maps.model.MarkerOptions;
-import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps2d.AMap;
+import com.amap.api.maps2d.CameraUpdateFactory;
+import com.amap.api.maps2d.LocationSource;
+import com.amap.api.maps2d.MapView;
+import com.amap.api.maps2d.model.LatLng;
+import com.amap.api.maps2d.model.MarkerOptions;
+import com.amap.api.maps2d.model.MyLocationStyle;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -74,7 +73,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         //初始化定位蓝点样式类
         MyLocationStyle myLocationStyle;
         myLocationStyle = new MyLocationStyle();
-        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_MAP_ROTATE);//设置定位模式
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);//设置定位模式
         myLocationStyle.interval(2000); //只在连续定位模式下生效
         myLocationStyle.showMyLocation(true);//设置是否显示定位小蓝点
         // 将定位蓝点移动到屏幕中心
@@ -153,12 +152,15 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
                 aMapLocation.getCityCode();//城市编码
                 aMapLocation.getAdCode();//地区编码
                 aMapLocation.getAltitude();// 海拔
-                aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
-                currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
-                aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
-                // 点击定位按钮 能够将地图的中心移动到定位点
-                mListener.onLocationChanged(aMapLocation);
-                isFirstLoc = false; // 是否第一次定位
+                // 是否第一次定位
+                if (isFirstLoc) {
+                    aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
+                    currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
+                    aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
+                    // 点击定位按钮 能够将地图的中心移动到定位点
+                    mListener.onLocationChanged(aMapLocation);
+                    isFirstLoc = false;
+                }
             } else {
                 // 错误信息
                 CommonUtils.saveLog("AmapError location Error, ErrCode:"
@@ -171,7 +173,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     @Override
     public void onMapClick(LatLng latLng) {
         selectedLocation = latLng;
-        // aMap.clear(); // 清除旧标记
+        aMap.clear(); // 清除旧标记
         aMap.addMarker(new MarkerOptions().position(latLng));
     }
 
