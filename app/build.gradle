@@ -165,7 +165,7 @@ dependencies {
     implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x64:v10.2.0'
 
     // 高德地图
-    // implementation 'com.amap.api:navi-3dmap:7.4.0_3dmap7.4.0' // 清晰但过大
-    implementation 'com.amap.api:map2d:6.0.0' // 清理但模糊
+    // implementation 'com.amap.api:map2d:6.0.0' // 轻量但模糊
+    implementation 'com.amap.api:3dmap:7.4.0' // 清晰但偏大
     implementation 'com.amap.api:location:6.4.3' // 定位
 }
