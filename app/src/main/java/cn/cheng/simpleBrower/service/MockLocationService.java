@@ -34,6 +34,7 @@ import java.util.List;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.CoordinateTransform;
 
 public class MockLocationService extends Service {
     private WindowManager windowManager;
@@ -90,6 +91,10 @@ public class MockLocationService extends Service {
         // 获取经纬度
         lat = intent.getDoubleExtra("latitude", 0);
         lng = intent.getDoubleExtra("longitude", 0);
+        // 坐标系转换 GCJ-02（高德使用的火星坐标系）转WGS-84（手机使用的地球坐标系）
+        double[] ll = CoordinateTransform.gcj02ToWgs84(lng, lat);
+        lng = ll[0];
+        lat = ll[1];
         // 初始化虚拟位置设置
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         for (String providerStr : mockProviders) {
@@ -140,12 +145,7 @@ public class MockLocationService extends Service {
                 CommonUtils.saveLog("requestLocationUpdates=== 缺少权限");
                 return;
             }
-            locationManager.requestLocationUpdates(providerStr, 100, 1f, new LocationListener() {
-                    @Override
-                    public void onLocationChanged(@NonNull Location location) {
-                        // 当位置更新时触发（仅限自身应用）
-                    }
-                });
+            locationManager.requestLocationUpdates(providerStr, 100, 1f, locationListener);
             // 4、设置最新位置，一定要在requestLocationUpdate完成后进行，才能收到监听
             locationManager.setTestProviderLocation(providerStr, mockLocation);
 
@@ -153,6 +153,13 @@ public class MockLocationService extends Service {
             CommonUtils.saveLog(providerStr + "=====init======" + e.getMessage());
         }
     }
+
+    private LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            // 当位置更新时触发（仅限自身应用）
+        }
+    };
 
     // 创建虚拟位置
     private Location createLocation(String providerStr, double lat, double lng) {
@@ -218,12 +225,15 @@ public class MockLocationService extends Service {
         if (floatingView != null) windowManager.removeView(floatingView);
         stop = true;
         timer.removeCallbacks(runnable);
-        try {
-            for (String providerStr : mockProviders) {
-                locationManager.removeTestProvider(providerStr);
+        if (locationManager != null) {
+            locationManager.removeUpdates(locationListener);
+            try {
+                for (String providerStr : mockProviders) {
+                    locationManager.removeTestProvider(providerStr);
+                }
+            } catch (Exception e) {
+                CommonUtils.saveLog("removeTestProvider========" + e.getMessage());
             }
-        } catch (Exception e) {
-            CommonUtils.saveLog("removeTestProvider========" + e.getMessage());
         }
         super.onDestroy();
     }

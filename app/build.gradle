@@ -167,5 +167,5 @@ dependencies {
     // 高德地图
     // implementation 'com.amap.api:map2d:6.0.0' // 轻量但模糊
     implementation 'com.amap.api:3dmap:7.4.0' // 清晰但偏大
-    implementation 'com.amap.api:location:6.4.3' // 定位
+    implementation 'com.amap.api:location:6.5.1' // 定位
 }

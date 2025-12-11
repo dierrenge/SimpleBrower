@@ -16,6 +16,7 @@ import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.LatLng;
+import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 
@@ -38,6 +39,8 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     private AMapLocationClientOption mLocationOption;//声明定位参数配置选项
     private boolean isFirstLoc = true;//判断是否第一次定位
     private LatLng currentLatLng;//当前定位
+    private MyLocationStyle myLocationStyle;// 定位样式
+    private Marker marker; // 标记
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -45,18 +48,14 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         super.onCreate(savedInstanceState);
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
-
         setContentView(R.layout.activity_map);
-
-        // 返回
+        // 返回按钮
         back = findViewById(R.id.map_back);
         back.setOnClickListener(view -> {
             this.finish();
         });
 
-        // 隐私合规接口
-        // MapsInitializer.updatePrivacyShow(this, true, true);
-        // MapsInitializer.updatePrivacyAgree(this, true);
+        // 地图设置隐私合规接口
         AMapLocationClient.updatePrivacyAgree(this, true);
         AMapLocationClient.updatePrivacyShow(this, true, true);
         // 创建地图
@@ -69,27 +68,20 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         aMap.setLocationSource(this);
         // 初始化地图控制器对象
         // aMap.setTrafficEnabled(true);// 显示实时交通状况
-        aMap.getUiSettings().setZoomControlsEnabled(false);//设置地图缩放按钮不显示
+        aMap.getUiSettings().setZoomControlsEnabled(false);// 设置地图缩放按钮不显示
         //初始化定位蓝点样式类
-        MyLocationStyle myLocationStyle;
         myLocationStyle = new MyLocationStyle();
-        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_MAP_ROTATE);//设置定位模式
-        myLocationStyle.interval(2000); //只在连续定位模式下生效
-        myLocationStyle.showMyLocation(true);//设置是否显示定位小蓝点
-        // 将定位蓝点移动到屏幕中心
-        myLocationStyle.anchor(0.5f, 0.5f).myLocationType(MyLocationStyle.LOCATION_TYPE_SHOW);
+        myLocationStyle.interval(2000); // 2秒定位一次 只在连续定位模式下生效
+        myLocationStyle.showMyLocation(true);// 设置是否显示定位指针
+        // myLocationStyle.anchor(0.5f, 0.5f); // 将定位指针移动到屏幕中心
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER); // 设置定位模式(定位、但不会移动到地图中心点，定位指针依照设备方向旋转，并且会跟随设备移动)
         aMap.setMyLocationStyle(myLocationStyle);
         aMap.setMyLocationEnabled(true);// 是否启动显示定位蓝点,默认是false。
-
         // 设置虚拟位置按钮
         findViewById(R.id.btnSetMockLocation).setOnClickListener(v -> {
             if (selectedLocation != null) {
                 startMockLocationService();
             }
-        });
-
-        findViewById(R.id.btnTestLocation).setOnClickListener(v -> {
-
         });
     }
 
@@ -104,6 +96,11 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
             try {
                 mLocationOption = new AMapLocationClientOption();//初始化定位参数
                 mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//设置为高精度定位模式
+                mLocationOption.setInterval(2000); // 2秒定位一次
+                mLocationOption.setNeedAddress(true); // 返回地址信息
+                mLocationOption.setWifiScan(true); // 允许WIFI扫描
+                mLocationOption.setSensorEnable(true); // 启用传感器获取方向
+                mLocationOption.setLocationCacheEnable(false); // 关闭缓存
                 mlocationClient = new AMapLocationClient(this);//声明定位客户端
                 mlocationClient.setLocationListener(this);//设置定位回调监听
                 mlocationClient.setLocationOption(mLocationOption);//设置定位参数
@@ -114,6 +111,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
 
         }
     }
+
     /**
      * 停止定位
      */
@@ -152,15 +150,16 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
                 aMapLocation.getCityCode();//城市编码
                 aMapLocation.getAdCode();//地区编码
                 aMapLocation.getAltitude();// 海拔
-                // 是否第一次定位
+                currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
+                // 首次定位移动到当前位置
                 if (isFirstLoc) {
-                    aMap.moveCamera(CameraUpdateFactory.zoomTo(16));//设置缩放级别
-                    currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
-                    aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));//移动到定位点
-                    // 点击定位按钮 能够将地图的中心移动到定位点
-                    mListener.onLocationChanged(aMapLocation);
-                    isFirstLoc = false;
+                    aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 16));
                 }
+                // 移动地图中心点
+                // aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));
+                // 更新地图指针位置
+                mListener.onLocationChanged(aMapLocation);
+                isFirstLoc = false;
             } else {
                 // 错误信息
                 CommonUtils.saveLog("AmapError location Error, ErrCode:"
@@ -173,8 +172,11 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     @Override
     public void onMapClick(LatLng latLng) {
         selectedLocation = latLng;
-        aMap.clear(); // 清除旧标记
-        aMap.addMarker(new MarkerOptions().position(latLng));
+        if (marker != null) {
+            marker.remove();// 清除旧标记
+        }
+        marker = aMap.addMarker(new MarkerOptions().position(latLng));
+        marker.showInfoWindow();// 显示信息窗口
     }
 
     // 处理地图生命周期方法
