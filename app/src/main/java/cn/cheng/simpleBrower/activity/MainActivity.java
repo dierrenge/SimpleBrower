@@ -94,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
         mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         mComponentName = new ComponentName(this, MyDeviceAdminReceiver.class);
 
+        // 注册权限请求的返回监听
+        initFilesAccessLauncher();
+
         // 状态栏设置透明
         SysWindowUi.hideStatusNavigationBar(this, false);
 
@@ -112,23 +115,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initSetting() {
-        // android 12的sd卡读写
-        if (Build.VERSION.SDK_INT >= 29) {
-            //启动线程开始执行
-            new Handler().post(() -> {
-                // 设置默认配置
-                SysBean sysBean = new SysBean();
-                sysBean.setFlagGif(true);
-                sysBean.setFlagVideo(false);
-                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
-
-                init();
-            });
-        }
-    }
-
-    private void init() {
+    private void initFilesAccessLauncher() {
         // 注册权限请求的返回监听
         allFilesAccessLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -153,6 +140,25 @@ public class MainActivity extends AppCompatActivity {
                     if (intent != null) this.startActivity(intent);
                 }
         );
+    }
+
+    private void initSetting() {
+        // android 12的sd卡读写
+        if (Build.VERSION.SDK_INT >= 29) {
+            //启动线程开始执行
+            new Handler().post(() -> {
+                // 设置默认配置
+                SysBean sysBean = new SysBean();
+                sysBean.setFlagGif(true);
+                sysBean.setFlagVideo(false);
+                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
+
+                init();
+            });
+        }
+    }
+
+    private void init() {
         // 初始化控件 并绑定事件
         lockBtn = findViewById(R.id.lockBtn);
         lockBtn.setOnClickListener(view -> {
