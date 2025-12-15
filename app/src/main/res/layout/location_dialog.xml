@@ -2,17 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="10dp"
     android:layout_height="10dp"
-    android:background="@color/translucent"
+    android:background="@color/transparent"
     android:gravity="center"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/locationBtn"
+    <LinearLayout
         android:layout_width="10dp"
         android:layout_height="10dp"
-        android:background="@drawable/btn_bg4"
-        android:textColor="@color/gray0"
-        android:textSize="10dp"
-        android:text="" />
+        android:background="@drawable/btn_bg4"/>
 
 </LinearLayout>

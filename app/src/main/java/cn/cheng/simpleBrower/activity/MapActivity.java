@@ -38,6 +38,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     private AMapLocationClient mlocationClient;//声明定位客户端
     private AMapLocationClientOption mLocationOption;//声明定位参数配置选项
     private boolean isFirstLoc = true;//判断是否第一次定位
+    private double currentAltitude;//当前海拔
     private LatLng currentLatLng;//当前定位
     private MyLocationStyle myLocationStyle;// 定位样式
     private Marker marker; // 标记
@@ -73,7 +74,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         myLocationStyle = new MyLocationStyle();
         myLocationStyle.interval(2000); // 2秒定位一次 只在连续定位模式下生效
         myLocationStyle.showMyLocation(true);// 设置是否显示定位指针
-        // myLocationStyle.anchor(0.5f, 0.5f); // 将定位指针移动到屏幕中心
+        myLocationStyle.anchor(0.5f, 0.5f); // 将定位指针移动到屏幕中心
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER); // 设置定位模式(定位、但不会移动到地图中心点，定位指针依照设备方向旋转，并且会跟随设备移动)
         aMap.setMyLocationStyle(myLocationStyle);
         aMap.setMyLocationEnabled(true);// 是否启动显示定位蓝点,默认是false。
@@ -100,7 +101,9 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
                 mLocationOption.setNeedAddress(true); // 返回地址信息
                 mLocationOption.setWifiScan(true); // 允许WIFI扫描
                 mLocationOption.setSensorEnable(true); // 启用传感器获取方向
+                mLocationOption.setOffset(true); // 允许坐标偏移纠正
                 mLocationOption.setLocationCacheEnable(false); // 关闭缓存
+                mLocationOption.setHttpTimeOut(20000); // 超时时间
                 mlocationClient = new AMapLocationClient(this);//声明定位客户端
                 mlocationClient.setLocationListener(this);//设置定位回调监听
                 mlocationClient.setLocationOption(mLocationOption);//设置定位参数
@@ -133,23 +136,20 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         if (mListener != null && aMapLocation != null) {
             if (aMapLocation.getErrorCode() == 0) {
                 //定位成功回调信息，设置相关消息
-                aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见官方定位类型表
-                aMapLocation.getLatitude();//获取纬度
-                aMapLocation.getLongitude();//获取经度
-                aMapLocation.getAccuracy();//获取精度信息
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Date date = new Date(aMapLocation.getTime());
-                df.format(date);//定位时间
-                aMapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
-                aMapLocation.getCountry();//国家信息
-                aMapLocation.getProvince();//省信息
-                aMapLocation.getCity();//城市信息
-                aMapLocation.getDistrict();//城区信息
-                aMapLocation.getStreet();//街道信息
-                aMapLocation.getStreetNum();//街道门牌号信息
-                aMapLocation.getCityCode();//城市编码
-                aMapLocation.getAdCode();//地区编码
-                aMapLocation.getAltitude();// 海拔
+                // aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见官方定位类型表
+                // aMapLocation.getLatitude();//获取纬度
+                // aMapLocation.getLongitude();//获取经度
+                // aMapLocation.getAccuracy();//获取精度信息
+                // aMapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
+                // aMapLocation.getCountry();//国家信息
+                // aMapLocation.getProvince();//省信息
+                // aMapLocation.getCity();//城市信息
+                // aMapLocation.getDistrict();//城区信息
+                // aMapLocation.getStreet();//街道信息
+                // aMapLocation.getStreetNum();//街道门牌号信息
+                // aMapLocation.getCityCode();//城市编码
+                // aMapLocation.getAdCode();//地区编码
+                currentAltitude = aMapLocation.getAltitude();// 海拔
                 currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
                 // 首次定位移动到当前位置
                 if (isFirstLoc) {
@@ -222,6 +222,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         }
         intentS.putExtra("latitude", selectedLocation.latitude);
         intentS.putExtra("longitude", selectedLocation.longitude);
+        intentS.putExtra("altitude", currentAltitude);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intentS);
         } else {
