@@ -72,7 +72,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         aMap.getUiSettings().setZoomControlsEnabled(false);// 设置地图缩放按钮不显示
         //初始化定位蓝点样式类
         myLocationStyle = new MyLocationStyle();
-        myLocationStyle.interval(2000); // 2秒定位一次 只在连续定位模式下生效
+        myLocationStyle.interval(500); // 半秒定位一次 只在连续定位模式下生效
         myLocationStyle.showMyLocation(true);// 设置是否显示定位指针
         myLocationStyle.anchor(0.5f, 0.5f); // 将定位指针移动到屏幕中心
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER); // 设置定位模式(定位、但不会移动到地图中心点，定位指针依照设备方向旋转，并且会跟随设备移动)
@@ -97,13 +97,14 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
             try {
                 mLocationOption = new AMapLocationClientOption();//初始化定位参数
                 mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);//设置为高精度定位模式
-                mLocationOption.setInterval(2000); // 2秒定位一次
+                mLocationOption.setInterval(500); // 半秒定位一次
                 mLocationOption.setNeedAddress(true); // 返回地址信息
                 mLocationOption.setWifiScan(true); // 允许WIFI扫描
                 mLocationOption.setSensorEnable(true); // 启用传感器获取方向
                 mLocationOption.setOffset(true); // 允许坐标偏移纠正
                 mLocationOption.setLocationCacheEnable(false); // 关闭缓存
-                mLocationOption.setHttpTimeOut(20000); // 超时时间
+                mLocationOption.setHttpTimeOut(3000); // 超时时间
+                // mLocationOption.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Sport); // 运动场景优化
                 mlocationClient = new AMapLocationClient(this);//声明定位客户端
                 mlocationClient.setLocationListener(this);//设置定位回调监听
                 mlocationClient.setLocationOption(mLocationOption);//设置定位参数

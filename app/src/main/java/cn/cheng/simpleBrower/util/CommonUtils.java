@@ -91,6 +91,7 @@ import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
 public class CommonUtils {
 
     public static final int STORAGE_PERMISSION_REQUEST_CODE = 1;
+    public static final int LOCATION_PERMISSION_REQUEST_CODE = 2;
 
     /**
      * 删除List集合 指定角标元素
@@ -810,6 +811,36 @@ public class CommonUtils {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 定位 权限检查
+     *
+     * @param context
+     * @return
+     */
+    public static boolean hasLocationPermissions(Context context) {
+        return ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * 定位 权限申请
+     *
+     * @param context
+     */
+    public static void requestLocationPermissions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
+        String[] permissions;
+        // Android 13需单独请求前台定位权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION};
+        } else {
+            permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+        }
+        ActivityCompat.requestPermissions(context, permissions, LOCATION_PERMISSION_REQUEST_CODE);
     }
 
     /**

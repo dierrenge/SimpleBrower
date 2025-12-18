@@ -264,8 +264,12 @@ public class MainActivity extends AppCompatActivity {
 
         mapBtn = this.findViewById(R.id.mapBtn);
         mapBtn.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, MapActivity.class);
-            this.startActivity(intent);
+            if (CommonUtils.hasLocationPermissions(this)) {
+                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                this.startActivity(intent);
+            } else {
+                CommonUtils.requestLocationPermissions(this, allFilesAccessLauncher);
+            }
         });
     }
 
@@ -320,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
         intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mComponentName);
         intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.device_admin_activation_message));
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, 999);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
@@ -396,13 +400,52 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
                     }
-
+                }
+                break;
+            case CommonUtils.LOCATION_PERMISSION_REQUEST_CODE:
+                if (permissions.length > 0) {
+                    for (int i = 0; i < permissions.length; i++) {
+                        if (grantResults.length > 0 && grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                            // 权限授权失败
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
+                                // 返回 true，Toast 提示
+                                MyToast.getInstance("无法访问该权限").show();
+                            } else {
+                                // 返回 false，需要显示对话框引导跳转到设置手动授权
+                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "使用该功能需前往授权精准定位", "授权", "取消");
+                                feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                    @Override
+                                    public void close() {
+                                        feetDialog.dismiss();
+                                    }
+                                    @Override
+                                    public void ok(String txt) {
+                                        openAppSettings();
+                                        feetDialog.dismiss();
+                                    }
+                                });
+                                feetDialog.show();
+                            }
+                            return;
+                        }
+                    }
                 }
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
-
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            // 备用方案：跳转通用设置
+            intent = new Intent(Settings.ACTION_SETTINGS);
+            startActivity(intent);
+        }
+    }
 
 }
