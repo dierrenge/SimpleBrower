@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                             // 权限授权失败
                             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
                                 // 返回 true，Toast 提示
-                                MyToast.getInstance("无法访问该权限").show();
+                                MyToast.getInstance("缺少必要权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
                                 FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");
@@ -404,12 +404,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case CommonUtils.LOCATION_PERMISSION_REQUEST_CODE:
                 if (permissions.length > 0) {
+                    int pass = 0;
                     for (int i = 0; i < permissions.length; i++) {
                         if (grantResults.length > 0 && grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             // 权限授权失败
                             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
                                 // 返回 true，Toast 提示
-                                MyToast.getInstance("无法访问该权限").show();
+                                MyToast.getInstance("缺少必要权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
                                 FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "使用该功能需前往授权精准定位", "授权", "取消");
@@ -428,6 +429,14 @@ public class MainActivity extends AppCompatActivity {
                             }
                             return;
                         }
+                        if (grantResults.length > 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                            pass++;
+                        }
+                    }
+                    if (pass == grantResults.length) {
+                        // 授权通过
+                        Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                        this.startActivity(intent);
                     }
                 }
                 break;

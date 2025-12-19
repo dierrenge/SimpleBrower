@@ -5,6 +5,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AppOpsManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -841,6 +842,104 @@ public class CommonUtils {
             permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
         }
         ActivityCompat.requestPermissions(context, permissions, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    /**
+     * 悬浮窗 权限检查
+     *
+     * @param context
+     * @return
+     */
+    public static boolean hasOverlayPermission(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(context);
+        }
+        return true; // Android 6.0以下默认有权限
+    }
+
+    /**
+     * 悬浮窗 权限申请
+     *
+     * @param context
+     */
+    public static void requestOverlayPermission(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
+        FeetDialog feetDialog = new FeetDialog(context, "授权", "显示悬浮窗提高模拟定位稳定性", "授权", "取消");
+        feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+            @Override
+            public void close() {
+                feetDialog.dismiss();
+            }
+            @Override
+            public void ok(String txt) {
+                feetDialog.dismiss();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + context.getPackageName()));
+                allFilesAccessLauncher.launch(intent);
+            }
+        });
+        feetDialog.show();
+    }
+
+    /**
+     * 是否为虚拟定位应用
+     *
+     * @param context
+     */
+    public static boolean isMockLocationApp(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 使用 AppOpsManager 检测模拟位置权限
+            AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            try {
+                int mode = appOps.checkOpNoThrow(
+                        AppOpsManager.OPSTR_MOCK_LOCATION,
+                        android.os.Process.myUid(),
+                        context.getPackageName()
+                );
+                return mode == AppOpsManager.MODE_ALLOWED;
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            // 旧版 Android 的检测方式
+            return Settings.Secure.getInt(context.getContentResolver(),
+                    Settings.Secure.ALLOW_MOCK_LOCATION, 0) != 0;
+        }
+    }
+
+    /**
+     * 跳转开发者选项界面
+     *
+     * @param context
+     */
+    public static void openDeveloperOptions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
+        FeetDialog feetDialog = new FeetDialog(context, "授权", "需在开发者选项设置虚拟位置应用", "设置", "取消");
+        feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+            @Override
+            public void close() {
+                feetDialog.dismiss();
+            }
+            @Override
+            public void ok(String txt) {
+                try {
+                    // 标准开发者选项 Intent
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                    // 添加 FLAG_ACTIVITY_NEW_TASK 确保从非 Activity 上下文启动
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    // 部分厂商定制 ROM 的特殊处理
+                    if (intent.resolveActivity(context.getPackageManager()) == null) {
+                        intent = new Intent(Settings.ACTION_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    }
+                    allFilesAccessLauncher.launch(intent);
+                } catch (Exception e) {
+                    // 备用方案：打开常规设置
+                    context.startActivity(new Intent(Settings.ACTION_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                }
+                feetDialog.dismiss();
+            }
+        });
+        feetDialog.show();
     }
 
     /**

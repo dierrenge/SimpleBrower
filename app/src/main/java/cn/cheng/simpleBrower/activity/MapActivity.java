@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.amap.api.location.AMapLocation;
@@ -24,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.MockLocationService;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -42,6 +47,8 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     private LatLng currentLatLng;//当前定位
     private MyLocationStyle myLocationStyle;// 定位样式
     private Marker marker; // 标记
+
+    ActivityResultLauncher<Intent> allFilesAccessLauncher;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -77,13 +84,29 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         myLocationStyle.anchor(0.5f, 0.5f); // 将定位指针移动到屏幕中心
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER); // 设置定位模式(定位、但不会移动到地图中心点，定位指针依照设备方向旋转，并且会跟随设备移动)
         aMap.setMyLocationStyle(myLocationStyle);
-        aMap.setMyLocationEnabled(true);// 是否启动显示定位蓝点,默认是false。
+        aMap.setMyLocationEnabled(true);// 是否启动显示定位蓝点,默认是false
+        // 注册权限请求的返回监听
+        initFilesAccessLauncher();
         // 设置虚拟位置按钮
         findViewById(R.id.btnSetMockLocation).setOnClickListener(v -> {
             if (selectedLocation != null) {
-                startMockLocationService();
+                checkMockLocation();
+            } else {
+                MyToast.getInstance("请先选择定位地点").show();
             }
         });
+    }
+
+    private void initFilesAccessLauncher() {
+        // 注册权限请求的返回监听
+        allFilesAccessLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> { // 授权返回后的处理
+                    if (CommonUtils.isMockLocationApp(this) && CommonUtils.hasOverlayPermission(this)) {
+                        startMockLocationService();
+                    }
+                }
+        );
     }
 
     /**
@@ -215,6 +238,22 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     protected void onSaveInstanceState(Bundle outState) {
         mapView.onSaveInstanceState(outState);//保存地图当前的状态
         super.onSaveInstanceState(outState);
+    }
+
+    private void checkMockLocation() {
+        if (CommonUtils.isMockLocationApp(this)) {
+            checkOverlayPermission();
+        } else {
+            CommonUtils.openDeveloperOptions(this, allFilesAccessLauncher);
+        }
+    }
+
+    private void checkOverlayPermission() {
+        if (CommonUtils.hasOverlayPermission(this)) {
+            startMockLocationService();
+        } else {
+            CommonUtils.requestOverlayPermission(this, allFilesAccessLauncher);
+        }
     }
 
     private void startMockLocationService() {
