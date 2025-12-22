@@ -43,6 +43,8 @@ public class MyApplication extends Application {
     // 标记打开txtActivity
     private static boolean openFlag;
 
+    private static String cookies;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -170,5 +172,13 @@ public class MyApplication extends Application {
 
     public static void setOpenFlag(boolean openFlag) {
         MyApplication.openFlag = openFlag;
+    }
+
+    public static void setCookies(String value) {
+        cookies = value;
+    }
+
+    public static String getCoolies() {
+        return cookies;
     }
 }
