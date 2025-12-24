@@ -84,6 +84,7 @@ import java.util.stream.Stream;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.DownloadActivity;
+import cn.cheng.simpleBrower.bean.LocationBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
@@ -339,6 +340,56 @@ public class CommonUtils {
         } catch (Exception e) {
             CommonUtils.saveLog("downloadListFileWalk==========" + e.getMessage());
         }
+    }
+
+    /**
+     * 磁盘中读取定位记录
+     */
+    public static List<LocationBean> locationListFileWalk() {
+        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        dir += "/SimpleBrower/0_like/locationList";
+        List<LocationBean> fileList = new ArrayList<>();
+        try {
+            // 过滤获取磁盘列表
+            List<String> fileList2 = new ArrayList<>();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                try (Stream<Path> paths = Files.walk(Paths.get(dir), 1)) { // 递归指定层数目录
+                    paths.map(path -> path.toString()).filter(path -> {
+                        if (path.contains("/") && !path.endsWith("/") && path.contains(".")) {
+                            return true;
+                        }
+                        return false;
+                    }).forEach(fileList2::add);
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+            }
+            // 读取列表文件
+            for (String path : fileList2) {
+                LocationBean oldBean = CommonUtils.readObjectFromLocal(LocationBean.class, path);
+                if (oldBean != null) {
+                    fileList.add(oldBean);
+                }
+            }
+            // 排序
+            Collections.sort(fileList, new Comparator<LocationBean>() {
+                @Override
+                public int compare(LocationBean s1, LocationBean s2) {
+                    String o1 = s1.getTime();
+                    String o2 = s2.getTime();
+                    try {
+                        long l1 = Long.parseLong(o1);
+                        long l2 = Long.parseLong(o2);
+                        return l2-l1 > 0 ? 1 : -1;
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+        } catch (Exception e) {
+            CommonUtils.saveLog("locationListFileWalk==========" + e.getMessage());
+        }
+        return fileList;
     }
 
     /**

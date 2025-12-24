@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.widget.Button;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,9 +27,11 @@ import com.amap.api.maps.model.MyLocationStyle;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.bean.LocationBean;
+import cn.cheng.simpleBrower.custom.LocationListDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.MockLocationService;
 import cn.cheng.simpleBrower.util.CommonUtils;
@@ -43,11 +47,12 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
     private AMapLocationClient mlocationClient;//声明定位客户端
     private AMapLocationClientOption mLocationOption;//声明定位参数配置选项
     private boolean isFirstLoc = true;//判断是否第一次定位
+    private String currentAddress;//当前地址
     private double currentAltitude;//当前海拔
     private LatLng currentLatLng;//当前定位
     private MyLocationStyle myLocationStyle;// 定位样式
     private Marker marker; // 标记
-
+    List<LocationBean> locationList; // 历史定位记录
     ActivityResultLauncher<Intent> allFilesAccessLauncher;
 
     @SuppressLint("MissingInflatedId")
@@ -94,6 +99,22 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
             } else {
                 MyToast.getInstance("请先选择定位地点").show();
             }
+        });
+        // 历史定位记录
+        locationList = CommonUtils.locationListFileWalk();
+        findViewById(R.id.btnRecord).setOnClickListener(v -> {
+            LocationListDialog dialog = new LocationListDialog(this, locationList);
+            dialog.setOnCallListener(bean -> {
+                LatLng latLng = new LatLng(bean.getAltitude(), bean.getLongitude(), false);
+                // 标记
+                onMapClick(latLng);
+                currentAltitude = bean.getAltitude();
+                // 移动到标记点
+                aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));
+                // 定位
+                checkMockLocation();
+            });
+            dialog.show();
         });
     }
 
@@ -173,6 +194,7 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
                 // aMapLocation.getStreetNum();//街道门牌号信息
                 // aMapLocation.getCityCode();//城市编码
                 // aMapLocation.getAdCode();//地区编码
+                currentAddress = aMapLocation.getAddress();
                 currentAltitude = aMapLocation.getAltitude();// 海拔
                 currentLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
                 // 首次定位移动到当前位置
@@ -268,5 +290,23 @@ public class MapActivity extends AppCompatActivity implements AMap.OnMapClickLis
         } else {
             startService(intentS);
         }
+        new Handler().post(() -> {
+            // 保存定位记录（不重复）
+            String name = ""+selectedLocation.longitude+selectedLocation.latitude;
+            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+            String url = dir + "/SimpleBrower/0_like/locationList/" + name + ".json";
+            LocationBean oldBean = CommonUtils.readObjectFromLocal(LocationBean.class, url);
+            if (oldBean == null) {
+                LocationBean bean = new LocationBean();
+                bean.setAddress(currentAddress);
+                bean.setAltitude(currentAltitude);
+                bean.setLongitude(selectedLocation.longitude);
+                bean.setLatitude(selectedLocation.latitude);
+                bean.setTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+                CommonUtils.writeObjectIntoLocal("locationList", name, bean);
+            }
+            // 更新记录
+            locationList = CommonUtils.locationListFileWalk();
+        });
     }
 }

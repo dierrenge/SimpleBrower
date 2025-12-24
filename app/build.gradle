@@ -66,7 +66,7 @@ android {
 
     defaultConfig {
         applicationId "cn.cheng.simpleBrower"
-        minSdk 24
+        minSdk 26
         targetSdk 35
         versionCode 3
         //这里 注意啦 调用方法
