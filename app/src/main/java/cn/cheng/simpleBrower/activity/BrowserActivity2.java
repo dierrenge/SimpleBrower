@@ -206,21 +206,24 @@ public class BrowserActivity2 extends AppCompatActivity {
     private void goBackOrForward(String type, ValueCallback<Boolean> callback) {
         preFragment = backStack.peek();
         WebView webView = preFragment.getWebView();
-        // 暂停跳转前的webView
-        webView.onPause();
-        webView.pauseTimers();
         // System.out.println("=================================" + webView.getUrl());
         if ("back".equals(type)) {
             if (webView.canGoBack()) {
                 forwardStack.clear(); // webView能返回说明会使用其自身的前进栈，故清空我们的fragment前进栈
                 webView.goBack();
             } else {
+                // 暂停跳转前的webView
+                webView.onPause();
+                webView.pauseTimers();
                 callback.onReceiveValue(true);
             }
         } else if ("forward".equals(type)) {
             if (webView.canGoForward()) {
                 webView.goForward();
             } else {
+                // 暂停跳转前的webView
+                webView.onPause();
+                webView.pauseTimers();
                 callback.onReceiveValue(true);
             }
         }

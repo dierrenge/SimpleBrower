@@ -14,12 +14,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
+import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
@@ -135,6 +137,10 @@ public class WebViewFragment extends Fragment {
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // 忽略强制网络策略: 在主线程中可以访问网络
+        StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
         progressHandler = new Handler();
         viewViewLayout = view.findViewById(R.id.viewViewLayout);
@@ -598,6 +604,7 @@ public class WebViewFragment extends Fragment {
         }
 
         // 设置网页页面拦截
+        @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
@@ -610,7 +617,8 @@ public class WebViewFragment extends Fragment {
             }
             // 仅处理用户触发的 非重定向 主框架请求
             if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
-                    && !request.isRedirect() && request.isForMainFrame()) {
+                    && !request.isRedirect() && request.isForMainFrame() &&
+                    !CommonUtils.checkRedirect(url, 1800)) {
                 if (callListener != null) {
                     // 暂停webView
                     new Handler().postDelayed(() -> {

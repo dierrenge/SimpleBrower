@@ -646,6 +646,23 @@ public class CommonUtils {
         return format;
     }
 
+    // 获取url中的一级域名
+    public static String getUrlDomain(String url) {
+        String[] split = url.split("//");
+        String domain = split[1].split("/")[0];
+        if (domain.indexOf(".") != domain.lastIndexOf(".")) {
+            domain = domain.substring(domain.indexOf("."));
+        }
+        return domain;
+    }
+
+    // 获取url中的http协议及域名
+    public static String getUrlHead(String url) {
+        String[] split = url.split("//");
+        String domain = split[1].split("/")[0];
+        return split[0] + "//" + domain;
+    }
+
     /**
      * 文件删除
      *
@@ -1862,5 +1879,34 @@ public class CommonUtils {
         homeIntent.addCategory(Intent.CATEGORY_HOME);
         homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(homeIntent);
+    }
+
+    // 判断是否重定向
+    public static boolean checkRedirect(String url, int timeoutMillisecond) {
+        // Long timeStart = System.currentTimeMillis();
+        HttpURLConnection httpURLConnection = null;
+        try {
+            URL url2 = new URL(url);
+            httpURLConnection = (HttpURLConnection) url2.openConnection();
+            httpURLConnection.setInstanceFollowRedirects(false); // 不自动重定向
+            httpURLConnection.setConnectTimeout(timeoutMillisecond);
+            httpURLConnection.setReadTimeout(timeoutMillisecond);
+            httpURLConnection.connect();
+            // 获取格式
+            int code = httpURLConnection.getResponseCode();
+            if (code == HttpURLConnection.HTTP_MOVED_PERM || code == HttpURLConnection.HTTP_MOVED_TEMP) {
+                // String location = httpURLConnection.getHeaderField("Location");
+                return true;
+                // Long timeEnd = System.currentTimeMillis();
+                // System.out.println("===耗时：" + (timeEnd - timeStart)/1000F + "秒");
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
+            }
+        }
+        return false;
     }
 }
