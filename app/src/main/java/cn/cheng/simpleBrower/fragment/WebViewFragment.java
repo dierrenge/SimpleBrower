@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
-import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
@@ -136,17 +135,6 @@ public class WebViewFragment extends Fragment {
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // 获取 URL 参数
-        Bundle args = getArguments();
-        if (args != null) {
-            jumpUrl = args.getString("url");
-            if (jumpUrl != null) {
-                // 复用coolies
-                String coolies = MyApplication.getCoolies();
-                if (coolies != null) CookieManager.getInstance().setCookie(jumpUrl, coolies);
-            }
-        }
-        // 初始化
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
         progressHandler = new Handler();
         viewViewLayout = view.findViewById(R.id.viewViewLayout);
@@ -158,11 +146,17 @@ public class WebViewFragment extends Fragment {
         progressBg = view.findViewById(R.id.progressBg);
         webView = view.findViewById(R.id.webView);
         video_fullView = (FrameLayout) view.findViewById(R.id.video_fullView);
-        // 跳转目标网址
-        if (jumpUrl != null) {
-            url_box2.setText(jumpUrl);
-            webView.loadUrl(jumpUrl);
+
+        // 获取 URL 参数
+        Bundle args = getArguments();
+        if (args != null) {
+            jumpUrl = args.getString("url");
+            if (jumpUrl != null) {
+                url_box2.setText(jumpUrl);
+                webView.loadUrl(jumpUrl);
+            }
         }
+
         // 软件盘回车响应
         url_box2.setOnEditorActionListener((TextView v, int actionId, KeyEvent event) -> {
             if (actionId == KeyEvent.ACTION_DOWN || actionId == EditorInfo.IME_ACTION_DONE) {
@@ -400,15 +394,6 @@ public class WebViewFragment extends Fragment {
             }
         }
 
-        /*
-        * 移动设备上开启USB调试模式
-        * 用USB数据线连接电脑
-        * 电脑浏览器输入edge://inspect/#devices
-        * */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true); // 启用调试
-        }
-
         // 设置下载监听
         webView.setDownloadListener(new DownloadListener() {
             @Override
@@ -516,9 +501,6 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            CookieManager cookieManager = CookieManager.getInstance();
-            String cookies = cookieManager.getCookie(url);
-            MyApplication.setCookies(cookies); // 记录coolies
             MyApplication.setUrl(url); // 记录为历史网址
             hideProgress();
             super.onPageFinished(view, url);
@@ -629,19 +611,6 @@ public class WebViewFragment extends Fragment {
             // 仅处理用户触发的 非重定向 主框架请求
             if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
                     && !request.isRedirect() && request.isForMainFrame()) {
-                int size = MyApplication.getUrls().size();
-                if (size > 0) {
-                    String currentUrl = MyApplication.getUrls().get(size - 1); // 当前网址
-                    if (currentUrl.contains("=http")) {
-                        // 当前网址中包含要跳转的网址，可能是登录或退出的跳转，由WebView 自行处理
-                        try {
-                            String str = URLDecoder.decode(currentUrl, "utf-8");
-                            if (str.lastIndexOf(url) > 0) {
-                                return false;
-                            }
-                        } catch (Exception e) {}
-                    }
-                }
                 if (callListener != null) {
                     // 暂停webView
                     new Handler().postDelayed(() -> {

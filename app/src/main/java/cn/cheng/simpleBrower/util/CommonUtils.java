@@ -646,13 +646,6 @@ public class CommonUtils {
         return format;
     }
 
-    // 获取url中的域名前缀
-    public static String getUrlDomainName(String url) {
-        String[] split = url.split("//");
-        String domainName = split[1].split("/")[0];
-        return split[0] + "//" + domainName;
-    }
-
     /**
      * 文件删除
      *
