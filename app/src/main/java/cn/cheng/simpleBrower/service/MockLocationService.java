@@ -99,7 +99,7 @@ public class MockLocationService extends Service {
         // 获取经纬度
         lat = intent.getDoubleExtra("latitude", 36.667662);
         lng = intent.getDoubleExtra("longitude", 117.027707);
-        altitude = intent.getDoubleExtra("currentAltitude", 55.0D);
+        altitude = intent.getDoubleExtra("altitude", 55.0D);
         // 坐标系转换 GCJ-02（高德使用的火星坐标系）转WGS-84（手机使用的地球坐标系）
         double[] ll = CoordinateTransform.gcj02ToWgs84(lng, lat);
         lng = ll[0];

@@ -1,10 +1,8 @@
 package cn.cheng.simpleBrower.custom;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,19 +14,15 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Collections;
 import java.util.List;
 
-import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.LocationBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
@@ -108,10 +102,8 @@ public class LocationListDialog extends Dialog {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 // 设置TextView显示数据
-                TextView textView = holder.itemView.findViewById(R.id.item_address);
-                textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                NoCutPasteTextView textView = holder.itemView.findViewById(R.id.item_address);
                 Button button = holder.itemView.findViewById(R.id.item_location);
-
                 LocationBean bean = locationList.get(position);
                 if (bean == null) return;
                 textView.setText(bean.getAddress());
