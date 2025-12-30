@@ -21,20 +21,12 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
@@ -47,7 +39,7 @@ public class DownloadActivity extends AppCompatActivity {
 
     private Button back;
 
-    private Button change;
+    private LinearLayout download_file;
 
     private LinearLayout layout;
 
@@ -61,6 +53,8 @@ public class DownloadActivity extends AppCompatActivity {
 
     private volatile int notificationNum; // 消息数
 
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,12 +69,17 @@ public class DownloadActivity extends AppCompatActivity {
             this.finish();
         });
 
-        // 编辑
-        change = findViewById(R.id.download_change);
-        change.setOnClickListener(view -> {
-            if (recyclerView != null) {
-
-            }
+        // 文件管理
+        download_file = findViewById(R.id.download_file);
+        download_file.setOnClickListener(view -> {
+            // try {
+            //     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            //     intent.addCategory(Intent.CATEGORY_OPENABLE);
+            //     intent.setType("*/*"); // 设置文件类型
+            //     startActivityForResult(intent, 7);
+            // } catch (Exception e1) {
+            //     CommonUtils.saveLog("333333333333333" + e1.getMessage());
+            // }
         });
 
         // 背景

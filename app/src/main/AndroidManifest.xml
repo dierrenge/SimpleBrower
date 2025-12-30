@@ -222,7 +222,12 @@
                 android:value="" />
         </activity>
 
+        <!--
+        android:windowSoftInputMode="adjustNothing"
+        软键盘弹出时不会调整布局
+        -->
         <activity
+            android:windowSoftInputMode="adjustNothing"
             android:name=".activity.MapActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|navigation"
             android:exported="false">

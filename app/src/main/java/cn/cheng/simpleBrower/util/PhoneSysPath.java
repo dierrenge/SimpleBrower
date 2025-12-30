@@ -10,6 +10,9 @@ import android.os.Environment;
  */
 public class PhoneSysPath {
 
+    public static String getDownloadDir() {
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+    }
 
     /**
      * 手机根目录

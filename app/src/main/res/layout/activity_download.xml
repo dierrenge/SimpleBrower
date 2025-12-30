@@ -33,16 +33,19 @@
             android:layout_height="40dp"
             android:layout_weight="1"/>
 
-        <Button
-            android:id="@+id/download_change"
+        <LinearLayout
+            android:id="@+id/download_file"
             android:layout_width="40dp"
             android:layout_height="50dp"
-            android:paddingLeft="-10dp"
-            android:background="@color/trans_color"
-            android:textColor="@color/gray2"
-            android:textSize="15dp"
             android:gravity="center"
-            android:text="···"/>
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_marginLeft="-8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/btn_file" />
+        </LinearLayout>
 
     </LinearLayout>
 

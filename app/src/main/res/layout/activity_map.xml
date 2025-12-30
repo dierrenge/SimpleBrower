@@ -24,72 +24,152 @@
             android:textSize="20dp"
             android:text="〈"/>
 
+        <!-- 添加这个View是为了控制EditText的焦点问题 -->
+        <View
+            android:id="@+id/view_holder_for_focus"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
         <TextView
+            android:id="@+id/map_title"
             android:text="地图"
             android:textSize="17dp"
             android:gravity="center|start"
             android:paddingLeft="10dp"
             android:layout_width="0dp"
             android:layout_height="50dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:visibility="visible"/>
+
+        <EditText
+            android:id="@+id/map_edit"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_weight="1"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/edit_text_bg2"
+            android:gravity="center"
+            android:hint="请输入搜索地址"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/gray2"
+            android:textColorHint="@color/gray2"
+            android:textCursorDrawable="@drawable/edit_text_cursor"
+            android:textSize="14dp"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/map_close"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_marginLeft="-8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/btn_close" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/map_search"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="visible">
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginLeft="-8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/btn_search" />
+        </LinearLayout>
 
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.amap.api.maps.MapView
-            android:id="@+id/mapView"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-        <Button
-            android:id="@+id/btnSetMockLocation"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/btn_bg1"
-            android:text="定位"
-            android:textColor="@color/blackGray"
-            android:textSize="16dp"
-            android:layout_marginBottom="60dp"
-            android:layout_marginLeft="40dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            tools:ignore="MissingConstraints" />
-        <Button
-            android:id="@+id/btnTestLocation"
-            android:visibility="gone"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/btn_bg1"
-            android:text="测试"
-            android:textColor="@color/blackGray"
-            android:textSize="16dp"
-            android:layout_marginBottom="60dp"
-            android:layout_marginLeft="90dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            tools:ignore="MissingConstraints" />
-        <androidx.cardview.widget.CardView
-            android:id="@+id/btnRecord"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:cardBackgroundColor="#E7E7E7"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2.5dp"
-            android:layout_marginBottom="115dp"
-            android:layout_marginLeft="40dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            tools:ignore="MissingConstraints">
-            <ImageView
-                android:layout_gravity="center"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/btn_record"
+            android:layout_height="match_parent">
+            <com.amap.api.maps.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+            <Button
+                android:id="@+id/btnSetMockLocation"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/btn_bg1"
+                android:text="定位"
+                android:textColor="@color/blackGray"
+                android:textSize="16dp"
+                android:layout_marginBottom="60dp"
+                android:layout_marginLeft="40dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
                 tools:ignore="MissingConstraints" />
-        </androidx.cardview.widget.CardView>
+            <Button
+                android:id="@+id/btnTestLocation"
+                android:visibility="gone"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/btn_bg1"
+                android:text="测试"
+                android:textColor="@color/blackGray"
+                android:textSize="16dp"
+                android:layout_marginBottom="60dp"
+                android:layout_marginLeft="90dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="MissingConstraints" />
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnRecord"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardBackgroundColor="#E7E7E7"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2.5dp"
+                android:layout_marginBottom="115dp"
+                android:layout_marginLeft="40dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="MissingConstraints">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/btn_record"
+                    tools:ignore="MissingConstraints" />
+            </androidx.cardview.widget.CardView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:id="@+id/map_search_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/map_search_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#66000000" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

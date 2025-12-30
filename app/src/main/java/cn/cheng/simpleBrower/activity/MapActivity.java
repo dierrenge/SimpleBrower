@@ -7,9 +7,23 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.maps.AMap;
@@ -20,15 +34,21 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.geocoder.GeocodeAddress;
 import com.amap.api.services.geocoder.GeocodeQuery;
 import com.amap.api.services.geocoder.GeocodeResult;
 import com.amap.api.services.geocoder.GeocodeSearch;
 import com.amap.api.services.geocoder.RegeocodeAddress;
 import com.amap.api.services.geocoder.RegeocodeQuery;
 import com.amap.api.services.geocoder.RegeocodeResult;
+import com.amap.api.services.poisearch.PoiResult;
+import com.amap.api.services.poisearch.PoiSearch;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,6 +61,16 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class MapActivity extends AppCompatActivity {
+    private TextView map_title;
+    private View view_holder;
+    private LinearLayout map_search;
+    private LinearLayout map_close;
+    private EditText map_edit;
+    private LinearLayout map_search_layout;
+    private RecyclerView map_search_list;
+    private RecyclerView.Adapter adapter;
+    private ArrayList<PoiItem> addressList = new ArrayList<>();
+
     private MapView mapView;
     private AMap aMap;
     private LatLng selectedLocation; // 用户选择的坐标
@@ -52,6 +82,8 @@ public class MapActivity extends AppCompatActivity {
     private AMapLocationClientOption mLocationOption; // 定位参数配置选项
     private MyLocationStyle myLocationStyle; // 定位样式
     private GeocodeSearch geocodeSearch; // 逆地理编码服务
+    private PoiSearch poiSearch; // 关键词搜索服务
+    private PoiSearch.OnPoiSearchListener poiSearchListener;
     private ActivityResultLauncher<Intent> allFilesAccessLauncher; // 授权回调
     private boolean isFirstLoc = true; //判断是否第一次定位
     private Marker marker; // 标记
@@ -68,8 +100,70 @@ public class MapActivity extends AppCompatActivity {
         initMap(savedInstanceState);
         // 初始化逆地理编码服务
         initSearch(this);
+        // 关键词搜索服务
+        initPoiSearch();
+        // 历史定位记录
+        locationList = CommonUtils.locationListFileWalk();
+        // 注册权限请求的返回监听
+        initFilesAccessLauncher();
+        // 按钮事件
+        initEvent();
+    }
+
+    private void initEvent() {
+        map_title = findViewById(R.id.map_title);
+        view_holder = findViewById(R.id.view_holder_for_focus);
+        map_search = findViewById(R.id.map_search);
+        map_close = findViewById(R.id.map_close);
+        map_edit = findViewById(R.id.map_edit);
+        map_search_layout = findViewById(R.id.map_search_layout);
+        map_search_list = findViewById(R.id.map_search_list);
         // 返回
         findViewById(R.id.map_back).setOnClickListener(v -> this.finish());
+        // 搜索
+        map_search.setOnClickListener(v -> {
+            map_title.setVisibility(View.GONE);
+            map_search.setVisibility(View.GONE);
+            map_edit.setVisibility(View.VISIBLE);
+            map_close.setVisibility(View.VISIBLE);
+        });
+        // 关闭搜索
+        map_close.setOnClickListener(v -> {
+            closeSearch();
+        });
+        // 搜索框
+        map_edit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String txt = map_edit.getText().toString().trim();
+                PoiSearch.Query query = new PoiSearch.Query(txt, "", "成都");
+                query.setPageNum(1);
+                query.setPageSize(10);
+                try {
+                    poiSearch = new PoiSearch(MapActivity.this, query);
+                    poiSearch.setOnPoiSearchListener(poiSearchListener);
+                    poiSearch.searchPOIAsyn();
+                } catch (AMapException e) {
+                    CommonUtils.saveLog("poiSearch:" + e.getMessage());
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        // 搜索联想内容背景
+        map_edit.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) { // 编辑有焦点
+                map_search_layout.setVisibility(View.VISIBLE);
+            } else {
+                map_search_layout.setVisibility(View.GONE);
+            }
+        });
         // 虚拟定位
         findViewById(R.id.btnSetMockLocation).setOnClickListener(v -> {
             if (selectedLocation != null) {
@@ -78,8 +172,7 @@ public class MapActivity extends AppCompatActivity {
                 MyToast.getInstance("请先选择定位地点").show();
             }
         });
-        // 历史定位记录
-        locationList = CommonUtils.locationListFileWalk();
+        // 定位记录
         findViewById(R.id.btnRecord).setOnClickListener(v -> {
             LocationListDialog dialog = new LocationListDialog(this, locationList);
             dialog.setOnCallListener(bean -> {
@@ -91,8 +184,53 @@ public class MapActivity extends AppCompatActivity {
             });
             dialog.show();
         });
-        // 注册权限请求的返回监听
-        initFilesAccessLauncher();
+        // 搜索联想列表
+        map_search_list.setLayoutManager(new LinearLayoutManager(this));
+        map_search_list.setItemAnimator(null);
+        map_search_list.setAdapter(adapter = new RecyclerView.Adapter() {
+            @NonNull
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View item = LayoutInflater.from(MapActivity.this)
+                        .inflate(R.layout.recyclerview_map_search_item, parent, false);
+                return new RecyclerView.ViewHolder(item) {};
+            }
+            @Override
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+                TextView textView = holder.itemView.findViewById(R.id.item_search);
+                PoiItem poiItem = addressList.get(position);
+                LatLonPoint latLonPoint = poiItem.getLatLonPoint();
+                textView.setText(poiItem.getTitle() + "-" + poiItem.getSnippet());
+                textView.setOnClickListener(v -> {
+                    LatLng latLng = new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude(), false);
+                    // 标记
+                    onMapClick(latLng);
+                    // 定位
+                    checkMockLocation();
+                    // 关闭搜索框
+                    closeSearch();
+                });
+            }
+            @Override
+            public int getItemCount() {
+                return addressList.size();
+            }
+        });
+    }
+
+    private void closeSearch() {
+        addressList.clear();
+        addressList = new ArrayList<>();
+        map_edit.setText("");
+        map_edit.setVisibility(View.GONE);
+        map_close.setVisibility(View.GONE);
+        map_title.setVisibility(View.VISIBLE);
+        map_search.setVisibility(View.VISIBLE);
+        InputMethodManager im = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
+        if (im != null) { // 隐藏键盘
+            im.hideSoftInputFromWindow(map_edit.getWindowToken(), 0);
+        }
+        view_holder.requestFocus();
     }
 
     private void initMap(Bundle savedInstanceState) {
@@ -225,13 +363,35 @@ public class MapActivity extends AppCompatActivity {
                     }
                 }
                 @Override
-                public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
-
-                }
+                public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {}
             });
         } catch (Exception e) {
             CommonUtils.saveLog("initSearch:" + e.getMessage());
         }
+    }
+
+    private void initPoiSearch() {
+        poiSearchListener = new PoiSearch.OnPoiSearchListener() {
+            @Override
+            public void onPoiSearched(PoiResult poiResult, int i) {
+                if (i == 1000 && poiResult != null) {
+                    PoiSearch.Query query = poiResult.getQuery();
+                    String queryString = query.getQueryString();
+                    String txt = map_edit.getText().toString().trim();
+                    if (txt.equals(queryString)) { // 搜索时输入和返回要能对应上
+                        addressList = poiResult.getPois();
+                        if (addressList != null) {
+                            adapter.notifyDataSetChanged();
+                            adapter.notifyItemRangeChanged(0, addressList.size());
+                            return;
+                        }
+                    }
+                }
+                addressList = new ArrayList();
+            }
+            @Override
+            public void onPoiItemSearched(PoiItem poiItem, int i) {}
+        };
     }
 
     // 注册权限请求的返回监听
