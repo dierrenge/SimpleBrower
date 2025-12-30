@@ -140,7 +140,7 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String txt = map_edit.getText().toString().trim();
-                PoiSearch.Query query = new PoiSearch.Query(txt, "", "成都");
+                PoiSearch.Query query = new PoiSearch.Query(txt, "", "");
                 query.setPageNum(1);
                 query.setPageSize(10);
                 try {
@@ -221,6 +221,7 @@ public class MapActivity extends AppCompatActivity {
     private void closeSearch() {
         addressList.clear();
         addressList = new ArrayList<>();
+        adapter.notifyDataSetChanged();
         map_edit.setText("");
         map_edit.setVisibility(View.GONE);
         map_close.setVisibility(View.GONE);
