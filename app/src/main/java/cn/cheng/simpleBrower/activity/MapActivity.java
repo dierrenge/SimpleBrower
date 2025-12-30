@@ -75,6 +75,7 @@ public class MapActivity extends AppCompatActivity {
     private AMap aMap;
     private LatLng selectedLocation; // 用户选择的坐标
     private double altitude; // 实时定位的海拔
+    private String city = ""; // 实时定位的城市
     private Intent intentS;
     private LocationSource locationSource; // 定位源
     private LocationSource.OnLocationChangedListener mListener; // 位置监听
@@ -140,7 +141,7 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String txt = map_edit.getText().toString().trim();
-                PoiSearch.Query query = new PoiSearch.Query(txt, "", "");
+                PoiSearch.Query query = new PoiSearch.Query(txt, "", city);
                 query.setPageNum(1);
                 query.setPageSize(10);
                 try {
@@ -274,12 +275,12 @@ public class MapActivity extends AppCompatActivity {
                             // aMapLocation.getAddress(); //地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
                             // aMapLocation.getCountry(); //国家信息
                             // aMapLocation.getProvince(); //省信息
-                            // aMapLocation.getCity(); //城市信息
                             // aMapLocation.getDistrict(); //城区信息
                             // aMapLocation.getStreet(); //街道信息
                             // aMapLocation.getStreetNum(); //街道门牌号信息
                             // aMapLocation.getCityCode(); //城市编码
                             // aMapLocation.getAdCode(); //地区编码
+                            city = aMapLocation.getCity(); // 城市信息
                             altitude = aMapLocation.getAltitude(); // 海拔
                             LatLng cLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
                             // 首次定位移动到当前位置
