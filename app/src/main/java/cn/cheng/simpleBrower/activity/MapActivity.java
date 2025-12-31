@@ -9,9 +9,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -157,6 +159,13 @@ public class MapActivity extends AppCompatActivity {
 
             }
         });
+        // 软键盘确定
+        map_edit.setOnEditorActionListener((TextView v, int actionId, KeyEvent event) -> {
+            if (actionId == KeyEvent.ACTION_DOWN || actionId == EditorInfo.IME_ACTION_DONE) {
+                hideSoftInput(); // 隐藏键盘
+            }
+            return true;
+        });
         // 搜索联想内容背景
         map_edit.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) { // 编辑有焦点
@@ -228,6 +237,10 @@ public class MapActivity extends AppCompatActivity {
         map_close.setVisibility(View.GONE);
         map_title.setVisibility(View.VISIBLE);
         map_search.setVisibility(View.VISIBLE);
+        hideSoftInput(); // 隐藏键盘
+    }
+
+    private void hideSoftInput() {
         InputMethodManager im = (InputMethodManager) this.getSystemService(INPUT_METHOD_SERVICE);
         if (im != null) { // 隐藏键盘
             im.hideSoftInputFromWindow(map_edit.getWindowToken(), 0);
