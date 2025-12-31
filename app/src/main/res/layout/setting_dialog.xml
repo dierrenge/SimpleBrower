@@ -44,7 +44,7 @@
                         android:layout_width="30dp"
                         android:layout_height="30dp"
                         android:checked="true"
-                        android:theme="@style/MyRadioButton"/>
+                        android:button="@drawable/btn_radio"/>
 
                 </RadioGroup>
             </LinearLayout>
@@ -71,8 +71,8 @@
                         android:id="@+id/gifTip"
                         android:layout_width="30dp"
                         android:layout_height="30dp"
-                        android:theme="@style/MyRadioButton"
-                        android:checked="true"/>
+                        android:button="@drawable/btn_radio"
+                        android:checked="true" />
 
                 </RadioGroup>
             </LinearLayout>

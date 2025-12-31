@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,11 +59,19 @@ public class LikeActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
 
+    private RecyclerView.Adapter adapter;
+
     private TextView like_t1;
 
     private TextView like_t2;
 
+    private LinearLayout menu_edit;
+
+    private LinearLayout menu_clear;
+
     private List<String> likeUrls = new ArrayList<>();
+
+    private List<String> clearUrls = new ArrayList<>();
 
     private boolean isChange = false;
 
@@ -110,14 +119,28 @@ public class LikeActivity extends AppCompatActivity {
                 change(isChange);
             }
         });
-
+        // 删除
+        menu_clear = findViewById(R.id.menu_clear);
+        
         // 编辑
-        like_change = findViewById(R.id.like_change);
-        like_change.setOnClickListener(view -> {
+        menu_edit = findViewById(R.id.menu_edit);
+        menu_edit.setOnClickListener(view -> {
+            menu_edit.setVisibility(View.VISIBLE);
+            menu_clear.setVisibility(View.VISIBLE);
             if (recyclerView != null) {
                 isChange = !isChange;
                 change(isChange);
             }
+        });
+        // 多选
+        like_change = findViewById(R.id.like_change);
+        like_change.setOnClickListener(view -> {
+            if ("全选".equals(like_change.getText().toString())) {
+                like_change.setText("取消");
+            } else {
+                like_change.setText("全选");
+            }
+            change(isChange);
         });
 
         Intent intent = getIntent();
@@ -149,7 +172,7 @@ public class LikeActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         // 给recyclerview设置适配器
-        RecyclerView.Adapter adapter = new RecyclerView.Adapter() {
+        adapter = new RecyclerView.Adapter() {
             @NonNull
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -182,6 +205,19 @@ public class LikeActivity extends AppCompatActivity {
                         return false;
                     }
                 });*/
+                RadioButton radioButton = holder.itemView.findViewById(R.id.item_select);
+                radioButton.setAnimation(null);
+                boolean checked = radioButton.isChecked();
+                String url = likeUrls.get(position);
+                radioButton.setOnClickListener(view -> {
+                    radioButton.setChecked(!checked);
+                    if (checked) {
+                        clearUrls.removeIf(item -> item != null && item.equals(url));
+                    } else {
+                        clearUrls.add(url);
+                    }
+                });
+
                 Button button = holder.itemView.findViewById(R.id.item_del);
                 button.setOnClickListener(view -> {
                     FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
@@ -297,6 +333,7 @@ public class LikeActivity extends AppCompatActivity {
 
     private void getLikeUrls() {
         likeUrls.clear();
+        clearUrls.clear();
         if ("历史".equals(flag)) {
             List<String> urls = MyApplication.getUrls();
             for (int i = urls.size() -1; i >= 0; i--) {
@@ -420,13 +457,21 @@ public class LikeActivity extends AppCompatActivity {
                 // System.out.println("=========" + i);
                 RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
                 if (viewHolder != null) {
-                    Button button = viewHolder.itemView.findViewById(R.id.item_del);
+                    RadioButton button = viewHolder.itemView.findViewById(R.id.item_select);
+                    button.setChecked("取消".equals(like_change.getText().toString()));
                     if (isChange) {
                         button.setVisibility(View.VISIBLE);
                     } else {
                         button.setVisibility(View.INVISIBLE);
+                        button.setChecked(false);
                     }
                 }
+            }
+            if (isChange) {
+                like_change.setVisibility(View.VISIBLE);
+            } else {
+                like_change.setVisibility(View.INVISIBLE);
+                like_change.setText("全部");
             }
         }, 50);
     }

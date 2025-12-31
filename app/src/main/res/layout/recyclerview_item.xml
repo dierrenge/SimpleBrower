@@ -45,6 +45,14 @@
                 android:textColor="@color/gray2"
                 android:textSize="20dp"
                 android:text="×"/>
+            <RadioButton
+                android:id="@+id/item_select"
+                android:gravity="center"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:button="@drawable/btn_radio"
+                android:checked="false"
+                android:visibility="gone"/>
             <Button
                 android:id="@+id/item_true"
                 android:visibility="gone"
