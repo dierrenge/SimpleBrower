@@ -607,7 +607,8 @@ public class CommonUtils {
         String name = "";
         try {
             if (url.contains("?")) {
-                name = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+                String urlX = url.substring(0, url.lastIndexOf("?"));
+                name = urlX.substring(urlX.lastIndexOf("/") + 1);
             } else {
                 name = url.substring(url.lastIndexOf("/") + 1);
             }
@@ -625,7 +626,8 @@ public class CommonUtils {
         String name = "";
         try {
             if (url.contains("?")) {
-                name = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+                String urlX = url.substring(0, url.lastIndexOf("?"));
+                name = urlX.substring(urlX.lastIndexOf("/") + 1);
             } else {
                 name = url.substring(url.lastIndexOf("/") + 1);
             }
@@ -646,7 +648,8 @@ public class CommonUtils {
         String format = "";
         try {
             if (url.contains("?")) {
-                format = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+                String urlX = url.substring(0, url.lastIndexOf("?"));
+                format = urlX.substring(urlX.lastIndexOf("/") + 1);
             } else {
                 format = url.substring(url.lastIndexOf("/") + 1);
             }
@@ -666,7 +669,8 @@ public class CommonUtils {
         String format = "";
         try {
             if (url.contains("?")) {
-                format = url.substring(0, url.lastIndexOf("?")).substring(url.lastIndexOf("/") + 1);
+                String urlX = url.substring(0, url.lastIndexOf("?"));
+                format = urlX.substring(urlX.lastIndexOf("/") + 1);
             } else {
                 format = url.substring(url.lastIndexOf("/") + 1);
             }
