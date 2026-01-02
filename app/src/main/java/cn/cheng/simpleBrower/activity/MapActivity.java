@@ -300,9 +300,6 @@ public class MapActivity extends AppCompatActivity {
                             if (isFirstLoc) {
                                 aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cLatLng, 16));
                             }
-                            // 移动地图中心点
-                            // aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));
-                            onResume();
                             // 更新地图指针位置
                             mListener.onLocationChanged(aMapLocation);
                             isFirstLoc = false;
@@ -453,6 +450,8 @@ public class MapActivity extends AppCompatActivity {
         // 开启服务
         if (intentS == null) {
             intentS = new Intent(this, MockLocationService.class);
+        } else {
+            stopService(intentS);
         }
         intentS.putExtra("latitude", selectedLocation.latitude);
         intentS.putExtra("longitude", selectedLocation.longitude);
@@ -463,8 +462,15 @@ public class MapActivity extends AppCompatActivity {
             startService(intentS);
         }
         // 移动到标记点
-        aMap.moveCamera(CameraUpdateFactory.changeLatLng(selectedLocation));
-        onResume();
+        aMap.animateCamera(CameraUpdateFactory.newLatLng(selectedLocation), 0, new AMap.CancelableCallback() {
+            @Override
+            public void onFinish() {
+                aMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLocation));
+                onResume();
+            }
+            @Override
+            public void onCancel() {}
+        });
         // 发起请求（传入经纬度查询地址）
         LatLonPoint point = new LatLonPoint(selectedLocation.latitude, selectedLocation.longitude);
         RegeocodeQuery query = new RegeocodeQuery(point, 200, GeocodeSearch.AMAP);
