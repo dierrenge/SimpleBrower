@@ -302,6 +302,7 @@ public class MapActivity extends AppCompatActivity {
                             }
                             // 移动地图中心点
                             // aMap.moveCamera(CameraUpdateFactory.changeLatLng(currentLatLng));
+                            onResume();
                             // 更新地图指针位置
                             mListener.onLocationChanged(aMapLocation);
                             isFirstLoc = false;
@@ -462,7 +463,7 @@ public class MapActivity extends AppCompatActivity {
             startService(intentS);
         }
         // 移动到标记点
-        aMap.animateCamera(CameraUpdateFactory.changeLatLng(selectedLocation));
+        aMap.moveCamera(CameraUpdateFactory.changeLatLng(selectedLocation));
         onResume();
         // 发起请求（传入经纬度查询地址）
         LatLonPoint point = new LatLonPoint(selectedLocation.latitude, selectedLocation.longitude);
