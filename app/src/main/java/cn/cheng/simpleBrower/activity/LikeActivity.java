@@ -2,32 +2,24 @@ package cn.cheng.simpleBrower.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.text.InputType;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -37,13 +29,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
-import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
@@ -103,6 +95,7 @@ public class LikeActivity extends AppCompatActivity {
                 like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
                 like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
                 getLikeUrls();
+                clearUrls.clear();
                 change(isChange);
             }
         });
@@ -116,16 +109,34 @@ public class LikeActivity extends AppCompatActivity {
                 like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
                 like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
                 getLikeUrls();
+                clearUrls.clear();
                 change(isChange);
             }
         });
         // 删除
         menu_clear = findViewById(R.id.menu_clear);
-        
+        menu_clear.setOnClickListener(view -> {
+            FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
+            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                @Override
+                public void close() {
+                    feetDialog.dismiss();
+                }
+
+                @Override
+                public void ok(String txt) {
+                    // 删除本项记录
+                    deleteLikeUrl();
+                    feetDialog.dismiss();
+                }
+            });
+            feetDialog.show();
+        });
+
         // 编辑
         menu_edit = findViewById(R.id.menu_edit);
         menu_edit.setOnClickListener(view -> {
-            menu_edit.setVisibility(View.VISIBLE);
+            menu_edit.setVisibility(View.GONE);
             menu_clear.setVisibility(View.VISIBLE);
             if (recyclerView != null) {
                 isChange = !isChange;
@@ -135,10 +146,12 @@ public class LikeActivity extends AppCompatActivity {
         // 多选
         like_change = findViewById(R.id.like_change);
         like_change.setOnClickListener(view -> {
-            if ("全选".equals(like_change.getText().toString())) {
-                like_change.setText("取消");
-            } else {
+            clearUrls.clear();
+            if ("取消".equals(like_change.getText().toString())) {
                 like_change.setText("全选");
+            } else {
+                like_change.setText("取消");
+                clearUrls.addAll(likeUrls);
             }
             change(isChange);
         });
@@ -205,36 +218,16 @@ public class LikeActivity extends AppCompatActivity {
                         return false;
                     }
                 });*/
-                RadioButton radioButton = holder.itemView.findViewById(R.id.item_select);
-                radioButton.setAnimation(null);
-                boolean checked = radioButton.isChecked();
+                CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
+                item_select.setAnimation(null);
                 String url = likeUrls.get(position);
-                radioButton.setOnClickListener(view -> {
-                    radioButton.setChecked(!checked);
-                    if (checked) {
+                item_select.setOnClickListener(view -> {
+                    if (!item_select.isChecked()) {
                         clearUrls.removeIf(item -> item != null && item.equals(url));
                     } else {
                         clearUrls.add(url);
                     }
-                });
-
-                Button button = holder.itemView.findViewById(R.id.item_del);
-                button.setOnClickListener(view -> {
-                    FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
-                    feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
-                        @Override
-                        public void close() {
-                            feetDialog.dismiss();
-                        }
-
-                        @Override
-                        public void ok(String txt) {
-                            // 删除本项记录
-                            deleteLikeUrl(likeUrl);
-                            feetDialog.dismiss();
-                        }
-                    });
-                    feetDialog.show();
+                    likeChange();
                 });
             }
 
@@ -333,7 +326,6 @@ public class LikeActivity extends AppCompatActivity {
 
     private void getLikeUrls() {
         likeUrls.clear();
-        clearUrls.clear();
         if ("历史".equals(flag)) {
             List<String> urls = MyApplication.getUrls();
             for (int i = urls.size() -1; i >= 0; i--) {
@@ -372,11 +364,11 @@ public class LikeActivity extends AppCompatActivity {
         }
     }
 
-    private void deleteLikeUrl(String url) {
-        int position = likeUrls.indexOf(url);
+    private void deleteLikeUrl() {
+        if (clearUrls.isEmpty()) return;
         if ("历史".equals(flag)) {
             // 集合中删除该网址
-            likeUrls.removeIf(s -> s.equals(url));
+            likeUrls.removeAll(clearUrls);
             MyApplication.clearUrls();
             for (String l : likeUrls) {
                 MyApplication.setUrl(l);
@@ -384,17 +376,16 @@ public class LikeActivity extends AppCompatActivity {
             // 通知handler 数据删除完成 可以刷新recyclerview
             Message message = Message.obtain();
             message.what = 3;
-            message.obj = new String[]{url, position+""};
             handler.sendMessage(message);
         } else {
-            if (Build.VERSION.SDK_INT >= 29 && url != null) { // android 12的sd卡读写
+            if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
                 //启动线程开始执行 删除网址存档
                 new Thread(() -> {
                     try {
                         File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
                         if (file.exists()) {
                             // 集合中删除该网址
-                            likeUrls.removeIf(s -> s.equals(url));
+                            likeUrls.removeAll(clearUrls);
                             try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
                                 for (String s : likeUrls) {
                                     if (s != null) {
@@ -411,7 +402,6 @@ public class LikeActivity extends AppCompatActivity {
                     // 通知handler 数据删除完成 可以刷新recyclerview
                     Message message = Message.obtain();
                     message.what = 3;
-                    message.obj = new String[]{url, position+""};
                     handler.sendMessage(message);
                 }).start();
             }
@@ -454,16 +444,15 @@ public class LikeActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             int num = recyclerView.getAdapter().getItemCount();
             for (int i = 0; i < num; i++) {
-                // System.out.println("=========" + i);
                 RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
                 if (viewHolder != null) {
-                    RadioButton button = viewHolder.itemView.findViewById(R.id.item_select);
-                    button.setChecked("取消".equals(like_change.getText().toString()));
+                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select);
+                    item_select.setChecked(clearUrls.contains(likeUrls.get(i)));
                     if (isChange) {
-                        button.setVisibility(View.VISIBLE);
+                        item_select.setVisibility(View.VISIBLE);
                     } else {
-                        button.setVisibility(View.INVISIBLE);
-                        button.setChecked(false);
+                        item_select.setVisibility(View.INVISIBLE);
+                        item_select.setChecked(false);
                     }
                 }
             }
@@ -471,9 +460,17 @@ public class LikeActivity extends AppCompatActivity {
                 like_change.setVisibility(View.VISIBLE);
             } else {
                 like_change.setVisibility(View.INVISIBLE);
-                like_change.setText("全部");
             }
+            likeChange();
         }, 50);
+    }
+
+    private void likeChange() {
+        if (new HashSet<>(clearUrls).containsAll(likeUrls)) {
+            like_change.setText("取消");
+        } else {
+            like_change.setText("全选");
+        }
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)

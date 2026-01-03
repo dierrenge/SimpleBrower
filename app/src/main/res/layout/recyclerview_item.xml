@@ -45,10 +45,9 @@
                 android:textColor="@color/gray2"
                 android:textSize="20dp"
                 android:text="×"/>
-            <RadioButton
+            <CheckBox
                 android:id="@+id/item_select"
-                android:gravity="center"
-                android:layout_width="30dp"
+                android:layout_width="29dp"
                 android:layout_height="40dp"
                 android:button="@drawable/btn_radio"
                 android:checked="false"

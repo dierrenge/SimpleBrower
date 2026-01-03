@@ -300,6 +300,7 @@ public class MapActivity extends AppCompatActivity {
                             if (isFirstLoc) {
                                 aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cLatLng, 16));
                             }
+                            onResume();
                             // 更新地图指针位置
                             mListener.onLocationChanged(aMapLocation);
                             isFirstLoc = false;
