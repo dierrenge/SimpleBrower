@@ -8,6 +8,7 @@
     tools:context=".activity.LikeActivity">
 
     <LinearLayout
+        android:id="@+id/like_head"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
@@ -18,7 +19,8 @@
             android:layout_width="40dp"
             android:layout_height="50dp"
             android:background="@color/trans_color"
-            android:textColor="@color/gray2"
+            android:textColor="@color/blackGray"
+            android:paddingBottom="2.4dp"
             android:gravity="center|start"
             android:paddingLeft="5dp"
             android:textSize="20dp"
@@ -60,6 +62,47 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/like_head2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/like_close"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="centerInside"
+                android:gravity="center"
+                android:src="@drawable/btn_close"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/like_text"
+                android:text="请选择"
+                android:textSize="17dp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="@color/gray4"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/like_change"
@@ -70,16 +113,15 @@
             android:textColor="@color/gray2"
             android:textSize="15dp"
             android:gravity="center"
-            android:text="全选"
-            android:visibility="gone"/>
-
+            android:text="全选" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/like_bg"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
 

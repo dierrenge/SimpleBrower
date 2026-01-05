@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +58,14 @@ public class LikeActivity extends AppCompatActivity {
 
     private TextView like_t2;
 
+    private LinearLayout like_head;
+
+    private LinearLayout like_head2;
+
+    private TextView like_text;
+
+    private LinearLayout like_close;
+
     private LinearLayout menu_edit;
 
     private LinearLayout menu_clear;
@@ -79,15 +88,23 @@ public class LikeActivity extends AppCompatActivity {
         SysWindowUi.hideStatusNavigationBar(this, false);
 
         setContentView(R.layout.activity_like);
+        like_head = findViewById(R.id.like_head);
+        back = findViewById(R.id.like_back);
+        like_t1 = findViewById(R.id.like_t1);
+        like_t2 = findViewById(R.id.like_t2);
+        like_head2 = findViewById(R.id.like_head2);
+        like_close = findViewById(R.id.like_close);
+        like_text = findViewById(R.id.like_text);
+        like_change = findViewById(R.id.like_change);
+        layout = findViewById(R.id.like_bg);
+        menu_edit = findViewById(R.id.menu_edit);
+        menu_clear = findViewById(R.id.menu_clear);
 
         // 返回
-        back = findViewById(R.id.like_back);
         back.setOnClickListener(view -> {
             this.finish();
         });
-
         // 收藏列
-        like_t1 = findViewById(R.id.like_t1);
         like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
         like_t1.setOnClickListener(view -> {
             if ("历史".equals(flag)) {
@@ -99,9 +116,7 @@ public class LikeActivity extends AppCompatActivity {
                 change(isChange);
             }
         });
-
         // 历史列
-        like_t2 = findViewById(R.id.like_t2);
         like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
         like_t2.setOnClickListener(view -> {
             if ("收藏".equals(flag)) {
@@ -113,9 +128,42 @@ public class LikeActivity extends AppCompatActivity {
                 change(isChange);
             }
         });
+        // 退出编辑
+        like_close.setOnClickListener(view -> {
+            if (isChange) {
+                menu_edit.callOnClick();
+            }
+        });
+        // 多选
+        like_change.setOnClickListener(view -> {
+            clearUrls.clear();
+            if ("全选".equals(like_change.getText().toString())) {
+                clearUrls.addAll(likeUrls);
+            }
+            change(isChange);
+            likeChange();
+        });
+        // 编辑
+        menu_edit.setOnClickListener(view -> {
+            if (recyclerView != null) {
+                if (isChange) {
+                    like_head.setVisibility(View.VISIBLE);
+                    like_head2.setVisibility(View.GONE);
+                    menu_edit.setVisibility(View.VISIBLE);
+                    menu_clear.setVisibility(View.GONE);
+                } else {
+                    like_head.setVisibility(View.GONE);
+                    like_head2.setVisibility(View.VISIBLE);
+                    menu_edit.setVisibility(View.GONE);
+                    menu_clear.setVisibility(View.VISIBLE);
+                }
+                isChange = !isChange;
+                change(isChange);
+            }
+        });
         // 删除
-        menu_clear = findViewById(R.id.menu_clear);
         menu_clear.setOnClickListener(view -> {
+            if (clearUrls.isEmpty()) return;
             FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
@@ -133,29 +181,6 @@ public class LikeActivity extends AppCompatActivity {
             feetDialog.show();
         });
 
-        // 编辑
-        menu_edit = findViewById(R.id.menu_edit);
-        menu_edit.setOnClickListener(view -> {
-            menu_edit.setVisibility(View.GONE);
-            menu_clear.setVisibility(View.VISIBLE);
-            if (recyclerView != null) {
-                isChange = !isChange;
-                change(isChange);
-            }
-        });
-        // 多选
-        like_change = findViewById(R.id.like_change);
-        like_change.setOnClickListener(view -> {
-            clearUrls.clear();
-            if ("取消".equals(like_change.getText().toString())) {
-                like_change.setText("全选");
-            } else {
-                like_change.setText("取消");
-                clearUrls.addAll(likeUrls);
-            }
-            change(isChange);
-        });
-
         Intent intent = getIntent();
         String flagI = intent.getStringExtra("flag");
         if ("历史".equals(flagI)) {
@@ -163,9 +188,6 @@ public class LikeActivity extends AppCompatActivity {
             like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
             like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
         }
-
-        // 背景
-        layout = findViewById(R.id.like_bg);
 
         initRecyclerView();
 
@@ -238,8 +260,8 @@ public class LikeActivity extends AppCompatActivity {
 
             public void click(String likeUrl) {
                 if (isChange) {
-                    isChange = !isChange;
-                    change(isChange);
+                    clearUrls.clear();
+                    menu_edit.callOnClick();
                 }
                 // 跳转该网址
                 // Intent intent = new Intent(LikeActivity.this, BrowserActivity.class);
@@ -365,7 +387,6 @@ public class LikeActivity extends AppCompatActivity {
     }
 
     private void deleteLikeUrl() {
-        if (clearUrls.isEmpty()) return;
         if ("历史".equals(flag)) {
             // 集合中删除该网址
             likeUrls.removeAll(clearUrls);
@@ -461,7 +482,7 @@ public class LikeActivity extends AppCompatActivity {
             } else {
                 like_change.setVisibility(View.INVISIBLE);
             }
-            likeChange();
+            // likeChange();
         }, 50);
     }
 
@@ -471,6 +492,25 @@ public class LikeActivity extends AppCompatActivity {
         } else {
             like_change.setText("全选");
         }
+        if (clearUrls.isEmpty()) {
+            like_text.setText("请选择");
+            menu_clear.setAlpha(0.5f);
+        } else  {
+            menu_clear.setAlpha(1f);
+            like_text.setText("已选择" + clearUrls.size() + "项");
+        }
+    }
+
+    // 物理按键
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) { // 返回
+            if (isChange) {
+                menu_edit.callOnClick();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
