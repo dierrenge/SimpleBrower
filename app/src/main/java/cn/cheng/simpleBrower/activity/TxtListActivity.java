@@ -185,8 +185,10 @@ public class TxtListActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what == 0) {
                     if (txtUrls.size() > 0) {
+                        recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
                     } else {
+                        recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                     }
                 } else if (message.what == 3) {
@@ -197,10 +199,11 @@ public class TxtListActivity extends AppCompatActivity {
                         recyclerView.getAdapter().notifyDataSetChanged();
                         recyclerView.getAdapter().notifyItemRangeChanged(0, txtUrls.size());
                         change(isChange);
-                    }
-                    // 删完了就显示背景
-                    if (txtUrls.size() == 0) {
-                        layout.setVisibility(View.VISIBLE);
+                        // 删完了就显示背景
+                        if (txtUrls.isEmpty()) {
+                            recyclerView.setVisibility(View.GONE);
+                            layout.setVisibility(View.VISIBLE);
+                        }
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();

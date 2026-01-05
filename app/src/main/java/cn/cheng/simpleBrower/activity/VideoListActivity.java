@@ -187,8 +187,10 @@ public class VideoListActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what == 0) {
                     if (videoUrls.size() > 0) {
+                        recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
                     } else {
+                        recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                     }
                 } else if (message.what == 3) {
@@ -198,10 +200,11 @@ public class VideoListActivity extends AppCompatActivity {
                         recyclerView.getAdapter().notifyDataSetChanged();
                         recyclerView.getAdapter().notifyItemRangeChanged(0, videoUrls.size());
                         change(isChange);
-                    }
-                    // 删完了就显示背景
-                    if (videoUrls.size() == 0) {
-                        layout.setVisibility(View.VISIBLE);
+                        // 删完了就显示背景
+                        if (videoUrls.isEmpty()) {
+                            recyclerView.setVisibility(View.GONE);
+                            layout.setVisibility(View.VISIBLE);
+                        }
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();

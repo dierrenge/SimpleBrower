@@ -145,7 +145,12 @@ public class LikeActivity extends AppCompatActivity {
         });
         // 编辑
         menu_edit.setOnClickListener(view -> {
+            if (!isChange && likeUrls.isEmpty()) return; // 没数据就不必编辑
             if (recyclerView != null) {
+                clearUrls.clear();
+                like_change.setText("全选");
+                like_text.setText("请选择");
+                menu_clear.setAlpha(0.5f);
                 if (isChange) {
                     like_head.setVisibility(View.VISIBLE);
                     like_head2.setVisibility(View.GONE);
@@ -220,17 +225,18 @@ public class LikeActivity extends AppCompatActivity {
 
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-                LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
-                // 设置TextView显示数据
-                TextView textView = holder.itemView.findViewById(R.id.item_txt);
-                //textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
                 String likeUrl = likeUrls.get(position);
+                LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
+                CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
+                TextView textView = holder.itemView.findViewById(R.id.item_txt);
+                // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                // 设置TextView显示数据
                 textView.setText(likeUrl);
                 textView.setOnClickListener(view -> {
-                    click(likeUrl);
+                    click(likeUrl, item_select);
                 });
                 item_l.setOnClickListener(view -> {
-                    click(likeUrl);
+                    click(likeUrl, item_select);
                 });
                 // 解决：配置了android:textIsSelectable="true",同时也设置了点击事件，发现点第一次时候，点击事件没有生效
                 /*textView.setOnTouchListener(new View.OnTouchListener() {
@@ -240,14 +246,12 @@ public class LikeActivity extends AppCompatActivity {
                         return false;
                     }
                 });*/
-                CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 item_select.setAnimation(null);
-                String url = likeUrls.get(position);
                 item_select.setOnClickListener(view -> {
                     if (!item_select.isChecked()) {
-                        clearUrls.removeIf(item -> item != null && item.equals(url));
+                        clearUrls.removeIf(item -> item != null && item.equals(likeUrl));
                     } else {
-                        clearUrls.add(url);
+                        clearUrls.add(likeUrl);
                     }
                     likeChange();
                 });
@@ -258,13 +262,27 @@ public class LikeActivity extends AppCompatActivity {
                 return likeUrls.size();
             }
 
-            public void click(String likeUrl) {
-                if (isChange) return; // 编辑模式不可跳转
+            public void click(String likeUrl, CheckBox item_select) {
+                if (isChange) {
+                    select(likeUrl, item_select);
+                    return; // 编辑模式不可跳转
+                }
                 // 跳转该网址
                 // Intent intent = new Intent(LikeActivity.this, BrowserActivity.class);
                 Intent intent = new Intent(LikeActivity.this, BrowserActivity2.class);
                 intent.putExtra("webInfo", likeUrl);
                 LikeActivity.this.startActivity(intent);
+            }
+
+            public void select(String likeUrl, CheckBox item_select) {
+                if (item_select.isChecked()) {
+                    item_select.setChecked(false);
+                    clearUrls.removeIf(item -> item != null && item.equals(likeUrl));
+                } else {
+                    item_select.setChecked(true);
+                    clearUrls.add(likeUrl);
+                }
+                likeChange();
             }
         };
         recyclerView.setAdapter(adapter);
@@ -320,20 +338,25 @@ public class LikeActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what == 0) {
                     if (likeUrls.size() > 0) {
+                        recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
                         layout.setVisibility(View.GONE);
                     } else {
+                        recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
                         recyclerView.getAdapter().notifyDataSetChanged();
                         recyclerView.getAdapter().notifyItemRangeChanged(0, likeUrls.size());
-                        change(isChange);
-                    }
-                    // 删完了就显示背景
-                    if (likeUrls.size() == 0) {
-                        layout.setVisibility(View.VISIBLE);
+                        // 删完了就显示背景
+                        if (likeUrls.isEmpty()) {
+                            recyclerView.setVisibility(View.GONE);
+                            layout.setVisibility(View.VISIBLE);
+                            like_close.callOnClick();
+                        } else {
+                            change(isChange);
+                        }
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();
@@ -478,6 +501,11 @@ public class LikeActivity extends AppCompatActivity {
                 like_change.setVisibility(View.VISIBLE);
             } else {
                 like_change.setVisibility(View.INVISIBLE);
+            }
+            if (likeUrls.isEmpty()) {
+                menu_edit.setAlpha(0.5f);
+            } else  {
+                menu_edit.setAlpha(1f);
             }
             // likeChange();
         }, 50);

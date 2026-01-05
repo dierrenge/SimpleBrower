@@ -30,7 +30,7 @@ public class AssetsReader {
             protected Void doInBackground(Void... params) {
                 try {
                     FILE = key;
-                    if (LIST.size() == 0) {
+                    if (LIST.isEmpty()) {
                         loadFromAssets(context);
                     }
                 } catch (IOException e) {

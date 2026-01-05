@@ -288,8 +288,10 @@ public class DownloadActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what == 0) {
                     if (fileUrls.size() > 0) {
+                        recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
                     } else {
+                        recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                     }
                 } else if (message.what == 3) {
@@ -298,10 +300,11 @@ public class DownloadActivity extends AppCompatActivity {
                         fileUrls.removeIf(s -> s.equals(arr[0]));
                         recyclerView.getAdapter().notifyDataSetChanged();
                         recyclerView.getAdapter().notifyItemRangeChanged(0, fileUrls.size());
-                    }
-                    // 删完了就显示背景
-                    if (fileUrls.size() == 0) {
-                        layout.setVisibility(View.VISIBLE);
+                        // 删完了就显示背景
+                        if (fileUrls.isEmpty()) {
+                            recyclerView.setVisibility(View.GONE);
+                            layout.setVisibility(View.VISIBLE);
+                        }
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();

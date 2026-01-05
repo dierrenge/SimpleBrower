@@ -237,10 +237,10 @@ public class CommonUtils {
                 // 比较去除数字后的字符串长度
                 if (o1X.length() == o2X.length()) {
                     // 去除数字后的字符串长度 相同时
-                    if (nums1.size() == nums2.size() && nums1.size() == 0) {
+                    if (nums1.size() == nums2.size() && nums1.isEmpty()) {
                         return 0;
                     } else {
-                        if (nums1.size() == 0 || nums2.size() == 0) {
+                        if (nums1.isEmpty() || nums2.isEmpty()) {
                             return nums1.size() - nums2.size() > 0 ? 1 : -1;
                         } else {
                             for (int i = 0; i < nums1.size(); i++) {

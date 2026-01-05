@@ -78,7 +78,7 @@ public class LocationListDialog extends Dialog {
         recyclerView = findViewById(R.id.location_list);
         txt_bg3 = findViewById(R.id.txt_bg3);
 
-        if (locationList.size() == 0) {
+        if (locationList.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             txt_bg3.setVisibility(View.VISIBLE);
         }

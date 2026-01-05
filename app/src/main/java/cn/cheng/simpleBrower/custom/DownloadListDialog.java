@@ -84,7 +84,7 @@ public class DownloadListDialog extends Dialog {
         recyclerView = findViewById(R.id.download_list);
         txt_bg2 = findViewById(R.id.txt_bg2);
 
-        if (downloadList.size() == 0) {
+        if (downloadList.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             txt_bg2.setVisibility(View.VISIBLE);
         }
