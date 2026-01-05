@@ -74,7 +74,7 @@ public class LikeActivity extends AppCompatActivity {
 
     private List<String> clearUrls = new ArrayList<>();
 
-    private boolean isChange = false;
+    private boolean isChange = false; // 是否开启编辑模式
 
     private String flag = "收藏";
 
@@ -259,10 +259,7 @@ public class LikeActivity extends AppCompatActivity {
             }
 
             public void click(String likeUrl) {
-                if (isChange) {
-                    clearUrls.clear();
-                    menu_edit.callOnClick();
-                }
+                if (isChange) return; // 编辑模式不可跳转
                 // 跳转该网址
                 // Intent intent = new Intent(LikeActivity.this, BrowserActivity.class);
                 Intent intent = new Intent(LikeActivity.this, BrowserActivity2.class);
