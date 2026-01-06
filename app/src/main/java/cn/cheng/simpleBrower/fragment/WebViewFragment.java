@@ -621,17 +621,15 @@ public class WebViewFragment extends Fragment {
                     && !request.isRedirect() && request.isForMainFrame()) {
                 if (callListener != null) {
                     // 暂停webView
-                    /*new Handler().postDelayed(() -> {
-                        view.stopLoading();
-                    }, 200);
-                    view.onPause();
-                    view.pauseTimers();
+                     new Handler().postDelayed(() -> {
+                         view.stopLoading();
+                     }, 200);
+                     view.onPause();
+                     view.pauseTimers();
                     // 跳转
                     callListener.jump(url);
-                    return true; // 拦截跳转，由 Activity 处理*/
-                    new Handler().postDelayed(() -> {
-                        callListener.jump(url);
-                    }, 2000);
+                    // return true; // 拦截跳转，由 Activity 处理
+                    return false; // 不拦截跳转，但手动干预跳转方式，其余如cookie等底层逻辑还是WebView自行处理
                 }
             }
             return false; // 其他情况由 WebView 自行处理
