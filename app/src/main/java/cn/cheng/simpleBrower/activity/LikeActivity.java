@@ -44,7 +44,7 @@ public class LikeActivity extends AppCompatActivity {
 
     private Button back;
 
-    private Button like_change;
+    private Button edit_select_all;
 
     private LinearLayout layout;
 
@@ -60,11 +60,11 @@ public class LikeActivity extends AppCompatActivity {
 
     private LinearLayout like_head;
 
-    private LinearLayout like_head2;
+    private LinearLayout edit_head;
 
-    private TextView like_text;
+    private TextView edit_txt;
 
-    private LinearLayout like_close;
+    private LinearLayout edit_close;
 
     private LinearLayout menu_edit;
 
@@ -92,10 +92,10 @@ public class LikeActivity extends AppCompatActivity {
         back = findViewById(R.id.like_back);
         like_t1 = findViewById(R.id.like_t1);
         like_t2 = findViewById(R.id.like_t2);
-        like_head2 = findViewById(R.id.like_head2);
-        like_close = findViewById(R.id.like_close);
-        like_text = findViewById(R.id.like_text);
-        like_change = findViewById(R.id.like_change);
+        edit_head = findViewById(R.id.edit_head);
+        edit_close = findViewById(R.id.edit_close);
+        edit_txt = findViewById(R.id.edit_txt);
+        edit_select_all = findViewById(R.id.edit_select_all);
         layout = findViewById(R.id.like_bg);
         menu_edit = findViewById(R.id.menu_edit);
         menu_clear = findViewById(R.id.menu_clear);
@@ -129,15 +129,15 @@ public class LikeActivity extends AppCompatActivity {
             }
         });
         // 退出编辑
-        like_close.setOnClickListener(view -> {
+        edit_close.setOnClickListener(view -> {
             if (isChange) {
                 menu_edit.callOnClick();
             }
         });
         // 多选
-        like_change.setOnClickListener(view -> {
+        edit_select_all.setOnClickListener(view -> {
             clearUrls.clear();
-            if ("全选".equals(like_change.getText().toString())) {
+            if ("全选".equals(edit_select_all.getText().toString())) {
                 clearUrls.addAll(likeUrls);
             }
             change(isChange);
@@ -148,17 +148,17 @@ public class LikeActivity extends AppCompatActivity {
             if (!isChange && likeUrls.isEmpty()) return; // 没数据就不必编辑
             if (recyclerView != null) {
                 clearUrls.clear();
-                like_change.setText("全选");
-                like_text.setText("请选择");
+                edit_select_all.setText("全选");
+                edit_txt.setText("请选择");
                 menu_clear.setAlpha(0.5f);
                 if (isChange) {
                     like_head.setVisibility(View.VISIBLE);
-                    like_head2.setVisibility(View.GONE);
+                    edit_head.setVisibility(View.GONE);
                     menu_edit.setVisibility(View.VISIBLE);
                     menu_clear.setVisibility(View.GONE);
                 } else {
                     like_head.setVisibility(View.GONE);
-                    like_head2.setVisibility(View.VISIBLE);
+                    edit_head.setVisibility(View.VISIBLE);
                     menu_edit.setVisibility(View.GONE);
                     menu_clear.setVisibility(View.VISIBLE);
                 }
@@ -353,7 +353,7 @@ public class LikeActivity extends AppCompatActivity {
                         if (likeUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
-                            like_close.callOnClick();
+                            edit_close.callOnClick();
                         } else {
                             change(isChange);
                         }
@@ -498,9 +498,9 @@ public class LikeActivity extends AppCompatActivity {
                 }
             }
             if (isChange) {
-                like_change.setVisibility(View.VISIBLE);
+                edit_select_all.setVisibility(View.VISIBLE);
             } else {
-                like_change.setVisibility(View.INVISIBLE);
+                edit_select_all.setVisibility(View.INVISIBLE);
             }
             if (likeUrls.isEmpty()) {
                 menu_edit.setAlpha(0.5f);
@@ -513,16 +513,16 @@ public class LikeActivity extends AppCompatActivity {
 
     private void likeChange() {
         if (new HashSet<>(clearUrls).containsAll(likeUrls)) {
-            like_change.setText("取消");
+            edit_select_all.setText("取消");
         } else {
-            like_change.setText("全选");
+            edit_select_all.setText("全选");
         }
         if (clearUrls.isEmpty()) {
-            like_text.setText("请选择");
+            edit_txt.setText("请选择");
             menu_clear.setAlpha(0.5f);
         } else  {
             menu_clear.setAlpha(1f);
-            like_text.setText("已选择" + clearUrls.size() + "项");
+            edit_txt.setText("已选择" + clearUrls.size() + "项");
         }
     }
 

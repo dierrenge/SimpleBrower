@@ -1937,7 +1937,7 @@ public class CommonUtils {
     }
 
     // 判断是否重定向
-    public static boolean checkRedirect(String url, int timeoutMillisecond) {
+    public static String checkRedirect(String url, int timeoutMillisecond) {
         // Long timeStart = System.currentTimeMillis();
         HttpURLConnection httpURLConnection = null;
         try {
@@ -1950,8 +1950,7 @@ public class CommonUtils {
             // 获取格式
             int code = httpURLConnection.getResponseCode();
             if (code == HttpURLConnection.HTTP_MOVED_PERM || code == HttpURLConnection.HTTP_MOVED_TEMP) {
-                // String location = httpURLConnection.getHeaderField("Location");
-                return true;
+                return httpURLConnection.getHeaderField("Location");
                 // Long timeEnd = System.currentTimeMillis();
                 // System.out.println("===耗时：" + (timeEnd - timeStart)/1000F + "秒");
             }
@@ -1962,6 +1961,6 @@ public class CommonUtils {
                 httpURLConnection.disconnect();
             }
         }
-        return false;
+        return "";
     }
 }

@@ -19,7 +19,7 @@
             android:layout_height="50dp"
             android:background="@color/trans_color"
             android:textColor="@color/blackGray"
-            android:paddingBottom="2.4dp"
+            android:paddingBottom="0dp"
             android:gravity="center|start"
             android:paddingLeft="5dp"
             android:textSize="20dp"
@@ -54,7 +54,8 @@
         android:id="@+id/download_bg"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -69,6 +70,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/download_mg_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
 </LinearLayout>
