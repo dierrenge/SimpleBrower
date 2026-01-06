@@ -7,14 +7,13 @@
     android:orientation="vertical">
 
     <!-- Fragment 容器 -->
-
-    <!-- 导航栏 -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- 菜单栏 -->
     <LinearLayout
         android:id="@+id/btn_menu2"
         android:gravity="center"

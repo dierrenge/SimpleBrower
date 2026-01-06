@@ -137,9 +137,9 @@ public class WebViewFragment extends Fragment {
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // 忽略强制网络策略: 在主线程中可以访问网络
-        StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        // 忽略强制网络策略: 在主线程中可以访问网络（这样会卡）
+        // StrictMode.ThreadPolicy policy=new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        // StrictMode.setThreadPolicy(policy);
 
         View view = inflater.inflate(R.layout.fragment_webview, container, false);
         progressHandler = new Handler();
@@ -157,10 +157,6 @@ public class WebViewFragment extends Fragment {
         Bundle args = getArguments();
         if (args != null) {
             jumpUrl = args.getString("url");
-            if (jumpUrl != null) {
-                url_box2.setText(jumpUrl);
-                webView.loadUrl(jumpUrl);
-            }
         }
 
         // 软件盘回车响应
@@ -304,6 +300,11 @@ public class WebViewFragment extends Fragment {
                 return false;
             }
         });
+
+        if (jumpUrl != null) {
+            url_box2.setText(jumpUrl);
+            webView.loadUrl(jumpUrl);
+        }
 
         return view;
     }
@@ -604,7 +605,7 @@ public class WebViewFragment extends Fragment {
         }
 
         // 设置网页页面拦截
-        @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络
+        // @SuppressLint("NewApi") // 忽略强制网络策略: 在主线程中可以访问网络（这样会卡）
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
@@ -617,18 +618,20 @@ public class WebViewFragment extends Fragment {
             }
             // 仅处理用户触发的 非重定向 主框架请求
             if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
-                    && !request.isRedirect() && request.isForMainFrame() &&
-                    !CommonUtils.checkRedirect(url, 1800)) {
+                    && !request.isRedirect() && request.isForMainFrame()) {
                 if (callListener != null) {
                     // 暂停webView
-                    new Handler().postDelayed(() -> {
+                    /*new Handler().postDelayed(() -> {
                         view.stopLoading();
                     }, 200);
                     view.onPause();
                     view.pauseTimers();
                     // 跳转
                     callListener.jump(url);
-                    return true; // 拦截跳转，由 Activity 处理
+                    return true; // 拦截跳转，由 Activity 处理*/
+                    new Handler().postDelayed(() -> {
+                        callListener.jump(url);
+                    }, 2000);
                 }
             }
             return false; // 其他情况由 WebView 自行处理
