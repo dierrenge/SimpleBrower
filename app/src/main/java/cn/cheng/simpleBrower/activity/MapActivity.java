@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.maps.AMap;
@@ -91,6 +92,7 @@ public class MapActivity extends AppCompatActivity {
     private boolean isFirstLoc = true; //判断是否第一次定位
     private Marker marker; // 标记
     private List<LocationBean> locationList; // 历史定位记录
+    private AMapLocation aMapLocationT;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -298,11 +300,11 @@ public class MapActivity extends AppCompatActivity {
                             LatLng cLatLng = new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()); //获取当前定位
                             // 首次定位移动到当前位置
                             if (isFirstLoc) {
+                                aMapLocationT = aMapLocation;
                                 aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cLatLng, 16));
+                                // 更新地图指针位置
+                                mListener.onLocationChanged(aMapLocationT);
                             }
-                            onResume();
-                            // 更新地图指针位置
-                            mListener.onLocationChanged(aMapLocation);
                             isFirstLoc = false;
                         } else {
                             // 错误信息
@@ -463,15 +465,13 @@ public class MapActivity extends AppCompatActivity {
             startService(intentS);
         }
         // 移动到标记点
-        aMap.animateCamera(CameraUpdateFactory.newLatLng(selectedLocation), 0, new AMap.CancelableCallback() {
-            @Override
-            public void onFinish() {
-                aMap.moveCamera(CameraUpdateFactory.newLatLng(selectedLocation));
-                onResume();
-            }
-            @Override
-            public void onCancel() {}
-        });
+        aMap.moveCamera(CameraUpdateFactory.changeLatLng(selectedLocation));
+        if (mListener != null && aMapLocationT != null) {
+            aMapLocationT.setLatitude(selectedLocation.latitude);
+            aMapLocationT.setLongitude(selectedLocation.longitude);
+            // 更新地图指针位置
+            mListener.onLocationChanged(aMapLocationT);
+        }
         // 发起请求（传入经纬度查询地址）
         LatLonPoint point = new LatLonPoint(selectedLocation.latitude, selectedLocation.longitude);
         RegeocodeQuery query = new RegeocodeQuery(point, 200, GeocodeSearch.AMAP);

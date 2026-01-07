@@ -169,7 +169,7 @@ public class LikeActivity extends AppCompatActivity {
         // 删除
         menu_clear.setOnClickListener(view -> {
             if (clearUrls.isEmpty()) return;
-            FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除该记录吗？", "删除", "取消");
+            FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除选中记录吗？", "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {

@@ -137,7 +137,7 @@ public class VideoListActivity extends AppCompatActivity {
                     });*/
                     Button button = holder.itemView.findViewById(R.id.item_del);
                     button.setOnClickListener(view -> {
-                        FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "删除", "确定要删除该文件吗？", "删除", "取消");
+                        FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "删除", "确定要删除选中文件吗？", "删除", "取消");
                         feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                             @Override
                             public void close() {
