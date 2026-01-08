@@ -1893,6 +1893,8 @@ public class CommonUtils {
                 nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             }
             nm.notify(id, notification);
+            // 更新消息组摘要
+            flushNotificationGroup(context);
         } catch (Throwable e) {
             CommonUtils.saveLog("=======更新消息通知视图=======" + e.getMessage());
         }

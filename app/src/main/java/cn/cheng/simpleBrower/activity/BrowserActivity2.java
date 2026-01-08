@@ -88,13 +88,14 @@ public class BrowserActivity2 extends AppCompatActivity {
         btnHome.setOnClickListener(v -> {
             BrowserActivity2.super.onBackPressed();
         });
-        btnMonitorL.setOnClickListener(v -> {
+        btnMonitor.setOnClickListener(v -> {
             DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this);
             dialog.setOnCallListener(() -> {
                 btnMonitor.setBackgroundResource(R.drawable.btn_monitor);
             });
             dialog.show();
         });
+        btnMonitorL.setOnClickListener(v -> btnMonitor.callOnClick());
         btnMore.setOnClickListener(v -> {
             MoreFunctionDialog dialog = new MoreFunctionDialog(BrowserActivity2.this);
             dialog.show();
