@@ -39,6 +39,7 @@ public class BrowserActivity2 extends AppCompatActivity {
     private ImageButton btnForward;
     private ImageButton btnBack;
     private ImageButton btnHome;
+    private LinearLayout btnMonitorL;
     private ImageButton btnMonitor;
     private ImageButton btnMore;
     private LinearLayout btnMoreL;
@@ -70,6 +71,7 @@ public class BrowserActivity2 extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
         btnHome = findViewById(R.id.btnHome);
+        btnMonitorL = findViewById(R.id.btnMonitorL);
         btnMonitor = findViewById(R.id.btnMonitor);
         btnMore = findViewById(R.id.btnMore);
         btnMoreL = findViewById(R.id.btnMoreL);
@@ -86,7 +88,7 @@ public class BrowserActivity2 extends AppCompatActivity {
         btnHome.setOnClickListener(v -> {
             BrowserActivity2.super.onBackPressed();
         });
-        btnMonitor.setOnClickListener(v -> {
+        btnMonitorL.setOnClickListener(v -> {
             DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this);
             dialog.setOnCallListener(() -> {
                 btnMonitor.setBackgroundResource(R.drawable.btn_monitor);
