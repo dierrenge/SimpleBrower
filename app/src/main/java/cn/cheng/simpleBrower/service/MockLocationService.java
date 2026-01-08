@@ -68,30 +68,7 @@ public class MockLocationService extends Service {
         windowManager.addView(floatingView, params);
 
         // 必须设置为前台服务
-        startForeground(1, createNotification());
-    }
-
-    private Notification createNotification() {
-        // 创建通知渠道 (Android 8.0+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("定位消息404", "悬浮窗服务",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            getSystemService(NotificationManager.class).createNotificationChannel(channel);
-        }
-        // 创建一个Notification对象
-        NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this, "定位消息404");
-        // 设置打开该通知，该通知自动消失
-        nBuilder.setAutoCancel(false);
-        // 设置通知的图标
-        nBuilder.setSmallIcon(R.mipmap.app_logo);
-        // 设置使用系统默认的声音、默认震动
-        nBuilder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
-        // 设置发送时间
-        nBuilder.setWhen(System.currentTimeMillis());
-
-        return nBuilder.setCustomContentView(
-                new RemoteViews(getPackageName(), R.layout.notification_location)).build();
+        startForeground(1, CommonUtils.createNotification(this, false, R.layout.notification_location));
     }
 
     @Override

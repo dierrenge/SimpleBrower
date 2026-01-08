@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -1886,6 +1887,7 @@ public class CommonUtils {
                     .setCustomContentView(contentView)
                     .setContentIntent(pendingIntent)
                     .setDeleteIntent(pendingIntentCancel)
+                    .setGroup(context.getPackageName()) // 设置分组
                     .build();
             if (nm == null) {
                 nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -1962,5 +1964,47 @@ public class CommonUtils {
             }
         }
         return "";
+    }
+
+
+    // 自定义前台消息
+    public static Notification createNotification(Context context, boolean isGroupSummary, int layoutId) {
+        String id = "消息" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        // 创建通知渠道 (Android 8.0+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(id, "悬浮窗服务",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            context.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        }
+        // 创建一个Notification对象
+        NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(context, id);
+        // 设置打开该通知，该通知自动消失
+        nBuilder.setAutoCancel(false);
+        // 设置通知的图标
+        nBuilder.setSmallIcon(R.mipmap.app_logo);
+        // 设置使用系统默认的声音、默认震动
+        nBuilder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+        // 设置发送时间
+        nBuilder.setWhen(System.currentTimeMillis());
+        // 设置分组标识
+        nBuilder.setGroup(context.getPackageName());
+        // 设置为摘要组
+        nBuilder.setGroupSummary(isGroupSummary);
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
+        return nBuilder.setCustomContentView(views).build();
+    }
+
+    // 更新消息组摘要
+    public static Notification notificationGroup;
+    public static void flushNotificationGroup(Context context) {
+        if (notificationGroup == null) {
+            notificationGroup = createNotification(context, true, R.layout.notification_summary_group);
+        }
+        NotificationManager nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+        if (nm.getActiveNotifications().length > 1) {
+            nm.notify(99999, notificationGroup);
+        }
     }
 }

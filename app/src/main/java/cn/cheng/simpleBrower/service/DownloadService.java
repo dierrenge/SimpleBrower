@@ -159,6 +159,8 @@ public class DownloadService extends Service {
             nBuilder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
             // 设置发送时间
             nBuilder.setWhen(System.currentTimeMillis());
+            // 设置分组
+            nBuilder.setGroup(getPackageName());
 
             // 创建一个跳转指定Activity的Intent
             Intent i = new Intent(this, DownloadActivity.class);
@@ -200,6 +202,8 @@ public class DownloadService extends Service {
             notification = nBuilder.setCustomContentView(views).build();
             // 发布通知 （放入通知管理器）
             nm.notify(notificationId, notification);
+            // 更新消息组摘要
+            CommonUtils.flushNotificationGroup(this);
 
             // 设置消息属性
             NotificationBean notificationBean = MyApplication.getDownLoadInfo(notificationId);
