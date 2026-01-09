@@ -18,6 +18,7 @@ import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.NotificationUtils;
 
 // 用于接受下载完成提示的广播接收者
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
@@ -30,19 +31,19 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
         if (downLoadInfo == null) return;
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
 
         // 处理按钮点击事件
         if ("notification_clicked".equals(action)) {
             try {
                 String state = downLoadInfo.getState();
                 state = state.equals("暂停") ? "继续" : "暂停";
-                CommonUtils.updateRemoteViews(notificationId, null, state, notificationManager);
+                NotificationUtils.updateRemoteViews(notificationId, null, state, notificationManager);
                 downLoadInfo.setState(state);
                 if (state.equals("暂停")) {
                     new M3u8DownLoader(notificationId).start();
                 }
-                /*String channelId = intent.getStringExtra("channelId");
+                /*
                 //Notification notificationX = downLoadInfo.getNotification();
                 // 原方式：contentView可能为空
                 Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);

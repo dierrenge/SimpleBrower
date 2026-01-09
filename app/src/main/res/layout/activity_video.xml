@@ -17,7 +17,7 @@
     <ImageView
         android:layout_gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="100dp"
         android:scaleType="centerInside"
         android:src="@color/translucent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -25,14 +25,14 @@
     <ImageView
         android:layout_gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="100dp"
         android:scaleType="centerInside"
         android:src="@color/translucent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
     <ImageView
         android:layout_gravity="center"
-        android:layout_width="50dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
         android:scaleType="centerInside"
         android:src="@color/translucent"
@@ -40,7 +40,7 @@
         tools:ignore="MissingConstraints" />
     <ImageView
         android:layout_gravity="center"
-        android:layout_width="50dp"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
         android:scaleType="centerInside"
         android:src="@color/translucent"

@@ -33,6 +33,7 @@ import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.NotificationUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class DownloadActivity extends AppCompatActivity {
@@ -165,7 +166,7 @@ public class DownloadActivity extends AppCompatActivity {
                                 if (info != null) {
                                     String processStr = getProcess(info);
                                     info.setState(state);
-                                    CommonUtils.updateRemoteViews(notificationId, null, state, null);
+                                    NotificationUtils.updateRemoteViews(notificationId, null, state, null);
                                     // bean.setState(state);
                                     // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + CommonUtils.zeroPadding(bean.getNotificationId()), bean);
                                     if (state.equals("暂停") && !processStr.contains("100")) {

@@ -49,6 +49,7 @@ import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.NotificationUtils;
 
 /**
  * 下载Service （下载包括m3u8格式的文件）
@@ -67,8 +68,6 @@ public class DownloadService extends Service {
     private RemoteViews views;
     // 通知id 每次下载通知要不一样
     private int notificationId = 0;
-    // 频道id 每次下载通知要不一样
-    private String CHANNEL_ID = "";
 
     public DownloadService() {
     }
@@ -86,7 +85,7 @@ public class DownloadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-            // 线程消息传递处理
+            // 线程消息传递处理 初始化
             myHandler =  DownLoadHandler.getInstance();
 
             // 剩余内存判断
@@ -97,15 +96,17 @@ public class DownloadService extends Service {
                 return super.onStartCommand(intent, flags, startId);
             }
 
-            nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            // 创建通知管理和渠道
+            nm = this.getSystemService(NotificationManager.class);
+            NotificationUtils.initNotificationChannel(this);
 
+            // 获取初始数据
             int what = intent.getIntExtra("what", 0);
             String title = intent.getStringExtra("title");
             String url = intent.getStringExtra("url");
             if (StringUtils.isEmpty(url)) {
                 return super.onStartCommand(intent, flags, startId);
             }
-            // String urlName = url.substring(url.lastIndexOf("/") + 1);
             if (title == null || "".equals(title)) {
                 title = System.currentTimeMillis() + "";
             }
@@ -113,40 +114,33 @@ public class DownloadService extends Service {
                 title = title.substring(title.lastIndexOf("/") + 1);
             }
             supDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower";
-            CHANNEL_ID = url;
-
-            // 高版本通知Notification 必须先定义NotificationChannel
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (nm.getActiveNotifications().length > 5) {
-                    Message message = myHandler.obtainMessage(0, new String[]{"下载任务数已到上限", ""});
-                    myHandler.sendMessage(message);
-                    return super.onStartCommand(intent, flags, startId);
-                }
-                for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
-                    if (activeNotification.getNotification() != null) {
-                        String channelId = activeNotification.getNotification().getChannelId();
-                        if (CHANNEL_ID.equals(channelId)) {
-                            Message message = myHandler.obtainMessage(0, new String[]{"已存在一个相同的下载任务", ""});
-                            myHandler.sendMessage(message);
-                            return super.onStartCommand(intent, flags, startId);
-                        }
-                    }
-                }
-                NotificationChannel channel = new NotificationChannel(CHANNEL_ID
-                        , "name", NotificationManager.IMPORTANCE_DEFAULT);
-                File file = new File(supDir + "/" + title + ".m3u8");
-                if (file.exists()) {
-                    Message message = myHandler.obtainMessage(0, new String[]{"该视频已在影音列表中", ""});
-                    myHandler.sendMessage(message);
-                    return super.onStartCommand(intent, flags, startId);
-                }
-                nm.createNotificationChannel(channel);
-            }
-
             notificationId = intent.getIntExtra("notificationId", CommonUtils.randomNum());
 
+            // 下载任务校验
+            if (nm.getActiveNotifications().length > 5) {
+                Message message = myHandler.obtainMessage(0, new String[]{"下载任务数已到上限", ""});
+                myHandler.sendMessage(message);
+                return super.onStartCommand(intent, flags, startId);
+            }
+            for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
+                if (activeNotification.getNotification() != null) {
+                    String sortKey = activeNotification.getNotification().getSortKey();
+                    if (url.equals(sortKey)) {
+                        Message message = myHandler.obtainMessage(0, new String[]{"已存在一个相同的下载任务", ""});
+                        myHandler.sendMessage(message);
+                        return super.onStartCommand(intent, flags, startId);
+                    }
+                }
+            }
+            File file = new File(supDir + "/" + title + ".m3u8");
+            if (file.exists()) {
+                Message message = myHandler.obtainMessage(0, new String[]{"该视频已在影音列表中", ""});
+                myHandler.sendMessage(message);
+                return super.onStartCommand(intent, flags, startId);
+            }
+
             // 创建一个Notification对象
-            NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
+            NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this, NotificationUtils.channelKey);
             // 设置打开该通知，该通知自动消失
             nBuilder.setAutoCancel(false);
             // 设置通知的图标
@@ -160,7 +154,9 @@ public class DownloadService extends Service {
             // 设置发送时间
             nBuilder.setWhen(System.currentTimeMillis());
             // 设置分组
-            nBuilder.setGroup(getPackageName());
+            nBuilder.setGroup(NotificationUtils.groupKey);
+            // 设置排序标识
+            nBuilder.setSortKey(url);
 
             // 创建一个跳转指定Activity的Intent
             Intent i = new Intent(this, DownloadActivity.class);
@@ -187,7 +183,6 @@ public class DownloadService extends Service {
             Intent intentClick = new Intent(this, NotificationBroadcastReceiver.class);
             intentClick.setAction("notification_clicked");
             intentClick.putExtra("notificationId", notificationId);
-            intentClick.putExtra("channelId", CHANNEL_ID);
             // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
             int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
             PendingIntent pendingIntentClick = PendingIntent.getBroadcast(this, notificationId, intentClick, flag2);
@@ -202,8 +197,8 @@ public class DownloadService extends Service {
             notification = nBuilder.setCustomContentView(views).build();
             // 发布通知 （放入通知管理器）
             nm.notify(notificationId, notification);
-            // 更新消息组摘要
-            CommonUtils.flushNotificationGroup(this);
+            // 更新摘要通知
+            NotificationUtils.flushSummaryNotification(this);
 
             // 设置消息属性
             NotificationBean notificationBean = MyApplication.getDownLoadInfo(notificationId);
@@ -241,8 +236,6 @@ public class DownloadService extends Service {
                 //开始下载
                 m3u8Download.start();
             }
-            // Message message2 = myHandler.obtainMessage(0, new String[]{CHANNEL_ID + "-开始下载", ""});
-            // myHandler.sendMessage(message2);
         } catch (Throwable e) {
             CommonUtils.saveLog("=====DownloadService=====" + e.getMessage());
         }

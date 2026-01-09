@@ -923,7 +923,7 @@ public class M3u8DownLoader {
                     contentView.setProgressBar(R.id.pbDownload, 100, 0, false);
                     contentView.setTextViewText(R.id.tvProcess, "已下载0.00%");
                 }
-                NotificationManager notificationManager = (NotificationManager) MyApplication.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationManager notificationManager = MyApplication.getContext().getSystemService(NotificationManager.class);
                 notificationManager.notify(id, notificationX);
                 notificationBean.setState("继续");
             }

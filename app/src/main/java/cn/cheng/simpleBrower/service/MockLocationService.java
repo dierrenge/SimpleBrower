@@ -1,14 +1,10 @@
 package cn.cheng.simpleBrower.service;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,19 +19,15 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-
-import java.util.HashMap;
-import java.util.List;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.CoordinateTransform;
+import cn.cheng.simpleBrower.util.NotificationUtils;
 
 public class MockLocationService extends Service {
     private WindowManager windowManager;
@@ -68,7 +60,7 @@ public class MockLocationService extends Service {
         windowManager.addView(floatingView, params);
 
         // 必须设置为前台服务
-        startForeground(1, CommonUtils.createNotification(this, false, R.layout.notification_location));
+        startForeground(1, NotificationUtils.createNotification(this, "定位服务", "彼黍虚拟定位服务运行中"));
     }
 
     @Override
