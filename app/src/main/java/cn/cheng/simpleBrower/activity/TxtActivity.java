@@ -546,26 +546,24 @@ public class TxtActivity extends AppCompatActivity {
     }
 
     private void read() {
-        if (txtUrl != null) {
+        if (txtUrl != null && positionBean != null) {
             // 记录进度
-            if (positionBean != null) {
-                new Handler().post(() -> {
-                    CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
-                });
-            }
-            // 朗读文本
-            String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
-            // 绑定式service
-            // readService.startRead(txt, flagRead);
-            intentS.putExtra("txtUrl", txtUrl);
-            intentS.putExtra("txt", txt);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intentS);
+            new Handler().post(() -> {
+                CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
+            });
+            if (flagRead) {
+                // 朗读文本
+                String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
+                // 绑定式service
+                // readService.startRead(txt, flagRead);
+                intentS.putExtra("txtUrl", txtUrl);
+                intentS.putExtra("txt", txt);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intentS);
+                } else {
+                    startService(intentS);
+                }
             } else {
-                startService(intentS);
-            }
-
-            if (!flagRead) {
                 stopService(intentS);
             }
         }

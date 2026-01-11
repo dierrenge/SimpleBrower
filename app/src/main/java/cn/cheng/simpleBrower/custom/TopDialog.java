@@ -87,6 +87,7 @@ public class TopDialog extends Dialog {
             @Override
             public void upEvent() {
                 if (touchListener != null) {
+                    readBtn.setText("朗读");
                     touchListener.readSet();
                 }
             }
@@ -95,6 +96,7 @@ public class TopDialog extends Dialog {
             @Override
             public void upEvent() {
                 if (touchListener != null) {
+                    readBtn.setText("朗读");
                     touchListener.powerSet();
                 }
             }
