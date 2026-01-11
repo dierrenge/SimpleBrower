@@ -1,26 +1,21 @@
 package cn.cheng.simpleBrower.service;
 
-import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
+
+import androidx.core.app.NotificationCompat;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 import cn.cheng.simpleBrower.activity.TxtActivity;
-import cn.cheng.simpleBrower.bean.PositionBean;
-import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.HeadphoneReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.NotificationUtils;
@@ -51,10 +46,10 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
         intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(receiver, intentFilter);
 
-        // 必须设置为前台服务
-        Notification n = NotificationUtils.initBuilder(this,
-                "朗读服务", "彼黍朗读服务运行中", TxtActivity.class).build();
-        startForeground(2, n);
+        // 设置为前台服务
+        NotificationCompat.Builder builder = NotificationUtils.initBuilder(this, "朗读服务", "彼黍朗读服务运行中", TxtActivity.class);
+        startForeground(1, builder.build());
+        NotificationUtils.notifySummaryNotification(this);
     }
 
     @Override
@@ -99,7 +94,7 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
                 @Override
                 public void onDone(String s) {
                     // reader.read();
-                    //发送Action为com.example.communication.RECEIVER的广播
+                    // 发送Action为com.example.communication.RECEIVER的广播
                     intent.putExtra("txtUrl", txtUrl);
                     sendBroadcast(intent);
                 }

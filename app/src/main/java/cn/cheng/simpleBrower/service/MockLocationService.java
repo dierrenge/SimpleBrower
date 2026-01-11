@@ -2,6 +2,7 @@ package cn.cheng.simpleBrower.service;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,6 +25,7 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.MapActivity;
@@ -61,10 +63,10 @@ public class MockLocationService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         windowManager.addView(floatingView, params);
 
-        // 必须设置为前台服务
-        Notification n = NotificationUtils.initBuilder(this,
-                "定位服务", "彼黍虚拟定位服务运行中", MapActivity.class).build();
-        startForeground(1, n);
+        // 设置为前台服务
+        NotificationCompat.Builder builder = NotificationUtils.initBuilder(this, "定位服务", "彼黍虚拟定位服务运行中", MapActivity.class);
+        startForeground(2, builder.build());
+        NotificationUtils.notifySummaryNotification(this);
     }
 
     @Override

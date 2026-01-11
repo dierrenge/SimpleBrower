@@ -154,6 +154,7 @@ public class TxtActivity extends AppCompatActivity {
             } else {
                 flagRead = true;
             }
+            MyApplication.setTxtUrl(txtUrl);
 
             // 读取内存中的小说行
             Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
@@ -531,11 +532,9 @@ public class TxtActivity extends AppCompatActivity {
         // unbindService(conn);
 
         // 注销广播
-        unregisterReceiver(msgReceiver);
-
-        if (flagRead) {
-            MyApplication.setTxtUrl(txtUrl);
-        } else {
+        // 退出该activity也要能播放所以这里停止播放时才注销
+        if (!flagRead) {
+            unregisterReceiver(msgReceiver);
             MyApplication.setTxtUrl(null);
         }
 
@@ -556,10 +555,8 @@ public class TxtActivity extends AppCompatActivity {
             }
             // 朗读文本
             String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
-
             // 绑定式service
             // readService.startRead(txt, flagRead);
-
             intentS.putExtra("txtUrl", txtUrl);
             intentS.putExtra("txt", txt);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

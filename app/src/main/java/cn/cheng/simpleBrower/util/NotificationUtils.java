@@ -49,26 +49,37 @@ public class NotificationUtils {
         initChannel(context);
         // logo图标
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.mipmap.app_logo);
-        // 跳转指定Activity的Intent
-        Intent i = new Intent(context, clazz);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
-        } else {
-            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
-        }
+        // 基础设置
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelKey)
                 .setSmallIcon(R.mipmap.app_logo_r)
                 .setLargeIcon(largeIcon)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setChannelId(channelKey)
                 .setGroup(groupKey) // 绑定组ID
                 .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY) // 仅摘要通知触发提醒
                 .setAutoCancel(false)
-                .setContentIntent(pendingIntent)
                 .setWhen(System.currentTimeMillis());
+        // 跳转指定Activity的Intent
+        if (clazz != null) {
+            Intent i = new Intent(context, clazz);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if ("朗读服务".equals(title)) {
+                i.putExtra("txtUrl", MyApplication.getTxtUrl());
+            }
+            // 意图可变标志（这里PendingIntent必须设置意图可变标志，否则变量永远是旧的）
+            int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE|PendingIntent.FLAG_UPDATE_CURRENT : PendingIntent.FLAG_UPDATE_CURRENT;
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, flag);
+            builder.setContentIntent(pendingIntent);
+        }
+
         return builder;
+    }
+
+    // 发布基础通知
+    public static void notifyNotification(Context context, NotificationCompat.Builder builder, int id) {
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
+        nm.notify(id, builder.build());
     }
 
     // 发布下载通知
@@ -93,24 +104,13 @@ public class NotificationUtils {
         // 设置排序标识
         nBuilder.setSortKey(url);
 
-        // 创建一个跳转指定Activity的Intent
-        Intent i = new Intent(context, DownloadActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
-        } else {
-            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
-        }
-        nBuilder.setContentIntent(pendingIntent);
-
         // 创建一个用于记录滑动删除的intent 调用广播
         Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
         intentCancel.setAction("notification_cancelled");
         intentCancel.putExtra("notificationId", id);
         intentCancel.putExtra("fileName", supDir + "/" + title);
-        // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
-        int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+        // 意图可变标志（这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+        int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE|PendingIntent.FLAG_UPDATE_CURRENT : PendingIntent.FLAG_UPDATE_CURRENT;
         PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id, intentCancel, flag);
         nBuilder.setDeleteIntent(pendingIntentCancel);
 
@@ -121,15 +121,20 @@ public class NotificationUtils {
         notifySummaryNotification(context);
     }
 
-    // 发布摘要通知（组级通知）
-    public static void notifySummaryNotification(Context context) {
-        NotificationManager nm = context.getSystemService(NotificationManager.class);
-        Notification summaryNotification = new NotificationCompat.Builder(context, channelKey)
+    // 创建摘要通知
+    public static Notification initSummaryNotification(Context context) {
+        return new NotificationCompat.Builder(context, channelKey)
                 .setSmallIcon(R.mipmap.app_logo_r)
                 .setGroup(groupKey)
                 .setGroupSummary(true) // 关键：声明为摘要通知
                 .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                 .build();
+    }
+
+    // 发布摘要通知（组级通知）
+    public static void notifySummaryNotification(Context context) {
+        Notification summaryNotification = initSummaryNotification(context);
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
         nm.notify(0, summaryNotification);
     }
 }

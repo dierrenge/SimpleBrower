@@ -149,6 +149,7 @@
         <activity
             android:name=".activity.TxtActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             tools:ignore="AppLinkUrlError"><!-- android:launchMode="singleInstance" -->
             <!-- 设置此activity可用于打开 txt文件 -->
             <intent-filter>
@@ -230,6 +231,7 @@
             android:windowSoftInputMode="adjustNothing"
             android:name=".activity.MapActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|navigation"
+            android:launchMode="singleTop"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
