@@ -14,6 +14,7 @@ import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -86,7 +87,7 @@ public class TxtActivity extends AppCompatActivity {
     private AudioManager audioManager;
     private AudioManager.OnAudioFocusChangeListener audioListener;
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "UnspecifiedRegisterReceiverFlag", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -199,14 +200,14 @@ public class TxtActivity extends AppCompatActivity {
                     @Override
                     public void read() {
                         // 跳转到文字转语音设置界面
-                    /*Intent intent = new Intent();
-                    intent.setAction("com.android.settings.TTS_SETTINGS");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    TxtActivity.this.startActivity(intent);*/
+                        /*Intent intent = new Intent();
+                        intent.setAction("com.android.settings.TTS_SETTINGS");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        TxtActivity.this.startActivity(intent);*/
 
                         if (!otherFlag) {
                             flagRead = !flagRead;
-                            TxtActivity.this.read(positionBean.getTxt());
+                            TxtActivity.this.read();
                         }
 
                         topDialog.dismiss();
@@ -296,7 +297,7 @@ public class TxtActivity extends AppCompatActivity {
                                 if (doubleClick) { // 双击朗读
                                     if (!otherFlag) {
                                         flagRead = !flagRead;
-                                        TxtActivity.this.read(positionBean.getTxt());
+                                        TxtActivity.this.read();
                                     }
                                 } else {
                                     doubleClick = true;
@@ -342,25 +343,27 @@ public class TxtActivity extends AppCompatActivity {
             });
 
             // 设置电话状态监听
-            telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            phoneStateListener = new PhoneStateListener() {
-                @Override
-                public void onCallStateChanged(int state, String phoneNumber) {
-                    switch (state) {
-                        case TelephonyManager.CALL_STATE_RINGING:
-                            // 来电响铃
-                            break;
-                        case TelephonyManager.CALL_STATE_OFFHOOK:
-                            // 通话开始（接听或拨出）
-                            stopDuringCall();
-                            break;
-                        case TelephonyManager.CALL_STATE_IDLE:
-                            // 通话结束
-                            break;
+            try {
+                telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                phoneStateListener = new PhoneStateListener() {
+                    @Override
+                    public void onCallStateChanged(int state, String phoneNumber) {
+                        switch (state) {
+                            case TelephonyManager.CALL_STATE_RINGING:
+                                // 来电响铃
+                                break;
+                            case TelephonyManager.CALL_STATE_OFFHOOK:
+                                // 通话开始（接听或拨出）
+                                stopDuringCall();
+                                break;
+                            case TelephonyManager.CALL_STATE_IDLE:
+                                // 通话结束
+                                break;
+                        }
                     }
-                }
-            };
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+                };
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            } catch (Throwable e) {}
 
             // 设置微信等通话状态监听（请求音频焦点开始监听）
             audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -429,7 +432,7 @@ public class TxtActivity extends AppCompatActivity {
                 n_content.setText(positionBean.getTxt());
 
                 if (!otherFlag) {
-                    read(positionBean.getTxt());
+                    read();
                 }
             });
         }
@@ -477,7 +480,7 @@ public class TxtActivity extends AppCompatActivity {
                         n_content.setText(positionBean.getTxt());
 
                         if (!otherFlag) {
-                            read(positionBean.getTxt());
+                            read();
                         }
                     });
                 }
@@ -491,29 +494,6 @@ public class TxtActivity extends AppCompatActivity {
         span.setSpan(new ForegroundColorSpan(Color.TRANSPARENT), 0, txt.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         return span;
     }
-
-    // 绑定式service
-    /*ServiceConnection conn = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            //返回一个MsgService对象
-            readService = ((ReadService.MsgBinder)service).getService();
-
-            readService.setReader(new ReadService.Reader() {
-                @Override
-                public void read() {
-                    Message message = handler.obtainMessage();
-                    message.what = 0;
-                    handler.sendMessage(message);
-                }
-            });
-        }
-    };*/
-
 
     /**
      * 广播接收器
@@ -549,6 +529,10 @@ public class TxtActivity extends AppCompatActivity {
         super.onDestroy();
         // 绑定式service
         // unbindService(conn);
+
+        // 注销广播
+        unregisterReceiver(msgReceiver);
+
         if (flagRead) {
             MyApplication.setTxtUrl(txtUrl);
         } else {
@@ -562,7 +546,7 @@ public class TxtActivity extends AppCompatActivity {
         }
     }
 
-    private void read(String txt) {
+    private void read() {
         if (txtUrl != null) {
             // 记录进度
             if (positionBean != null) {
@@ -570,23 +554,19 @@ public class TxtActivity extends AppCompatActivity {
                     CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
                 });
             }
+            // 朗读文本
+            String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
 
             // 绑定式service
             // readService.startRead(txt, flagRead);
 
-            if (flagRead) {
-                // 先中止上一段播报
-                intentS.putExtra("flagRead", false);
-                startService(intentS);
-                stopService(intentS);
-            }
-
             intentS.putExtra("txtUrl", txtUrl);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("positionBean", (Serializable) positionBean);
-            intentS.putExtras(bundle);
-            intentS.putExtra("flagRead", flagRead);
-            startService(intentS);
+            intentS.putExtra("txt", txt);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intentS);
+            } else {
+                startService(intentS);
+            }
 
             if (!flagRead) {
                 stopService(intentS);
@@ -594,4 +574,25 @@ public class TxtActivity extends AppCompatActivity {
         }
     }
 
+    // 绑定式service
+    /*ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //返回一个MsgService对象
+            readService = ((ReadService.MsgBinder)service).getService();
+
+            readService.setReader(new ReadService.Reader() {
+                @Override
+                public void read() {
+                    Message message = handler.obtainMessage();
+                    message.what = 0;
+                    handler.sendMessage(message);
+                }
+            });
+        }
+    };*/
 }

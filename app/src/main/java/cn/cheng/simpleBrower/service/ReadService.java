@@ -1,5 +1,6 @@
 package cn.cheng.simpleBrower.service;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -12,6 +13,8 @@ import android.speech.tts.UtteranceProgressListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -20,43 +23,49 @@ import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.receiver.HeadphoneReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.NotificationUtils;
 
 public class ReadService extends Service implements TextToSpeech.OnInitListener {
 
+    private Reader reader;
+
+    public void setReader(Reader reader) {
+        this.reader = reader;
+    }
+
+    public interface Reader {
+        void read();
+    }
+
     public TextToSpeech textToSpeech;
     private final HeadphoneReceiver receiver = new HeadphoneReceiver();
-    private String txtUrl = "";
-    private ArrayList<String> lines;
-    private PositionBean positionBean;
-    boolean flag;
-    String txt = "";
-
     private Intent intent = new Intent("com.example.communication.RECEIVER");
-    private Reader reader;
+    private String txtUrl = "";
+    String txt = "";
 
     @Override
     public void onCreate() {
-        textToSpeech = new TextToSpeech(this, this);
+        super.onCreate();
         // 注册广播接收器 接收器监听噪音ACTION_AUDIO_BECOMING_NOISY（可判断耳机断开链接）
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(receiver, intentFilter);
-        super.onCreate();
+
+        // 必须设置为前台服务
+        Notification n = NotificationUtils.initBuilder(this,
+                "朗读服务", "彼黍朗读服务运行中", TxtActivity.class).build();
+        startForeground(2, n);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        // 清除旧语音资源
+        speechDestroy();
         // 获取上一界面传过来的数据
         txtUrl = intent.getStringExtra("txtUrl");
-        Bundle extras = intent.getExtras();
-        if (extras != null && extras.containsKey("positionBean")) {
-            positionBean = (PositionBean) extras.get("positionBean");
-            txt = positionBean.getTxt();
-        } else txt = "";
-        flag = intent.getBooleanExtra("flagRead", false);
+        txt = intent.getStringExtra("txt");
         // 朗读开始
-        startRead(txt, flag);
+        if (StringUtils.isNotEmpty(txt)) textToSpeech = new TextToSpeech(this, this);
 
         return START_STICKY;
     }
@@ -79,7 +88,7 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
             // 设置语速
             textToSpeech.setSpeechRate(3.6f);
             // 在onInIt方法里直接调用tts的播报功能
-            startRead(positionBean == null ? "" : positionBean.getTxt(), flag);
+            textToSpeech.speak(txt == null ? "" : txt, TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
 
             textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                 @Override
@@ -103,21 +112,18 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    private void speechDestroy() {
         if (textToSpeech != null) {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
     }
 
-    public void setReader(Reader reader) {
-        this.reader = reader;
-    }
-
-    public interface Reader {
-        void read();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+        speechDestroy();
     }
 
     /**
@@ -135,19 +141,6 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
          */
         public ReadService getService(){
             return ReadService.this;
-        }
-    }
-
-    public void startRead(String txt, boolean flag) {
-        try {
-            if (flag) {
-                textToSpeech.speak(txt == null ? "" : txt, TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
-                // textToSpeech.speak(txt, TextToSpeech.QUEUE_ADD, null, "UniqueID");
-            } else {
-                textToSpeech.stop();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

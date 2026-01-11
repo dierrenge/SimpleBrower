@@ -62,6 +62,10 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp" />
         </LinearLayout>
+        <LinearLayout
+            android:layout_width="40dp"
+            android:layout_height="50dp">
+        </LinearLayout>
     </LinearLayout>
 
     <include layout="@layout/layout_edit_head"/>

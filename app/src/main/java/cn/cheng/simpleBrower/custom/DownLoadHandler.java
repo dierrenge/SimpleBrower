@@ -46,12 +46,10 @@ public class DownLoadHandler extends Handler {
                     MyToast.getInstance(arr[0]).show();
                     if (arr.length >= 3 && downLoadInfo != null) {
                         if ("0".equals(arr[2])) {
-                            // 在子线程修改界面UI得使用handler
-                            NotificationUtils.updateRemoteViews(n, null, "继续", nm);
                             downLoadInfo.setState("继续");
                         } else if ("10".equals(arr[2])) {
                             // 在子线程修改界面UI得使用handler
-                            NotificationUtils.updateRemoteViews(n, "0", "继续", nm);
+                            NotificationUtils.notifyDownloadNotification(context, n, "0");
                             downLoadInfo.setState("继续");
                             downLoadInfo.setRangeRequest("false");
                         }
@@ -62,12 +60,12 @@ public class DownLoadHandler extends Handler {
                     break;
                 case 2:
                     if (downLoadInfo == null) return;
-                    //下载完成后清除所有下载信息，执行安装提示
+                    // 下载完成后清除所有下载信息，执行安装提示
                     MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                     new Handler().postDelayed(() -> MyApplication.deleteDownLoadInfo(n), 3000);
                     nm.cancel(n);
                     MyToast.getInstance(arr[0]).show();
-                    //停止掉当前的服务
+                    // 停止掉当前的服务
                     if (nm.getActiveNotifications().length == 0) {
                         Intent intent = new Intent(context, DownloadService.class);
                         context.stopService(intent);
@@ -79,30 +77,16 @@ public class DownLoadHandler extends Handler {
                     // 获取进度信息
                     String str = arr[0];
                     // 更新状态栏上的下载进度等信息
-                    NotificationUtils.updateRemoteViews(n, str, null, nm);
+                    NotificationUtils.notifyDownloadNotification(context, n, str);
                     // 内存监控
                     if ("暂停".equals(downLoadInfo.getState())) {
                         double availableMemoryRatio = CommonUtils.getAvailableMemoryRatio(context.getApplicationContext());
                         if (availableMemoryRatio < MyApplication.MIN_AVL_MEM_PCT) {
                             String state = "继续";
-                            NotificationUtils.updateRemoteViews(n, null, state, nm);
                             downLoadInfo.setState(state);
                             MyToast.getInstance("可用内存过低").show();
                         }
                     }
-                    // CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
-                    /*// Notification notificationX = downLoadInfo.getNotification();
-                    // 原方式：contentView可能为空
-                    Notification notificationX = CommonUtils.getRunNotification(nm, downLoadInfo.getUrl());
-                    if (notificationX != null) {
-                        RemoteViews contentView = notificationX.contentView;
-                        if (CommonUtils.matchingNumber(str)) { // 判断数字
-                            contentView.setProgressBar(R.id.pbDownload, 100, (int) Float.parseFloat(str), false);
-                            str = "已下载" + str + "%";
-                        }
-                        contentView.setTextViewText(R.id.tvProcess, str);
-                        nm.notify(n, notificationX);
-                    }*/
                     break;
                 case 4:
                     if (downLoadInfo == null) return;
@@ -110,7 +94,7 @@ public class DownLoadHandler extends Handler {
                     MyApplication.deleteDownLoadInfo(n);
                     nm.cancel(n);
                     MyToast.getInstance(arr[0]).show();
-                    //停止掉当前的服务
+                    // 停止掉当前的服务
                     if (nm.getActiveNotifications().length == 0) {
                         Intent intent = new Intent(context, DownloadService.class);
                         context.stopService(intent);

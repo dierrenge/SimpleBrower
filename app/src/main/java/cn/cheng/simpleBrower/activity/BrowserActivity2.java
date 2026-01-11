@@ -169,7 +169,8 @@ public class BrowserActivity2 extends AppCompatActivity {
             WebViewFragment backFragment = backStack.peek();
             // System.out.println("*************************" + backFragment.getWebView().getUrl());
             // 判断当前网页是否是下载链接的
-            if (fragment.getWebView().getUrl().equals(MyApplication.getClickDownloadUrl())) {
+            String url = fragment.getWebView().getUrl();
+            if (url != null && url.equals(MyApplication.getClickDownloadUrl())) {
                 showFragment(backFragment);
             } else {
                 // 判断上一个网页是否空白的

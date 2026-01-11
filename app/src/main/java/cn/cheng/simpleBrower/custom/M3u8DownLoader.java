@@ -1,13 +1,8 @@
 package cn.cheng.simpleBrower.custom;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.webkit.URLUtil;
-import android.widget.RemoteViews;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -26,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,11 +28,7 @@ import java.net.URL;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,7 +37,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import cn.cheng.simpleBrower.MyApplication;
-import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -912,22 +901,6 @@ public class M3u8DownLoader {
         String[] arr = new String[]{m, id+"", w+""};
         Message msg= handler.obtainMessage(w%10, arr);
         handler.sendMessage(msg);
-        /*if (w == 0 || w == 10) {
-            // Notification notificationX = notificationBean.getNotification();
-            // 原方式：contentView可能为空
-            Notification notificationX = CommonUtils.getRunNotification(DOWNLOADURL);
-            if (notificationX != null) {
-                RemoteViews contentView = notificationX.contentView;
-                contentView.setTextViewText(R.id.btn_state, "继续");
-                if (w == 10) {
-                    contentView.setProgressBar(R.id.pbDownload, 100, 0, false);
-                    contentView.setTextViewText(R.id.tvProcess, "已下载0.00%");
-                }
-                NotificationManager notificationManager = MyApplication.getContext().getSystemService(NotificationManager.class);
-                notificationManager.notify(id, notificationX);
-                notificationBean.setState("继续");
-            }
-        }*/
     }
     private void sendMsg(String m, int w) {
         // 消息提示

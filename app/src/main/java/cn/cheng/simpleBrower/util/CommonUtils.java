@@ -6,10 +6,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -18,22 +15,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.provider.Settings;
-import android.service.notification.StatusBarNotification;
-import android.webkit.URLUtil;
-import android.widget.RemoteViews;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
-
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -41,7 +31,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -50,14 +39,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.StreamCorruptedException;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -76,20 +60,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import cn.cheng.simpleBrower.MyApplication;
-import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.activity.DownloadActivity;
 import cn.cheng.simpleBrower.bean.LocationBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
-import cn.cheng.simpleBrower.receiver.NotificationBroadcastReceiver;
 
 public class CommonUtils {
 
@@ -1452,10 +1431,12 @@ public class CommonUtils {
                     json = json + line;
                 }
             }
-            JSONObject jsonObject = new JSONObject(json);
-            if (jsonObject.has(key)) {
-                Gson gson = new Gson();
-                bean = gson.fromJson(jsonObject.get(key).toString(), classOfT);
+            if (StringUtils.isNotEmpty(json)) {
+                JSONObject jsonObject = new JSONObject(json);
+                if (jsonObject.has(key)) {
+                    Gson gson = new Gson();
+                    bean = gson.fromJson(jsonObject.get(key).toString(), classOfT);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

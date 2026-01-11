@@ -43,7 +43,11 @@ public class ReadView extends TextView {
      * 获取当前页总字数
      */
     public int getCharNum() {
-        return getLayout().getLineEnd(getLineNum());
+        Layout layout = getLayout();
+        if (layout == null) {
+            return 0;
+        }
+        return layout.getLineEnd(getLineNum());
     }
 
     /**
@@ -51,6 +55,9 @@ public class ReadView extends TextView {
      */
     public int getLineNum() {
         Layout layout = getLayout();
+        if (layout == null) {
+            return 0;
+        }
         return layout.getLineForVertical(getHeight() - getPaddingBottom() - getLineHeight() - getPaddingTop());
     }
 }

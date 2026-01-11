@@ -166,7 +166,6 @@ public class DownloadActivity extends AppCompatActivity {
                                 if (info != null) {
                                     String processStr = getProcess(info);
                                     info.setState(state);
-                                    NotificationUtils.updateRemoteViews(notificationId, null, state, null);
                                     // bean.setState(state);
                                     // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + CommonUtils.zeroPadding(bean.getNotificationId()), bean);
                                     if (state.equals("暂停") && !processStr.contains("100")) {

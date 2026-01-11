@@ -1,24 +1,13 @@
 package cn.cheng.simpleBrower.receiver;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.RemoteViews;
-
-import androidx.core.app.NotificationCompat;
-
-import java.io.File;
-import java.util.concurrent.ExecutorService;
 
 import cn.cheng.simpleBrower.MyApplication;
-import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.NotificationBean;
-import cn.cheng.simpleBrower.custom.M3u8DownLoader;
-import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
-import cn.cheng.simpleBrower.util.NotificationUtils;
 
 // 用于接受下载完成提示的广播接收者
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
@@ -33,49 +22,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
 
-        // 处理按钮点击事件
-        if ("notification_clicked".equals(action)) {
-            try {
-                String state = downLoadInfo.getState();
-                state = state.equals("暂停") ? "继续" : "暂停";
-                NotificationUtils.updateRemoteViews(notificationId, null, state, notificationManager);
-                downLoadInfo.setState(state);
-                if (state.equals("暂停")) {
-                    new M3u8DownLoader(notificationId).start();
-                }
-                /*
-                //Notification notificationX = downLoadInfo.getNotification();
-                // 原方式：contentView可能为空
-                Notification notificationX = CommonUtils.getRunNotification(notificationManager, channelId);
-                if (notificationX != null) {
-                    RemoteViews contentView = notificationX.contentView;
-                    String state = downLoadInfo.getState();
-                    if (state != null) {
-                        if (state.equals("暂停")) {
-                            state = "继续";
-                        } else {
-                            state = "暂停";
-                        }
-                        contentView.setTextViewText(R.id.btn_state, state);
-                        notificationManager.notify(notificationId, notificationX);
-                        downLoadInfo.setState(state);
-                        if (state.equals("暂停")) {
-                            new M3u8DownLoader(notificationId).start();
-                        }
-                    }
-                }*/
-            } catch (Throwable e) {
-                CommonUtils.saveLog("=======处理按钮点击事件notification_clicked=======" + e.getMessage());
-            }
-        }
-
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
             try {
                 downLoadInfo.setState("继续");
-                // ExecutorService pool = downLoadInfo.getFixedThreadPool();
-                // if (pool != null) pool.shutdownNow();
-                // MyApplication.deleteDownloadList(downLoadInfo.getUrl());
                 MyApplication.deleteDownLoadInfo(notificationId);
                 notificationManager.cancel(notificationId);
                 CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);

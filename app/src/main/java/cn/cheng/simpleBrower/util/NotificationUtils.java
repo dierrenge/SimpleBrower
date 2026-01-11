@@ -11,13 +11,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.service.notification.StatusBarNotification;
 import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
@@ -35,7 +31,7 @@ public class NotificationUtils {
     public static final String channelKey = "common_channel";
 
     // 创建通知渠道 (Android 8.0+)
-    public static void initNotificationChannel(Context context) {
+    public static void initChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = context.getSystemService(NotificationManager.class);
             if (nm.getNotificationChannel(channelKey) == null) {
@@ -47,82 +43,21 @@ public class NotificationUtils {
         }
     }
 
-    // 更新消息通知视图
-    public static void updateRemoteViews(int id, String progress, String btnText, NotificationManager nm) {
-        try {
-            Context context = MyApplication.getContext();
-            NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(id);
-            if (context == null || downLoadInfo == null || (progress == null && btnText == null)) return;
-            String url = downLoadInfo.getUrl();
-            String supDir = downLoadInfo.getSupDir();
-            String title = downLoadInfo.getTitle();
-            RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_download);
-            contentView.setTextViewText(R.id.task_name, title);
-            if (progress != null) {
-                if (CommonUtils.matchingNumber(progress)) { // 判断数字
-                    float progressF = Float.parseFloat(progress);
-                    contentView.setProgressBar(R.id.pbDownload, 100, (int) progressF, false);
-                    progress = "已下载" + String.format("%.2f", progressF) + "%";
-                }
-                contentView.setTextViewText(R.id.tvProcess, progress);
-            }
-            if (btnText != null) {
-                contentView.setTextViewText(R.id.btn_state, btnText);
-            }
-
-            // 创建一个跳转指定Activity的Intent
-            Intent i = new Intent(context, DownloadActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            PendingIntent pendingIntent;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
-            } else {
-                pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
-            }
-
-            // 创建一个用于记录滑动删除的intent 调用广播
-            Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
-            intentCancel.setAction("notification_cancelled");
-            intentCancel.putExtra("notificationId", id);
-            intentCancel.putExtra("fileName", supDir + "/" + title);
-            // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
-            int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
-            PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id, intentCancel, flag);
-
-            // 创建一个处理按钮点击事件的intent 调用广播
-            Intent intentClick = new Intent(context, NotificationBroadcastReceiver.class);
-            intentClick.setAction("notification_clicked");
-            intentClick.putExtra("notificationId", id);
-            // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
-            int flag2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
-            PendingIntent pendingIntentClick = PendingIntent.getBroadcast(context, id, intentClick, flag2);
-
-            contentView.setOnClickPendingIntent(R.id.btn_state, pendingIntentClick);
-            Notification notification = new NotificationCompat.Builder(context, NotificationUtils.channelKey)
-                    .setAutoCancel(false)
-                    .setSmallIcon(R.mipmap.app_logo)
-                    .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
-                    .setWhen(System.currentTimeMillis())
-                    .setCustomContentView(contentView)
-                    .setContentIntent(pendingIntent)
-                    .setDeleteIntent(pendingIntentCancel)
-                    .setSortKey(url)
-                    .setGroup(NotificationUtils.groupKey) // 设置分组
-                    .build();
-            if (nm == null) {
-                nm = context.getSystemService(NotificationManager.class);
-            }
-            nm.notify(id, notification);
-            // 更新摘要通知
-            NotificationUtils.flushSummaryNotification(context);
-        } catch (Throwable e) {
-            CommonUtils.saveLog("=======更新消息通知视图=======" + e.getMessage());
-        }
-    }
-
-    // 创建通知
-    public static Notification createNotification(Context context, String title, String text) {
+    // 创建基础通知构建器
+    public static NotificationCompat.Builder initBuilder(Context context, String title, String text, Class clazz) {
+        // 通知渠道
+        initChannel(context);
+        // logo图标
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.mipmap.app_logo);
+        // 跳转指定Activity的Intent
+        Intent i = new Intent(context, clazz);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent pendingIntent;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
+        }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelKey)
                 .setSmallIcon(R.mipmap.app_logo_r)
                 .setLargeIcon(largeIcon)
@@ -131,21 +66,64 @@ public class NotificationUtils {
                 .setGroup(groupKey) // 绑定组ID
                 .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY) // 仅摘要通知触发提醒
                 .setAutoCancel(false)
+                .setContentIntent(pendingIntent)
                 .setWhen(System.currentTimeMillis());
-        if (text.endsWith("%")) {
-            String progressStr = text.substring(0, text.length() - 1);
-            if (CommonUtils.matchingNumber(progressStr)) {
-                int progress = Math.round(Float.valueOf(progressStr));
-                builder.setProgress(100, progress, false);
-            }
-        }
-
-        return builder.build();
+        return builder;
     }
 
-    // 更新摘要通知（组级通知）
-    public static void flushSummaryNotification(Context context) {
-        NotificationManager nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+    // 发布下载通知
+    public static void notifyDownloadNotification(Context context, int id, String text) {
+        // 获取基础信息
+        NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(id);
+        if (context == null || downLoadInfo == null || text == null) return;
+        String url = downLoadInfo.getUrl();
+        String supDir = downLoadInfo.getSupDir();
+        String title = downLoadInfo.getTitle();
+        int progress = 0;
+        String progressStr = text;
+        if (CommonUtils.matchingNumber(text)) {
+            Float progressF = Float.valueOf(text);
+            progressStr = "已下载" + String.format("%.2f", progressF) + "%";
+            progress = Math.round(progressF);
+        }
+        // 创建一个基础通知构建器
+        NotificationCompat.Builder nBuilder = initBuilder(context, title, progressStr, DownloadActivity.class);
+        // 设置下载进度
+        nBuilder.setProgress(100, progress, false);
+        // 设置排序标识
+        nBuilder.setSortKey(url);
+
+        // 创建一个跳转指定Activity的Intent
+        Intent i = new Intent(context, DownloadActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent pendingIntent;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
+        }
+        nBuilder.setContentIntent(pendingIntent);
+
+        // 创建一个用于记录滑动删除的intent 调用广播
+        Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
+        intentCancel.setAction("notification_cancelled");
+        intentCancel.putExtra("notificationId", id);
+        intentCancel.putExtra("fileName", supDir + "/" + title);
+        // 意图可变标志  （这里PendingIntent必须设置意图可变标志，否则广播删除用到的TYPE变量永远是旧的）
+        int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S?PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT:PendingIntent.FLAG_UPDATE_CURRENT;
+        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id, intentCancel, flag);
+        nBuilder.setDeleteIntent(pendingIntentCancel);
+
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
+        // 发布通知 （放入通知管理器）
+        nm.notify(id, nBuilder.build());
+        // 发布摘要通知
+        notifySummaryNotification(context);
+    }
+
+    // 发布摘要通知（组级通知）
+    public static void notifySummaryNotification(Context context) {
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
         Notification summaryNotification = new NotificationCompat.Builder(context, channelKey)
                 .setSmallIcon(R.mipmap.app_logo_r)
                 .setGroup(groupKey)
