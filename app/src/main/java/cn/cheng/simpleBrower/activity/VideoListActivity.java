@@ -284,6 +284,8 @@ public class VideoListActivity extends AppCompatActivity {
                         } else {
                             change(isChange);
                         }
+                        clearUrls.removeIf(s -> s.equals(url));
+                        clearChange();
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();

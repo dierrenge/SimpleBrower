@@ -293,9 +293,8 @@ public class DownloadActivity extends AppCompatActivity {
                     });
 
                     // 刷新ui
-                    String name =CommonUtils.getUrlName2(bean.getAbsolutePath());
-                    clearMap.put(fileRecordUrl, name);
-                    textView.setText(name);
+                    clearMap.put(fileRecordUrl, CommonUtils.getUrlName(bean.getAbsolutePath()));
+                    textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
                     String processStr = getProcess(bean);
                     processView.setText(processStr);
                     if (processStr.contains("100")) {
@@ -395,6 +394,8 @@ public class DownloadActivity extends AppCompatActivity {
                         } else {
                             change(isChange);
                         }
+                        clearUrls.removeIf(s -> s.equals(url));
+                        clearChange();
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();

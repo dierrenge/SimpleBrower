@@ -283,6 +283,8 @@ public class TxtListActivity extends AppCompatActivity {
                         } else {
                             change(isChange);
                         }
+                        clearUrls.removeIf(s -> s.equals(url));
+                        clearChange();
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();
@@ -312,24 +314,8 @@ public class TxtListActivity extends AppCompatActivity {
             //启动线程开始执行 删除网址存档
             new Thread(() -> {
                 try {
-                    boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8") && url.contains("SimpleBrower"));
-                    if (hasM3u8) {
-                        Message message = Message.obtain();
-                        message.what = 1;
-                        message.obj = "删除中，请稍后";
-                        handler.sendMessage(message);
-                    }
-                    // 先删除单个文件的
                     for (String url : clearUrls) {
-                        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
-                            delete(url);
-                        }
-                    }
-                    // 后删除多个文件的
-                    for (String url : clearUrls) {
-                        if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
-                            delete(url);
-                        }
+                        delete(url);
                     }
                 } catch (Exception e) {
                     e.getMessage();
@@ -339,19 +325,8 @@ public class TxtListActivity extends AppCompatActivity {
     }
     private void delete(String url) {
         boolean isDelete;
-        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
-            File file = new File(url);
-            isDelete = CommonUtils.deleteFile(file);
-        } else {
-            // 删除该m3u8对应的所有ts文件
-            File file = new File(url);
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-            File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
-            isDelete = CommonUtils.batchDeleteFile(dirFile);
-            if (isDelete) {
-                isDelete = CommonUtils.deleteFile(file);
-            }
-        }
+        File file = new File(url);
+        isDelete = CommonUtils.deleteFile(file);
         // 通知handler 数据删除完成 可以刷新recyclerview
         Message message = Message.obtain();
         if (isDelete) {

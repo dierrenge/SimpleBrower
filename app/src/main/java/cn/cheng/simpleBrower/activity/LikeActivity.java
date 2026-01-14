@@ -100,14 +100,6 @@ public class LikeActivity extends AppCompatActivity {
         menu_edit = findViewById(R.id.menu_edit);
         menu_clear = findViewById(R.id.menu_clear);
 
-        Intent intent = getIntent();
-        String flagI = intent.getStringExtra("flag");
-        if ("历史".equals(flagI)) {
-            flag = "历史";
-            like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
-            like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
-        }
-
         initEvent();
 
         initRecyclerView();
@@ -115,8 +107,15 @@ public class LikeActivity extends AppCompatActivity {
         // 初始化线程通信工具
         initHandler();
 
-        // 读取收藏网址
-        // getLikeUrls();
+        Intent intent = getIntent();
+        String flagI = intent.getStringExtra("flag");
+        if ("历史".equals(flagI)) {
+            flag = "历史";
+            new Handler().post(() -> {
+                like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
+                like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
+            });
+        }
     }
 
     private void initEvent() {
@@ -361,6 +360,7 @@ public class LikeActivity extends AppCompatActivity {
                         } else {
                             change(isChange);
                         }
+                        clearChange();
                     }
                 } else {
                     MyToast.getInstance(message.obj + "").show();
@@ -418,6 +418,7 @@ public class LikeActivity extends AppCompatActivity {
             for (String l : likeUrls) {
                 MyApplication.setUrl(l);
             }
+            clearUrls.clear();
             // 通知handler 数据删除完成 可以刷新recyclerview
             Message message = Message.obtain();
             message.what = 3;
@@ -431,6 +432,7 @@ public class LikeActivity extends AppCompatActivity {
                         if (file.exists()) {
                             // 集合中删除该网址
                             likeUrls.removeAll(clearUrls);
+                            clearUrls.clear();
                             try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
                                 for (String s : likeUrls) {
                                     if (s != null) {

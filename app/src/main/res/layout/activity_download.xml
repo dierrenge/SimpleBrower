@@ -44,7 +44,7 @@
             <ImageView
                 android:layout_width="23dp"
                 android:layout_height="23dp"
-                android:layout_marginLeft="-8dp"
+                android:layout_marginLeft="-4dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/btn_file" />
         </LinearLayout>
