@@ -8,6 +8,7 @@
     tools:context=".activity.VideoListActivity">
 
     <LinearLayout
+        android:id="@+id/video_list_head"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
@@ -34,18 +35,13 @@
             android:layout_height="40dp"
             android:layout_weight="1"/>
 
-        <Button
-            android:id="@+id/list_change"
+        <LinearLayout
             android:layout_width="40dp"
-            android:layout_height="50dp"
-            android:paddingLeft="-10dp"
-            android:background="@color/trans_color"
-            android:textColor="@color/gray2"
-            android:textSize="15dp"
-            android:gravity="center"
-            android:text="编辑"/>
-
+            android:layout_height="50dp">
+        </LinearLayout>
     </LinearLayout>
+
+    <include layout="@layout/layout_edit_head"/>
 
     <LinearLayout
         android:id="@+id/list_bg"
@@ -69,5 +65,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
-    
+
+    <include layout="@layout/layout_edit_menu"/>
+
 </LinearLayout>

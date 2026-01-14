@@ -44,8 +44,6 @@ public class LikeActivity extends AppCompatActivity {
 
     private Button back;
 
-    private Button edit_select_all;
-
     private LinearLayout layout;
 
     private Handler handler;
@@ -57,6 +55,8 @@ public class LikeActivity extends AppCompatActivity {
     private TextView like_t1;
 
     private TextView like_t2;
+
+    private Button edit_select_all;
 
     private LinearLayout like_head;
 
@@ -70,9 +70,9 @@ public class LikeActivity extends AppCompatActivity {
 
     private LinearLayout menu_clear;
 
-    private List<String> likeUrls = new ArrayList<>();
-
     private List<String> clearUrls = new ArrayList<>();
+
+    private List<String> likeUrls = new ArrayList<>();
 
     private boolean isChange = false; // 是否开启编辑模式
 
@@ -88,18 +88,38 @@ public class LikeActivity extends AppCompatActivity {
         SysWindowUi.hideStatusNavigationBar(this, false);
 
         setContentView(R.layout.activity_like);
-        like_head = findViewById(R.id.like_head);
         back = findViewById(R.id.like_back);
         like_t1 = findViewById(R.id.like_t1);
         like_t2 = findViewById(R.id.like_t2);
+        layout = findViewById(R.id.like_bg);
+        like_head = findViewById(R.id.like_head);
         edit_head = findViewById(R.id.edit_head);
         edit_close = findViewById(R.id.edit_close);
         edit_txt = findViewById(R.id.edit_txt);
         edit_select_all = findViewById(R.id.edit_select_all);
-        layout = findViewById(R.id.like_bg);
         menu_edit = findViewById(R.id.menu_edit);
         menu_clear = findViewById(R.id.menu_clear);
 
+        Intent intent = getIntent();
+        String flagI = intent.getStringExtra("flag");
+        if ("历史".equals(flagI)) {
+            flag = "历史";
+            like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
+            like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
+        }
+
+        initEvent();
+
+        initRecyclerView();
+
+        // 初始化线程通信工具
+        initHandler();
+
+        // 读取收藏网址
+        // getLikeUrls();
+    }
+
+    private void initEvent() {
         // 返回
         back.setOnClickListener(view -> {
             this.finish();
@@ -141,7 +161,7 @@ public class LikeActivity extends AppCompatActivity {
                 clearUrls.addAll(likeUrls);
             }
             change(isChange);
-            likeChange();
+            clearChange();
         });
         // 编辑
         menu_edit.setOnClickListener(view -> {
@@ -185,22 +205,6 @@ public class LikeActivity extends AppCompatActivity {
             });
             feetDialog.show();
         });
-
-        Intent intent = getIntent();
-        String flagI = intent.getStringExtra("flag");
-        if ("历史".equals(flagI)) {
-            flag = "历史";
-            like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray4));
-            like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
-        }
-
-        initRecyclerView();
-
-        // 初始化线程通信工具
-        initHandler();
-
-        // 读取收藏网址
-        // getLikeUrls();
     }
 
     private void initRecyclerView() {
@@ -253,7 +257,7 @@ public class LikeActivity extends AppCompatActivity {
                     } else {
                         clearUrls.add(likeUrl);
                     }
-                    likeChange();
+                    clearChange();
                 });
             }
 
@@ -282,7 +286,7 @@ public class LikeActivity extends AppCompatActivity {
                     item_select.setChecked(true);
                     clearUrls.add(likeUrl);
                 }
-                likeChange();
+                clearChange();
             }
         };
         recyclerView.setAdapter(adapter);
@@ -511,7 +515,7 @@ public class LikeActivity extends AppCompatActivity {
         }, 50);
     }
 
-    private void likeChange() {
+    private void clearChange() {
         if (new HashSet<>(clearUrls).containsAll(likeUrls)) {
             edit_select_all.setText("取消");
         } else {

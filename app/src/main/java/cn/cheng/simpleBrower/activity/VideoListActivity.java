@@ -14,11 +14,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import cn.cheng.simpleBrower.MyApplication;
@@ -44,9 +47,23 @@ public class VideoListActivity extends AppCompatActivity {
 
     private Button back;
 
-    private Button list_change;
-
     private LinearLayout layout;
+
+    private LinearLayout video_list_head;
+
+    private Button edit_select_all;
+
+    private LinearLayout edit_head;
+
+    private TextView edit_txt;
+
+    private LinearLayout edit_close;
+
+    private LinearLayout menu_edit;
+
+    private LinearLayout menu_clear;
+
+    private List<String> clearUrls = new ArrayList<>();
 
     private Handler handler;
 
@@ -64,24 +81,17 @@ public class VideoListActivity extends AppCompatActivity {
         SysWindowUi.hideStatusNavigationBar(this, false);
 
         setContentView(R.layout.activity_video_list);
-
-        // 返回
         back = findViewById(R.id.list_back);
-        back.setOnClickListener(view -> {
-            this.finish();
-        });
-
-        // 编辑
-        list_change = findViewById(R.id.list_change);
-        list_change.setOnClickListener(view -> {
-            if (recyclerView != null) {
-                isChange = !isChange;
-                change(isChange);
-            }
-        });
-
-        // 背景
         layout = findViewById(R.id.list_bg);
+        video_list_head = findViewById(R.id.video_list_head);
+        edit_head = findViewById(R.id.edit_head);
+        edit_close = findViewById(R.id.edit_close);
+        edit_txt = findViewById(R.id.edit_txt);
+        edit_select_all = findViewById(R.id.edit_select_all);
+        menu_edit = findViewById(R.id.menu_edit);
+        menu_clear = findViewById(R.id.menu_clear);
+
+        initEvent();
 
         initRecyclerView();
 
@@ -90,6 +100,71 @@ public class VideoListActivity extends AppCompatActivity {
 
         // 读取影音文件地址
         // initVideoUrls();
+    }
+
+    // 按钮事件
+    private void initEvent() {
+        // 返回
+        back.setOnClickListener(view -> {
+            this.finish();
+        });
+        // 退出编辑
+        edit_close.setOnClickListener(view -> {
+            if (isChange) {
+                menu_edit.callOnClick();
+            }
+        });
+        // 多选
+        edit_select_all.setOnClickListener(view -> {
+            clearUrls.clear();
+            if ("全选".equals(edit_select_all.getText().toString())) {
+                clearUrls.addAll(videoUrls);
+            }
+            change(isChange);
+            clearChange();
+        });
+        // 编辑
+        menu_edit.setOnClickListener(view -> {
+            if (!isChange && videoUrls.isEmpty()) return; // 没数据就不必编辑
+            if (recyclerView != null) {
+                clearUrls.clear();
+                edit_select_all.setText("全选");
+                edit_txt.setText("请选择");
+                menu_clear.setAlpha(0.5f);
+                if (isChange) {
+                    video_list_head.setVisibility(View.VISIBLE);
+                    edit_head.setVisibility(View.GONE);
+                    menu_edit.setVisibility(View.VISIBLE);
+                    menu_clear.setVisibility(View.GONE);
+                } else {
+                    video_list_head.setVisibility(View.GONE);
+                    edit_head.setVisibility(View.VISIBLE);
+                    menu_edit.setVisibility(View.GONE);
+                    menu_clear.setVisibility(View.VISIBLE);
+                }
+                isChange = !isChange;
+                change(isChange);
+            }
+        });
+        // 删除
+        menu_clear.setOnClickListener(view -> {
+            if (clearUrls.isEmpty()) return;
+            FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "删除", "确定要删除选中文件吗？", "删除", "取消");
+            feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                @Override
+                public void close() {
+                    feetDialog.dismiss();
+                }
+
+                @Override
+                public void ok(String txt) {
+                    // 删除本项记录
+                    deleteVideoUrl();
+                    feetDialog.dismiss();
+                }
+            });
+            feetDialog.show();
+        });
     }
 
     private void initRecyclerView() {
@@ -114,7 +189,7 @@ public class VideoListActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
-                // 设置TextView显示数据
+                CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
                 // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
                 String videoUrl = videoUrls.get(position);
@@ -122,10 +197,10 @@ public class VideoListActivity extends AppCompatActivity {
                 if (s.length > 0) {
                     textView.setText(s[s.length - 1]);
                     textView.setOnClickListener(view -> {
-                        click(videoUrl);
+                        click(videoUrl, item_select);
                     });
                     item_l.setOnClickListener(view -> {
-                        click(videoUrl);
+                        click(videoUrl, item_select);
                     });
                     // 解决：配置了android:textIsSelectable="true",同时也设置了点击事件，发现点第一次时候，点击事件没有生效
                     /*textView.setOnTouchListener(new View.OnTouchListener() {
@@ -135,24 +210,16 @@ public class VideoListActivity extends AppCompatActivity {
                             return false;
                         }
                     });*/
-                    Button button = holder.itemView.findViewById(R.id.item_del);
-                    button.setOnClickListener(view -> {
-                        FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "删除", "确定要删除选中文件吗？", "删除", "取消");
-                        feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
-                            @Override
-                            public void close() {
-                                feetDialog.dismiss();
-                            }
-                            @Override
-                            public void ok(String txt) {
-                                // 删除本项记录
-                                deleteVideoUrl(videoUrl, position);
-                                feetDialog.dismiss();
-                            }
-                        });
-                        feetDialog.show();
-                    });
                 }
+                item_select.setAnimation(null);
+                item_select.setOnClickListener(view -> {
+                    if (!item_select.isChecked()) {
+                        clearUrls.removeIf(item -> item != null && item.equals(videoUrl));
+                    } else {
+                        clearUrls.add(videoUrl);
+                    }
+                    clearChange();
+                });
             }
 
             @Override
@@ -160,15 +227,25 @@ public class VideoListActivity extends AppCompatActivity {
                 return videoUrls.size();
             }
 
-            public void click(String videoUrl) {
+            public void click(String videoUrl, CheckBox item_select) {
                 if (isChange) {
-                    isChange = !isChange;
-                    change(isChange);
+                    select(videoUrl, item_select);
+                    return; // 编辑模式不可跳转
                 }
                 // 跳转该网址
                 Intent intent = new Intent(VideoListActivity.this, VideoActivity.class);
                 intent.putExtra("videoUrl", videoUrl);
                 VideoListActivity.this.startActivity(intent);
+            }
+            public void select(String likeUrl, CheckBox item_select) {
+                if (item_select.isChecked()) {
+                    item_select.setChecked(false);
+                    clearUrls.removeIf(item -> item != null && item.equals(likeUrl));
+                } else {
+                    item_select.setChecked(true);
+                    clearUrls.add(likeUrl);
+                }
+                clearChange();
             }
         });
 
@@ -195,15 +272,17 @@ public class VideoListActivity extends AppCompatActivity {
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
-                        String[] arr = (String[]) message.obj;
-                        videoUrls.removeIf(s -> s.equals(arr[0]));
+                        String url = (String) message.obj;
+                        videoUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
                         recyclerView.getAdapter().notifyItemRangeChanged(0, videoUrls.size());
-                        change(isChange);
                         // 删完了就显示背景
                         if (videoUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
+                            edit_close.callOnClick();
+                        } else {
+                            change(isChange);
                         }
                     }
                 } else {
@@ -228,62 +307,118 @@ public class VideoListActivity extends AppCompatActivity {
         }
     }
 
-    private void deleteVideoUrl(String url, int position) {
-        if (Build.VERSION.SDK_INT >= 29 && url != null) { // android 12的sd卡读写
+    private void deleteVideoUrl() {
+        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             //启动线程开始执行 删除网址存档
             new Thread(() -> {
-                boolean isDelete = false;
                 try {
-                    File file = new File(url);
-                    if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
-                        // 通知handler 数据删除完成 可以刷新recyclerview
+                    boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8") && url.contains("SimpleBrower"));
+                    if (hasM3u8) {
                         Message message = Message.obtain();
                         message.what = 1;
                         message.obj = "删除中，请稍后";
                         handler.sendMessage(message);
-                        // 删除该m3u8对应的所有ts文件
-                        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-                        File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
-                        isDelete = CommonUtils.batchDeleteFile(dirFile);
-                        if (isDelete) {
-                            isDelete = CommonUtils.deleteFile(file);
+                    }
+                    // 先删除单个文件的
+                    for (String url : clearUrls) {
+                        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+                            delete(url);
                         }
-                    } else {
-                        isDelete = CommonUtils.deleteFile(file);
                     }
-                    // 通知handler 数据删除完成 可以刷新recyclerview
-                    Message message = Message.obtain();
-                    if (isDelete) {
-                        message.what = 3;
-                        message.obj = new String[]{url, position+""};
-                    } else {
-                        message.what = 1;
-                        message.obj = "删除失败";
+                    // 后删除多个文件的
+                    for (String url : clearUrls) {
+                        if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
+                            delete(url);
+                        }
                     }
-                    handler.sendMessage(message);
                 } catch (Exception e) {
                     e.getMessage();
                 }
             }).start();
         }
     }
+    private void delete(String url) {
+        boolean isDelete;
+        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+            File file = new File(url);
+            isDelete = CommonUtils.deleteFile(file);
+        } else {
+            // 删除该m3u8对应的所有ts文件
+            File file = new File(url);
+            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+            File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
+            isDelete = CommonUtils.batchDeleteFile(dirFile);
+            if (isDelete) {
+                isDelete = CommonUtils.deleteFile(file);
+            }
+        }
+        // 通知handler 数据删除完成 可以刷新recyclerview
+        Message message = Message.obtain();
+        if (isDelete) {
+            message.what = 3;
+            message.obj = url;
+        } else {
+            message.what = 1;
+            message.obj = "删除失败（" + CommonUtils.getUrlName(url) + "）" ;
+        }
+        handler.sendMessage(message);
+    }
 
     private void change(boolean isChange) {
         new Handler().postDelayed(() -> {
             int num = recyclerView.getAdapter().getItemCount();
             for (int i = 0; i < num; i++) {
-                // System.out.println("=========" + i);
                 RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
                 if (viewHolder != null) {
-                    Button button = viewHolder.itemView.findViewById(R.id.item_del);
+                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select);
+                    item_select.setChecked(clearUrls.contains(videoUrls.get(i)));
                     if (isChange) {
-                        button.setVisibility(View.VISIBLE);
+                        item_select.setVisibility(View.VISIBLE);
                     } else {
-                        button.setVisibility(View.INVISIBLE);
+                        item_select.setVisibility(View.INVISIBLE);
+                        item_select.setChecked(false);
                     }
                 }
             }
+            if (isChange) {
+                edit_select_all.setVisibility(View.VISIBLE);
+            } else {
+                edit_select_all.setVisibility(View.INVISIBLE);
+            }
+            if (videoUrls.isEmpty()) {
+                menu_edit.setAlpha(0.5f);
+            } else  {
+                menu_edit.setAlpha(1f);
+            }
+            // clearChange();
         }, 50);
+    }
+
+    private void clearChange() {
+        if (new HashSet<>(clearUrls).containsAll(videoUrls)) {
+            edit_select_all.setText("取消");
+        } else {
+            edit_select_all.setText("全选");
+        }
+        if (clearUrls.isEmpty()) {
+            edit_txt.setText("请选择");
+            menu_clear.setAlpha(0.5f);
+        } else  {
+            menu_clear.setAlpha(1f);
+            edit_txt.setText("已选择" + clearUrls.size() + "项");
+        }
+    }
+
+    // 物理按键
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) { // 返回
+            if (isChange) {
+                menu_edit.callOnClick();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)

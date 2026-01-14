@@ -8,6 +8,7 @@
     tools:context=".activity.DownloadActivity">
 
     <LinearLayout
+        android:id="@+id/download_list_head"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
@@ -50,6 +51,8 @@
 
     </LinearLayout>
 
+    <include layout="@layout/layout_edit_head"/>
+
     <LinearLayout
         android:id="@+id/download_bg"
         android:visibility="gone"
@@ -72,5 +75,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
+
+    <include layout="@layout/layout_edit_menu"/>
 
 </LinearLayout>

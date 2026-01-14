@@ -30,6 +30,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/item_btn_l"
             android:layout_width="85dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -54,6 +55,21 @@
                 android:textSize="14dp"
                 android:textStyle="bold"
                 android:text="继续"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/item_select_l"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone">
+            <CheckBox
+                android:id="@+id/item_select2"
+                android:layout_width="29dp"
+                android:layout_height="40dp"
+                android:button="@drawable/btn_radio"
+                android:checked="false" />
         </LinearLayout>
 
     </LinearLayout>
