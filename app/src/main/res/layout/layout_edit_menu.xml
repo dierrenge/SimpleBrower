@@ -10,12 +10,12 @@
     <LinearLayout
         android:id="@+id/menu_edit"
         android:layout_width="64dp"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:orientation="vertical"
         android:gravity="center">
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:scaleType="centerInside"
             android:src="@drawable/btn_edit" />
         <!--<TextView
@@ -28,14 +28,14 @@
     <LinearLayout
         android:id="@+id/menu_clear"
         android:layout_width="64dp"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:orientation="vertical"
         android:gravity="center"
         android:alpha="0.5"
         android:visibility="gone">
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:scaleType="centerInside"
             android:src="@drawable/btn_clear" />
         <!--<TextView

@@ -36,8 +36,17 @@
             android:layout_weight="1"/>
 
         <LinearLayout
+            android:id="@+id/video_file"
             android:layout_width="40dp"
-            android:layout_height="50dp">
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginLeft="-4dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/btn_file" />
         </LinearLayout>
     </LinearLayout>
 

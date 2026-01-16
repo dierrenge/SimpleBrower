@@ -1,6 +1,7 @@
 package cn.cheng.simpleBrower.activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,6 +44,7 @@ import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.PhoneSysPath;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class VideoListActivity extends AppCompatActivity {
@@ -48,6 +52,8 @@ public class VideoListActivity extends AppCompatActivity {
     private Button back;
 
     private LinearLayout layout;
+
+    private LinearLayout video_file;
 
     private LinearLayout video_list_head;
 
@@ -73,6 +79,8 @@ public class VideoListActivity extends AppCompatActivity {
 
     private boolean isChange = false;
 
+    private static final int REQUEST_CODE_PICK_FILE = 7;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +91,7 @@ public class VideoListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video_list);
         back = findViewById(R.id.list_back);
         layout = findViewById(R.id.list_bg);
+        video_file = findViewById(R.id.video_file);
         video_list_head = findViewById(R.id.video_list_head);
         edit_head = findViewById(R.id.edit_head);
         edit_close = findViewById(R.id.edit_close);
@@ -99,7 +108,7 @@ public class VideoListActivity extends AppCompatActivity {
         initHandler();
 
         // 读取影音文件地址
-        initVideoUrls();
+        new Handler().post(this::initVideoUrls);
     }
 
     // 按钮事件
@@ -107,6 +116,20 @@ public class VideoListActivity extends AppCompatActivity {
         // 返回
         back.setOnClickListener(view -> {
             this.finish();
+        });
+        // 文件管理
+        video_file.setOnClickListener(view -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*"); // 设置文件类型
+                String[] mimeTypes = {"audio/*", "video/*"};
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
+                startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
+            } catch (Exception e1) {
+                CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
+            }
         });
         // 退出编辑
         edit_close.setOnClickListener(view -> {
@@ -307,16 +330,13 @@ public class VideoListActivity extends AppCompatActivity {
     }
 
     private void initVideoUrls() {
-        videoUrls.clear();
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             // 影音文件格式
+            videoUrls.clear();
             List<String> formats = AssetsReader.getList("audioVideo.txt");
-            new Handler().post(() -> {
-                CommonUtils.fileWalk(dir, formats, videoUrls, 2);
-                Message message = handler.obtainMessage(0);
-                handler.sendMessage(message);
-            });
+            CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, videoUrls, 2);
+            Message message = handler.obtainMessage(0);
+            handler.sendMessage(message);
         }
     }
 
@@ -351,16 +371,17 @@ public class VideoListActivity extends AppCompatActivity {
         }
     }
     private void delete(String url) {
-        boolean isDelete;
+        boolean isDelete = true;
         if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
             File file = new File(url);
             isDelete = CommonUtils.deleteFile(file);
         } else {
             // 删除该m3u8对应的所有ts文件
             File file = new File(url);
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-            File dirFile = new File(dir + "/SimpleBrower/m3u8/" + url.substring(url.lastIndexOf("/") + 1).replace(".m3u8", ""));
-            isDelete = CommonUtils.batchDeleteFile(dirFile);
+            String dir = CommonUtils.getHlsDirBy(file);
+            if (StringUtils.isNotEmpty(dir)) {
+                isDelete = CommonUtils.batchDeleteFile(new File(dir));
+            }
             if (isDelete) {
                 isDelete = CommonUtils.deleteFile(file);
             }
@@ -404,6 +425,30 @@ public class VideoListActivity extends AppCompatActivity {
         } else  {
             menu_clear.setAlpha(1f);
             edit_txt.setText("已选择" + clearUrls.size() + "项");
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_PICK_FILE && resultCode == RESULT_OK && data != null) {
+            List<Uri> fileUris = new ArrayList<>();
+            if (data.getClipData() != null) {
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                    fileUris.add(data.getClipData().getItemAt(i).getUri());
+                }
+            } else if (data.getData() != null) {
+                fileUris.add(data.getData());
+            }
+            new Thread(() -> {
+                for (Uri uri : fileUris) {
+                    String fileName = CommonUtils.getFileName(this, uri);
+                    File file = CommonUtils.getFile("SimpleBrower", fileName, "");
+                    CommonUtils.getCopyFile(this, uri, file);
+                }
+                initVideoUrls();
+            }).start();
         }
     }
 

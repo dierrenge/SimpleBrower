@@ -11,11 +11,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -1529,6 +1531,57 @@ public class CommonUtils {
             dirFile.mkdirs();
         }
         return new File(dir + "/" + fName);
+    }
+
+    // Uri获取文件名称
+    public static String getFileName(Context context, Uri uri) {
+        String fileName = "unknown";
+        String scheme = uri.getScheme();
+        if ("content".equals(scheme)) {
+            try (Cursor cursor = context.getContentResolver().query(
+                    uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index != -1) fileName = cursor.getString(index);
+                }
+            } catch (Exception e) {}
+        }
+        else if ("file".equals(scheme)) {
+            fileName = new File(uri.getPath()).getName();
+        }
+        return fileName;
+    }
+
+    // Uri拷贝文件
+    public static void getCopyFile(Context context, Uri uri, File toFile) {
+        byte[] buff = new byte[1024 * 4];
+        int len = 0;
+        try (BufferedInputStream bis = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
+             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(toFile))
+        ) {
+            while ((len = bis.read(buff)) != -1) {
+                bos.write(buff, 0, len);
+            }
+        } catch (Exception e) {
+            CommonUtils.saveLog("文件拷贝失败：" + e.getMessage());
+        }
+    }
+
+    // 根据m3u8文件获取hls文件目录
+    public static String getHlsDirBy(File m3u8) {
+        String hlsDir = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(m3u8))) {
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                if (line.contains(PhoneSysPath.getDownloadDir())) {
+                    hlsDir = line.substring(0, line.lastIndexOf('/'));
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            CommonUtils.saveLog("获取hls文件目录失败：" + e.getMessage());
+        }
+        return hlsDir;
     }
 
     /**

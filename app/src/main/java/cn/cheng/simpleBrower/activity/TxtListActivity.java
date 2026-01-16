@@ -1,11 +1,13 @@
 package cn.cheng.simpleBrower.activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -25,7 +27,11 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +41,7 @@ import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.PhoneSysPath;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class TxtListActivity extends AppCompatActivity {
@@ -69,6 +76,8 @@ public class TxtListActivity extends AppCompatActivity {
 
     private boolean isChange = false;
 
+    private static final int REQUEST_CODE_PICK_FILE = 7;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +105,7 @@ public class TxtListActivity extends AppCompatActivity {
         initHandler();
 
         // 读取文本文件地址
-        initTxtUrls();
+        new Handler().post(this::initTxtUrls);
     }
 
     // 按钮事件
@@ -112,7 +121,7 @@ public class TxtListActivity extends AppCompatActivity {
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("text/*"); // 设置文件类型
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
-                startActivityForResult(intent, 7);
+                startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
             } catch (Exception e1) {
                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
             }
@@ -321,17 +330,14 @@ public class TxtListActivity extends AppCompatActivity {
     }
 
     private void initTxtUrls() {
-        txtUrls.clear();
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             // 文本文件格式
-            new Handler().post(() -> {
-                List<String> formats = new ArrayList<>();
-                formats.add(".txt");
-                CommonUtils.fileWalk(dir, formats, txtUrls, 2);
-                Message message = handler.obtainMessage(0);
-                handler.sendMessage(message);
-            });
+            txtUrls.clear();
+            List<String> formats = new ArrayList<>();
+            formats.add(".txt");
+            CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, txtUrls, 2);
+            Message message = handler.obtainMessage(0);
+            handler.sendMessage(message);
         }
     }
 
@@ -392,6 +398,29 @@ public class TxtListActivity extends AppCompatActivity {
         } else  {
             menu_clear.setAlpha(1f);
             edit_txt.setText("已选择" + clearUrls.size() + "项");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_PICK_FILE && resultCode == RESULT_OK && data != null) {
+            List<Uri> fileUris = new ArrayList<>();
+            if (data.getClipData() != null) {
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                    fileUris.add(data.getClipData().getItemAt(i).getUri());
+                }
+            } else if (data.getData() != null) {
+                fileUris.add(data.getData());
+            }
+            new Thread(() -> {
+                for (Uri uri : fileUris) {
+                    String fileName = CommonUtils.getFileName(this, uri);
+                    File file = CommonUtils.getFile("SimpleBrower", fileName, "");
+                    CommonUtils.getCopyFile(this, uri, file);
+                }
+                initTxtUrls();
+            }).start();
         }
     }
 
