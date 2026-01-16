@@ -43,6 +43,8 @@ public class TxtListActivity extends AppCompatActivity {
     
     private LinearLayout layout;
 
+    private LinearLayout txt_file;
+
     private LinearLayout txt_list_head;
 
     private Button edit_select_all;
@@ -77,6 +79,7 @@ public class TxtListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_txt_list);
         back = findViewById(R.id.txt_back);
         layout = findViewById(R.id.txt_bg);
+        txt_file = findViewById(R.id.txt_file);
         txt_list_head = findViewById(R.id.txt_list_head);
         edit_head = findViewById(R.id.edit_head);
         edit_close = findViewById(R.id.edit_close);
@@ -93,7 +96,7 @@ public class TxtListActivity extends AppCompatActivity {
         initHandler();
 
         // 读取文本文件地址
-        // initTxtUrls();
+        initTxtUrls();
     }
 
     // 按钮事件
@@ -101,6 +104,18 @@ public class TxtListActivity extends AppCompatActivity {
         // 返回
         back.setOnClickListener(view -> {
             this.finish();
+        });
+        // 文件管理
+        txt_file.setOnClickListener(view -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/*"); // 设置文件类型
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
+                startActivityForResult(intent, 7);
+            } catch (Exception e1) {
+                CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
+            }
         });
         // 退出编辑
         edit_close.setOnClickListener(view -> {
@@ -114,7 +129,7 @@ public class TxtListActivity extends AppCompatActivity {
             if ("全选".equals(edit_select_all.getText().toString())) {
                 clearUrls.addAll(txtUrls);
             }
-            change(isChange);
+            change();
             clearChange();
         });
         // 编辑
@@ -137,7 +152,7 @@ public class TxtListActivity extends AppCompatActivity {
                     menu_clear.setVisibility(View.VISIBLE);
                 }
                 isChange = !isChange;
-                change(isChange);
+                change();
             }
         });
         // 删除
@@ -183,6 +198,7 @@ public class TxtListActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
+                LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
                 // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
@@ -204,6 +220,15 @@ public class TxtListActivity extends AppCompatActivity {
                             return false;
                         }
                     });*/
+                    item_select.setChecked(clearUrls.contains(txtUrls.get(position)));
+                    if (isChange) {
+                        item_select.setVisibility(View.VISIBLE);
+                        item_select_bg.setVisibility(View.GONE);
+                    } else {
+                        item_select.setVisibility(View.GONE);
+                        item_select_bg.setVisibility(View.VISIBLE);
+                        item_select.setChecked(false);
+                    }
                     item_select.setAnimation(null);
                     item_select.setOnClickListener(view -> {
                         if (!item_select.isChecked()) {
@@ -252,7 +277,7 @@ public class TxtListActivity extends AppCompatActivity {
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                change(isChange);
+                // change();
             }
         });
     }
@@ -265,23 +290,24 @@ public class TxtListActivity extends AppCompatActivity {
                     if (txtUrls.size() > 0) {
                         recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
+                        layout.setVisibility(View.GONE);
+                        menu_edit.setAlpha(1f);
                     } else {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
+                        menu_edit.setAlpha(0.5f);
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
                         String url = (String) message.obj;
                         txtUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(0, txtUrls.size());
+                        // recyclerView.getAdapter().notifyItemRangeChanged(0, txtUrls.size());
                         // 删完了就显示背景
                         if (txtUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
-                        } else {
-                            change(isChange);
                         }
                         clearUrls.removeIf(s -> s.equals(url));
                         clearChange();
@@ -299,13 +325,13 @@ public class TxtListActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             // 文本文件格式
-            new Handler().postDelayed(() -> {
+            new Handler().post(() -> {
                 List<String> formats = new ArrayList<>();
                 formats.add(".txt");
                 CommonUtils.fileWalk(dir, formats, txtUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
-            }, 0);
+            });
         }
     }
 
@@ -339,34 +365,19 @@ public class TxtListActivity extends AppCompatActivity {
         handler.sendMessage(message);
     }
 
-    private void change(boolean isChange) {
-        new Handler().postDelayed(() -> {
-            int num = recyclerView.getAdapter().getItemCount();
-            for (int i = 0; i < num; i++) {
-                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                if (viewHolder != null) {
-                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select);
-                    item_select.setChecked(clearUrls.contains(txtUrls.get(i)));
-                    if (isChange) {
-                        item_select.setVisibility(View.VISIBLE);
-                    } else {
-                        item_select.setVisibility(View.INVISIBLE);
-                        item_select.setChecked(false);
-                    }
-                }
-            }
-            if (isChange) {
-                edit_select_all.setVisibility(View.VISIBLE);
-            } else {
-                edit_select_all.setVisibility(View.INVISIBLE);
-            }
-            if (txtUrls.isEmpty()) {
-                menu_edit.setAlpha(0.5f);
-            } else  {
-                menu_edit.setAlpha(1f);
-            }
-            // clearChange();
-        }, 50);
+    private void change() {
+        int num = recyclerView.getAdapter().getItemCount();
+        if (num > 0) recyclerView.getAdapter().notifyItemRangeChanged(0, num);
+        if (isChange) {
+            edit_select_all.setVisibility(View.VISIBLE);
+        } else {
+            edit_select_all.setVisibility(View.INVISIBLE);
+        }
+        if (txtUrls.isEmpty()) {
+            menu_edit.setAlpha(0.5f);
+        } else {
+            menu_edit.setAlpha(1f);
+        }
     }
 
     private void clearChange() {
@@ -399,10 +410,6 @@ public class TxtListActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        initTxtUrls();
-        new Handler().post(() -> {
-            change(isChange);
-        });
         super.onResume();
     }
 }

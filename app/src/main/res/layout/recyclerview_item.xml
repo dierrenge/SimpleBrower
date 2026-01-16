@@ -30,7 +30,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="30dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center">
@@ -52,17 +52,24 @@
                 android:button="@drawable/btn_radio"
                 android:checked="false"
                 android:visibility="gone"/>
+            <LinearLayout
+                android:id="@+id/item_select_bg"
+                android:layout_width="5dp"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+            </LinearLayout>
             <Button
                 android:id="@+id/item_true"
-                android:visibility="gone"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_width="30dp"
-                android:layout_height="40dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
                 android:background="@color/trans_color"
+                android:gravity="center"
+                android:text="√"
                 android:textColor="@color/gray2"
                 android:textSize="20dp"
-                android:text="√"/>
+                android:visibility="gone" />
         </LinearLayout>
 
     </LinearLayout>

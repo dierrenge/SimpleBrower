@@ -36,19 +36,9 @@
             android:layout_weight="1"/>
 
         <LinearLayout
-            android:id="@+id/download_file"
             android:layout_width="40dp"
-            android:layout_height="50dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="23dp"
-                android:layout_height="23dp"
-                android:layout_marginLeft="-4dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/btn_file" />
+            android:layout_height="50dp">
         </LinearLayout>
-
     </LinearLayout>
 
     <include layout="@layout/layout_edit_head"/>

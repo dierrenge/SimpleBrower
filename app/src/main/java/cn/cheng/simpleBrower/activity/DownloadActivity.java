@@ -46,8 +46,6 @@ public class DownloadActivity extends AppCompatActivity {
 
     private Button back;
 
-    private LinearLayout download_file;
-
     private LinearLayout layout;
 
     private LinearLayout download_list_head;
@@ -90,7 +88,6 @@ public class DownloadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_download);
         layout = findViewById(R.id.download_bg);
         back = findViewById(R.id.download_back);
-        download_file = findViewById(R.id.download_file);
         download_list_head = findViewById(R.id.download_list_head);
         edit_head = findViewById(R.id.edit_head);
         edit_close = findViewById(R.id.edit_close);
@@ -105,6 +102,8 @@ public class DownloadActivity extends AppCompatActivity {
 
         // 初始化线程通信工具
         initHandler();
+
+        initFileUrls();
     }
 
     // 按钮事件
@@ -112,17 +111,6 @@ public class DownloadActivity extends AppCompatActivity {
         // 返回
         back.setOnClickListener(view -> {
             this.finish();
-        });
-        // 文件管理
-        download_file.setOnClickListener(view -> {
-             try {
-                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                 intent.addCategory(Intent.CATEGORY_OPENABLE);
-                 intent.setType("*/*"); // 设置文件类型
-                 startActivityForResult(intent, 7);
-             } catch (Exception e1) {
-                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
-             }
         });
         // 退出编辑
         edit_close.setOnClickListener(view -> {
@@ -136,7 +124,7 @@ public class DownloadActivity extends AppCompatActivity {
             if ("全选".equals(edit_select_all.getText().toString())) {
                 clearUrls.addAll(fileUrls);
             }
-            change(isChange);
+            change();
             clearChange();
         });
         // 编辑
@@ -159,7 +147,7 @@ public class DownloadActivity extends AppCompatActivity {
                     menu_clear.setVisibility(View.VISIBLE);
                 }
                 isChange = !isChange;
-                change(isChange);
+                change();
             }
         });
         // 删除
@@ -212,6 +200,9 @@ public class DownloadActivity extends AppCompatActivity {
                     TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
                     TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                     Button button = holder.itemView.findViewById(R.id.item_download_btn);
+                    LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
+                    LinearLayout item_btn_l = holder.itemView.findViewById(R.id.item_btn_l);
+                    LinearLayout item_select_l = holder.itemView.findViewById(R.id.item_select_l);
                     CheckBox item_select = holder.itemView.findViewById(R.id.item_select2);
                     String fileRecordUrl = fileUrls.get(position);
                     NotificationBean bean;
@@ -306,7 +297,18 @@ public class DownloadActivity extends AppCompatActivity {
                             button.setText(bean.getState());
                         }
                     }
-                    
+
+                    item_select.setChecked(clearUrls.contains(fileUrls.get(position)));
+                    if (isChange) {
+                        item_select_l.setVisibility(View.VISIBLE);
+                        item_btn_l.setVisibility(View.GONE);
+                        item_select_bg.setVisibility(View.GONE);
+                    } else {
+                        item_select_l.setVisibility(View.GONE);
+                        item_btn_l.setVisibility(View.VISIBLE);
+                        item_select_bg.setVisibility(View.VISIBLE);
+                        item_select.setChecked(false);
+                    }
                     item_select.setAnimation(null);
                     item_select.setOnClickListener(view -> {
                         if (!item_select.isChecked()) {
@@ -362,7 +364,7 @@ public class DownloadActivity extends AppCompatActivity {
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                change(isChange);
+                // change();
             }
         });
     }
@@ -373,26 +375,26 @@ public class DownloadActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message message) {
                 if (message.what == 0) {
                     if (fileUrls.size() > 0) {
-                        change(isChange);
                         recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
+                        layout.setVisibility(View.GONE);
+                        menu_edit.setAlpha(1f);
                     } else {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
+                        menu_edit.setAlpha(0.5f);
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
                         String url = (String) message.obj;
                         fileUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(0, fileUrls.size());
+                        // recyclerView.getAdapter().notifyItemRangeChanged(0, fileUrls.size());
                         // 删完了就显示背景
                         if (fileUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
-                        } else {
-                            change(isChange);
                         }
                         clearUrls.removeIf(s -> s.equals(url));
                         clearChange();
@@ -410,11 +412,11 @@ public class DownloadActivity extends AppCompatActivity {
         fileUrls.clear();
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-            new Handler().postDelayed(() -> {
+            new Handler().post(() -> {
                 CommonUtils.downloadListFileWalk(dir + "/SimpleBrower/0_like/downloadList", fileUrls);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
-            }, 0);
+            });
         }
     }
 
@@ -492,38 +494,19 @@ public class DownloadActivity extends AppCompatActivity {
         return String.format("%.2f", process) + "%";
     }
 
-    private void change(boolean isChange) {
-        new Handler().postDelayed(() -> {
-            int num = recyclerView.getAdapter().getItemCount();
-            for (int i = 0; i < num; i++) {
-                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                if (viewHolder != null) {
-                    LinearLayout item_btn_l = viewHolder.itemView.findViewById(R.id.item_btn_l);
-                    LinearLayout item_select_l = viewHolder.itemView.findViewById(R.id.item_select_l);
-                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select2);
-                    item_select.setChecked(clearUrls.contains(fileUrls.get(i)));
-                    if (isChange) {
-                        item_select_l.setVisibility(View.VISIBLE);
-                        item_btn_l.setVisibility(View.GONE);
-                    } else {
-                        item_select_l.setVisibility(View.GONE);
-                        item_btn_l.setVisibility(View.VISIBLE);
-                        item_select.setChecked(false);
-                    }
-                }
-            }
-            if (isChange) {
-                edit_select_all.setVisibility(View.VISIBLE);
-            } else {
-                edit_select_all.setVisibility(View.INVISIBLE);
-            }
-            if (fileUrls.isEmpty()) {
-                menu_edit.setAlpha(0.5f);
-            } else  {
-                menu_edit.setAlpha(1f);
-            }
-            // clearChange();
-        }, 50);
+    private void change() {
+        int num = recyclerView.getAdapter().getItemCount();
+        if (num > 0) recyclerView.getAdapter().notifyItemRangeChanged(0, num);
+        if (isChange) {
+            edit_select_all.setVisibility(View.VISIBLE);
+        } else {
+            edit_select_all.setVisibility(View.INVISIBLE);
+        }
+        if (fileUrls.isEmpty()) {
+            menu_edit.setAlpha(0.5f);
+        } else {
+            menu_edit.setAlpha(1f);
+        }
     }
 
     private void clearChange() {
@@ -556,7 +539,6 @@ public class DownloadActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        initFileUrls();
         timer.postDelayed(runnable, 1000);
         super.onResume();
     }

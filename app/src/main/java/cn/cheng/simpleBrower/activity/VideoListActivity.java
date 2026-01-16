@@ -99,7 +99,7 @@ public class VideoListActivity extends AppCompatActivity {
         initHandler();
 
         // 读取影音文件地址
-        // initVideoUrls();
+        initVideoUrls();
     }
 
     // 按钮事件
@@ -120,7 +120,7 @@ public class VideoListActivity extends AppCompatActivity {
             if ("全选".equals(edit_select_all.getText().toString())) {
                 clearUrls.addAll(videoUrls);
             }
-            change(isChange);
+            change();
             clearChange();
         });
         // 编辑
@@ -143,7 +143,7 @@ public class VideoListActivity extends AppCompatActivity {
                     menu_clear.setVisibility(View.VISIBLE);
                 }
                 isChange = !isChange;
-                change(isChange);
+                change();
             }
         });
         // 删除
@@ -189,6 +189,7 @@ public class VideoListActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
+                LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
                 // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
@@ -210,6 +211,15 @@ public class VideoListActivity extends AppCompatActivity {
                             return false;
                         }
                     });*/
+                }
+                item_select.setChecked(clearUrls.contains(videoUrls.get(position)));
+                if (isChange) {
+                    item_select.setVisibility(View.VISIBLE);
+                    item_select_bg.setVisibility(View.GONE);
+                } else {
+                    item_select.setVisibility(View.GONE);
+                    item_select_bg.setVisibility(View.VISIBLE);
+                    item_select.setChecked(false);
                 }
                 item_select.setAnimation(null);
                 item_select.setOnClickListener(view -> {
@@ -253,7 +263,7 @@ public class VideoListActivity extends AppCompatActivity {
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                change(isChange);
+                // change();
             }
         });
     }
@@ -266,23 +276,24 @@ public class VideoListActivity extends AppCompatActivity {
                     if (videoUrls.size() > 0) {
                         recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
+                        layout.setVisibility(View.GONE);
+                        menu_edit.setAlpha(1f);
                     } else {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
+                        menu_edit.setAlpha(0.5f);
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
                         String url = (String) message.obj;
                         videoUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(0, videoUrls.size());
+                        // recyclerView.getAdapter().notifyItemRangeChanged(0, videoUrls.size());
                         // 删完了就显示背景
                         if (videoUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
-                        } else {
-                            change(isChange);
                         }
                         clearUrls.removeIf(s -> s.equals(url));
                         clearChange();
@@ -301,11 +312,11 @@ public class VideoListActivity extends AppCompatActivity {
             String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             // 影音文件格式
             List<String> formats = AssetsReader.getList("audioVideo.txt");
-            new Handler().postDelayed(() -> {
+            new Handler().post(() -> {
                 CommonUtils.fileWalk(dir, formats, videoUrls, 2);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
-            }, 0);
+            });
         }
     }
 
@@ -366,34 +377,19 @@ public class VideoListActivity extends AppCompatActivity {
         handler.sendMessage(message);
     }
 
-    private void change(boolean isChange) {
-        new Handler().postDelayed(() -> {
-            int num = recyclerView.getAdapter().getItemCount();
-            for (int i = 0; i < num; i++) {
-                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                if (viewHolder != null) {
-                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select);
-                    item_select.setChecked(clearUrls.contains(videoUrls.get(i)));
-                    if (isChange) {
-                        item_select.setVisibility(View.VISIBLE);
-                    } else {
-                        item_select.setVisibility(View.INVISIBLE);
-                        item_select.setChecked(false);
-                    }
-                }
-            }
-            if (isChange) {
-                edit_select_all.setVisibility(View.VISIBLE);
-            } else {
-                edit_select_all.setVisibility(View.INVISIBLE);
-            }
-            if (videoUrls.isEmpty()) {
-                menu_edit.setAlpha(0.5f);
-            } else  {
-                menu_edit.setAlpha(1f);
-            }
-            // clearChange();
-        }, 50);
+    private void change() {
+        int num = recyclerView.getAdapter().getItemCount();
+        if (num > 0) recyclerView.getAdapter().notifyItemRangeChanged(0, num);
+        if (isChange) {
+            edit_select_all.setVisibility(View.VISIBLE);
+        } else {
+            edit_select_all.setVisibility(View.INVISIBLE);
+        }
+        if (videoUrls.isEmpty()) {
+            menu_edit.setAlpha(0.5f);
+        } else {
+            menu_edit.setAlpha(1f);
+        }
     }
 
     private void clearChange() {
@@ -426,10 +422,6 @@ public class VideoListActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        initVideoUrls();
-        new Handler().post(() -> {
-            change(isChange);
-        });
         super.onResume();
     }
 }

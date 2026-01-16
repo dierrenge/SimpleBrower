@@ -41,8 +41,6 @@ public class TxtCatalogActivity extends AppCompatActivity {
 
     private TextView c_title;
     private Button back;
-
-    private Handler handler;
     private RecyclerView recyclerView;
 
     @SuppressLint("MissingInflatedId")
@@ -75,42 +73,15 @@ public class TxtCatalogActivity extends AppCompatActivity {
         Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
         lines = novelLinesMap.get(txtUrl);
 
-
         // 获取章节
         chapters = CommonUtils.getTitles(lines, positionBean.getStartLine());
         if (chapters.size() > 0) {
             index = Integer.parseInt(chapters.get(0).get("index"));
-            System.out.println(positionBean.getStartLine());
-            System.out.println(index);
+            // System.out.println(positionBean.getStartLine());
+            // System.out.println(index);
             // MyToast.getInstance("+" + index).show();
-
-            initHandler();
-
-            new Handler().postDelayed(() -> {
-                initRecyclerView();
-            }, 400);
+            initRecyclerView();
         }
-    }
-
-    void initHandler() {
-        handler = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(@NonNull Message message) {
-                if (message.what == 0) {
-                    if (chapters.size() > 0) {
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                    }
-                } else if (message.what == 3) {
-                    if (recyclerView != null) {
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(0, chapters.size());
-                    }
-                } else {
-                    MyToast.getInstance(message.obj + "").show();
-                }
-                return false;
-            }
-        });
     }
 
     private void initRecyclerView() {
@@ -135,7 +106,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
-                // 设置TextView显示数据
+                Button button = holder.itemView.findViewById(R.id.item_true);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
                 textView.setTextSize(18);
                 textView.setTextIsSelectable(false);
@@ -147,6 +118,11 @@ public class TxtCatalogActivity extends AppCompatActivity {
                 item_l.setOnClickListener(view -> {
                     click(map);
                 });
+                if (position == index) {
+                    button.setVisibility(View.VISIBLE);
+                } else {
+                    button.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -175,7 +151,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-               change();
+
             }
         });
         // 第一个方法scrollToPosition(position)是定位到指定item，是瞬间显示在页面上，用户可见的范围。位置不固定。
@@ -188,23 +164,6 @@ public class TxtCatalogActivity extends AppCompatActivity {
                 button.setVisibility(View.VISIBLE);
             }
         }, 100);
-    }
-
-    private void change() {
-        new Handler().postDelayed(() -> {
-            int num = recyclerView.getAdapter().getItemCount();
-            for (int i = 0; i < num; i++) {
-                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                if (viewHolder != null) {
-                    Button button = viewHolder.itemView.findViewById(R.id.item_true);
-                    if (i == index) {
-                        button.setVisibility(View.VISIBLE);
-                    } else {
-                        button.setVisibility(View.GONE);
-                    }
-                }
-            }
-        }, 50);
     }
 
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)

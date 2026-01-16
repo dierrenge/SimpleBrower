@@ -78,8 +78,6 @@ public class LikeActivity extends AppCompatActivity {
 
     private String flag = "收藏";
 
-    private int firstTime = 500;
-
     @SuppressLint({"MissingInflatedId", "ResourceAsColor"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +114,8 @@ public class LikeActivity extends AppCompatActivity {
                 like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
             });
         }
+
+        getLikeUrls();
     }
 
     private void initEvent() {
@@ -132,7 +132,6 @@ public class LikeActivity extends AppCompatActivity {
                 like_t2.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
                 getLikeUrls();
                 clearUrls.clear();
-                change(isChange);
             }
         });
         // 历史列
@@ -144,7 +143,6 @@ public class LikeActivity extends AppCompatActivity {
                 like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
                 getLikeUrls();
                 clearUrls.clear();
-                change(isChange);
             }
         });
         // 退出编辑
@@ -159,7 +157,7 @@ public class LikeActivity extends AppCompatActivity {
             if ("全选".equals(edit_select_all.getText().toString())) {
                 clearUrls.addAll(likeUrls);
             }
-            change(isChange);
+            change();
             clearChange();
         });
         // 编辑
@@ -182,7 +180,7 @@ public class LikeActivity extends AppCompatActivity {
                     menu_clear.setVisibility(View.VISIBLE);
                 }
                 isChange = !isChange;
-                change(isChange);
+                change();
             }
         });
         // 删除
@@ -230,6 +228,7 @@ public class LikeActivity extends AppCompatActivity {
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
                 String likeUrl = likeUrls.get(position);
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
+                LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
                 // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
@@ -249,6 +248,15 @@ public class LikeActivity extends AppCompatActivity {
                         return false;
                     }
                 });*/
+                item_select.setChecked(clearUrls.contains(likeUrls.get(position)));
+                if (isChange) {
+                    item_select.setVisibility(View.VISIBLE);
+                    item_select_bg.setVisibility(View.GONE);
+                } else {
+                    item_select.setVisibility(View.GONE);
+                    item_select_bg.setVisibility(View.VISIBLE);
+                    item_select.setChecked(false);
+                }
                 item_select.setAnimation(null);
                 item_select.setOnClickListener(view -> {
                     if (!item_select.isChecked()) {
@@ -294,7 +302,7 @@ public class LikeActivity extends AppCompatActivity {
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                change(isChange);
+                // change();
             }
         });
 
@@ -344,21 +352,21 @@ public class LikeActivity extends AppCompatActivity {
                         recyclerView.setVisibility(View.VISIBLE);
                         recyclerView.getAdapter().notifyDataSetChanged();
                         layout.setVisibility(View.GONE);
+                        menu_edit.setAlpha(1f);
                     } else {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
+                        menu_edit.setAlpha(0.5f);
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {
                         recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(0, likeUrls.size());
+                        // recyclerView.getAdapter().notifyItemRangeChanged(0, likeUrls.size());
                         // 删完了就显示背景
                         if (likeUrls.isEmpty()) {
                             recyclerView.setVisibility(View.GONE);
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
-                        } else {
-                            change(isChange);
                         }
                         clearChange();
                     }
@@ -384,8 +392,7 @@ public class LikeActivity extends AppCompatActivity {
         } else {
             if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
                 //启动线程开始执行 加载网址存档
-                new Handler().postDelayed(() -> {
-                    firstTime = 0;
+                new Handler().post(() -> {
                     try {
                         File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
                         if (file.exists()) {
@@ -405,7 +412,7 @@ public class LikeActivity extends AppCompatActivity {
                     Message message = Message.obtain();
                     message.what = 0;
                     handler.sendMessage(message);
-                }, firstTime);
+                });
             }
         }
     }
@@ -487,34 +494,19 @@ public class LikeActivity extends AppCompatActivity {
         }
     }
 
-    private void change(boolean isChange) {
-        new Handler().postDelayed(() -> {
-            int num = recyclerView.getAdapter().getItemCount();
-            for (int i = 0; i < num; i++) {
-                RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(i);
-                if (viewHolder != null) {
-                    CheckBox item_select = viewHolder.itemView.findViewById(R.id.item_select);
-                    item_select.setChecked(clearUrls.contains(likeUrls.get(i)));
-                    if (isChange) {
-                        item_select.setVisibility(View.VISIBLE);
-                    } else {
-                        item_select.setVisibility(View.INVISIBLE);
-                        item_select.setChecked(false);
-                    }
-                }
-            }
-            if (isChange) {
-                edit_select_all.setVisibility(View.VISIBLE);
-            } else {
-                edit_select_all.setVisibility(View.INVISIBLE);
-            }
-            if (likeUrls.isEmpty()) {
-                menu_edit.setAlpha(0.5f);
-            } else  {
-                menu_edit.setAlpha(1f);
-            }
-            // likeChange();
-        }, 50);
+    private void change() {
+        int num = recyclerView.getAdapter().getItemCount();
+        if (num > 0) recyclerView.getAdapter().notifyItemRangeChanged(0, num);
+        if (isChange) {
+            edit_select_all.setVisibility(View.VISIBLE);
+        } else {
+            edit_select_all.setVisibility(View.INVISIBLE);
+        }
+        if (likeUrls.isEmpty()) {
+            menu_edit.setAlpha(0.5f);
+        } else  {
+            menu_edit.setAlpha(1f);
+        }
     }
 
     private void clearChange() {
@@ -547,10 +539,6 @@ public class LikeActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        getLikeUrls();
-        new Handler().post(() -> {
-            change(isChange);
-        });
         super.onResume();
     }
 }
