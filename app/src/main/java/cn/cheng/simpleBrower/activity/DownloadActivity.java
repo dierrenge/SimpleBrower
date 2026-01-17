@@ -389,6 +389,7 @@ public class DownloadActivity extends AppCompatActivity {
                         String url = (String) message.obj;
                         fileUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
+                        clearUrls.removeIf(s -> s.equals(url));
                         // recyclerView.getAdapter().notifyItemRangeChanged(0, fileUrls.size());
                         // 删完了就显示背景
                         if (fileUrls.isEmpty()) {
@@ -396,7 +397,6 @@ public class DownloadActivity extends AppCompatActivity {
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
                         }
-                        clearUrls.removeIf(s -> s.equals(url));
                         clearChange();
                     }
                 } else {
@@ -423,9 +423,9 @@ public class DownloadActivity extends AppCompatActivity {
     private void deleteFileRecord() {
         if (Build.VERSION.SDK_INT >= 29 ) { // android 12的sd卡读写
             //启动线程开始执行 删除网址存档
-            new Thread(() -> {
-                try {
-                    for (String url : clearUrls) {
+            for (String url : clearUrls) {
+                new Thread(() -> {
+                    try {
                         File file = new File(url);
                         boolean isDelete = CommonUtils.deleteFile(file);
                         // 通知handler 数据删除完成 可以刷新recyclerview
@@ -435,14 +435,14 @@ public class DownloadActivity extends AppCompatActivity {
                             message.obj = url;
                         } else {
                             message.what = 1;
-                            message.obj = "删除失败（" + clearMap.get(url) + "）" ;
+                            message.obj = "删除失败（" + clearMap.get(url) + "）";
                         }
                         handler.sendMessage(message);
+                    } catch (Exception e) {
+                        e.getMessage();
                     }
-                } catch (Exception e) {
-                    e.getMessage();
-                }
-            }).start();
+                }).start();
+            }
         }
     }
 

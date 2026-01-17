@@ -310,6 +310,7 @@ public class VideoListActivity extends AppCompatActivity {
                     if (recyclerView != null) {
                         String url = (String) message.obj;
                         videoUrls.removeIf(s -> s.equals(url));
+                        clearUrls.removeIf(s -> s.equals(url));
                         recyclerView.getAdapter().notifyDataSetChanged();
                         // recyclerView.getAdapter().notifyItemRangeChanged(0, videoUrls.size());
                         // 删完了就显示背景
@@ -318,7 +319,6 @@ public class VideoListActivity extends AppCompatActivity {
                             layout.setVisibility(View.VISIBLE);
                             edit_close.callOnClick();
                         }
-                        clearUrls.removeIf(s -> s.equals(url));
                         clearChange();
                     }
                 } else {
@@ -343,59 +343,59 @@ public class VideoListActivity extends AppCompatActivity {
     private void deleteVideoUrl() {
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             //启动线程开始执行 删除网址存档
-            new Thread(() -> {
-                try {
-                    boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8") && url.contains("SimpleBrower"));
-                    if (hasM3u8) {
-                        Message message = Message.obtain();
-                        message.what = 1;
-                        message.obj = "删除中，请稍后";
-                        handler.sendMessage(message);
-                    }
-                    // 先删除单个文件的
-                    for (String url : clearUrls) {
-                        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
-                            delete(url);
-                        }
-                    }
-                    // 后删除多个文件的
-                    for (String url : clearUrls) {
-                        if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
-                            delete(url);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.getMessage();
+            boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8") && url.contains("SimpleBrower"));
+            if (hasM3u8) {
+                Message message = Message.obtain();
+                message.what = 1;
+                message.obj = "删除中，请稍后";
+                handler.sendMessage(message);
+            }
+            // 先删除单个文件的
+            for (String url : clearUrls) {
+                if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+                    delete(url);
                 }
-            }).start();
+            }
+            // 后删除多个文件的
+            for (String url : clearUrls) {
+                if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
+                    delete(url);
+                }
+            }
         }
     }
     private void delete(String url) {
-        boolean isDelete = true;
-        if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
-            File file = new File(url);
-            isDelete = CommonUtils.deleteFile(file);
-        } else {
-            // 删除该m3u8对应的所有ts文件
-            File file = new File(url);
-            String dir = CommonUtils.getHlsDirBy(file);
-            if (StringUtils.isNotEmpty(dir)) {
-                isDelete = CommonUtils.batchDeleteFile(new File(dir));
+        new Thread(() -> {
+            try {
+                boolean isDelete = true;
+                if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+                    File file = new File(url);
+                    isDelete = CommonUtils.deleteFile(file);
+                } else {
+                    // 删除该m3u8对应的所有ts文件
+                    File file = new File(url);
+                    String dir = CommonUtils.getHlsDirBy(file);
+                    if (StringUtils.isNotEmpty(dir)) {
+                        isDelete = CommonUtils.batchDeleteFile(new File(dir));
+                    }
+                    if (isDelete) {
+                        isDelete = CommonUtils.deleteFile(file);
+                    }
+                }
+                // 通知handler 数据删除完成 可以刷新recyclerview
+                Message message = Message.obtain();
+                if (isDelete) {
+                    message.what = 3;
+                    message.obj = url;
+                } else {
+                    message.what = 1;
+                    message.obj = "删除失败（" + CommonUtils.getUrlName(url) + "）" ;
+                }
+                handler.sendMessage(message);
+            } catch (Exception e) {
+                e.getMessage();
             }
-            if (isDelete) {
-                isDelete = CommonUtils.deleteFile(file);
-            }
-        }
-        // 通知handler 数据删除完成 可以刷新recyclerview
-        Message message = Message.obtain();
-        if (isDelete) {
-            message.what = 3;
-            message.obj = url;
-        } else {
-            message.what = 1;
-            message.obj = "删除失败（" + CommonUtils.getUrlName(url) + "）" ;
-        }
-        handler.sendMessage(message);
+        }).start();
     }
 
     private void change() {

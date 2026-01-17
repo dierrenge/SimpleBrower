@@ -47,7 +47,7 @@ import cn.cheng.simpleBrower.util.SysWindowUi;
 public class TxtListActivity extends AppCompatActivity {
 
     private Button back;
-    
+
     private LinearLayout layout;
 
     private LinearLayout txt_file;
@@ -98,7 +98,7 @@ public class TxtListActivity extends AppCompatActivity {
         menu_clear = findViewById(R.id.menu_clear);
 
         initEvent();
-        
+
         initRecyclerView();
 
         // 初始化线程通信工具
@@ -184,7 +184,7 @@ public class TxtListActivity extends AppCompatActivity {
             feetDialog.show();
         });
     }
-    
+
     private void initRecyclerView() {
         // 获取recyclerview视图实例
         recyclerView = findViewById(R.id.txt_list);
@@ -201,7 +201,8 @@ public class TxtListActivity extends AppCompatActivity {
                 // 加载子项布局
                 View itemView = LayoutInflater.from(TxtListActivity.this)
                         .inflate(R.layout.recyclerview_item, parent, false); // 第三个参数必须是 false！
-                return new RecyclerView.ViewHolder(itemView) {};
+                return new RecyclerView.ViewHolder(itemView) {
+                };
             }
 
             @Override
@@ -344,31 +345,32 @@ public class TxtListActivity extends AppCompatActivity {
     private void deleteTxtUrl() {
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             //启动线程开始执行 删除网址存档
-            new Thread(() -> {
-                try {
-                    for (String url : clearUrls) {
-                        delete(url);
-                    }
-                } catch (Exception e) {
-                    e.getMessage();
-                }
-            }).start();
+            for (String url : clearUrls) {
+                delete(url);
+            }
         }
     }
+
     private void delete(String url) {
-        boolean isDelete;
-        File file = new File(url);
-        isDelete = CommonUtils.deleteFile(file);
-        // 通知handler 数据删除完成 可以刷新recyclerview
-        Message message = Message.obtain();
-        if (isDelete) {
-            message.what = 3;
-            message.obj = url;
-        } else {
-            message.what = 1;
-            message.obj = "删除失败（" + CommonUtils.getUrlName(url) + "）" ;
-        }
-        handler.sendMessage(message);
+        new Thread(() -> {
+            try {
+                boolean isDelete;
+                File file = new File(url);
+                isDelete = CommonUtils.deleteFile(file);
+                // 通知handler 数据删除完成 可以刷新recyclerview
+                Message message = Message.obtain();
+                if (isDelete) {
+                    message.what = 3;
+                    message.obj = url;
+                } else {
+                    message.what = 1;
+                    message.obj = "删除失败（" + CommonUtils.getUrlName(url) + "）";
+                }
+                handler.sendMessage(message);
+            } catch (Exception e) {
+                e.getMessage();
+            }
+        }).start();
     }
 
     private void change() {
@@ -395,7 +397,7 @@ public class TxtListActivity extends AppCompatActivity {
         if (clearUrls.isEmpty()) {
             edit_txt.setText("请选择");
             menu_clear.setAlpha(0.5f);
-        } else  {
+        } else {
             menu_clear.setAlpha(1f);
             edit_txt.setText("已选择" + clearUrls.size() + "项");
         }
