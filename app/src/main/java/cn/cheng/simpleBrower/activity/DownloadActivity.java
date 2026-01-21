@@ -200,7 +200,6 @@ public class DownloadActivity extends AppCompatActivity {
                     TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
                     TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                     Button button = holder.itemView.findViewById(R.id.item_download_btn);
-                    LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                     LinearLayout item_btn_l = holder.itemView.findViewById(R.id.item_btn_l);
                     LinearLayout item_select_l = holder.itemView.findViewById(R.id.item_select_l);
                     CheckBox item_select = holder.itemView.findViewById(R.id.item_select2);
@@ -302,11 +301,9 @@ public class DownloadActivity extends AppCompatActivity {
                     if (isChange) {
                         item_select_l.setVisibility(View.VISIBLE);
                         item_btn_l.setVisibility(View.GONE);
-                        item_select_bg.setVisibility(View.GONE);
                     } else {
                         item_select_l.setVisibility(View.GONE);
                         item_btn_l.setVisibility(View.VISIBLE);
-                        item_select_bg.setVisibility(View.VISIBLE);
                         item_select.setChecked(false);
                     }
                     item_select.setAnimation(null);

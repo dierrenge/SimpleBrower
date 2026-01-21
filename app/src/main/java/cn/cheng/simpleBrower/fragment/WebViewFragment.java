@@ -406,15 +406,17 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
                 // 获取下载文件名
-                String name = URLUtil.guessFileName(url, disposition, mimetype);;
+                String name = "";
+                try {
+                    name = URLUtil.guessFileName(url, disposition, mimetype);
+                } catch (Exception e) {}
                 if (StringUtils.isEmpty(name)) {
                     name = CommonUtils.getUrlName(url);
                 }
                 try {
                     name = URLDecoder.decode(name, "utf-8");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
+                CommonUtils.saveLog("哈哈哈哈==================" + name);
                 // 会用到的权限
                 if (!CommonUtils.hasStoragePermissions(requireContext())) {
                     CommonUtils.requestStoragePermissions(requireActivity(), null);
@@ -435,7 +437,7 @@ public class WebViewFragment extends Fragment {
                     String title = finalName;
                     // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
                     title = M3u8DownLoader.getUrlContentFileSize(url, title);
-
+                    CommonUtils.saveLog("人人人==================" + title);
                     if (!title.contains(".html;")) {
                         // 记录点击下载的链接url
                         MyApplication.setClickDownloadUrl(url);
