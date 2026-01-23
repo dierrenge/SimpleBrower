@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle" >
+
+    <!--输入框背景-->
+
+    <!-- 设置边距 -->
+    <padding
+        android:bottom="2dp"
+        android:left="4dp"
+        android:right="4dp"
+        android:top="0dp"/>
+    <!-- 设置圆角 -->
+    <corners
+        android:radius="5dp"/>
+    <!-- 设置边框粗细和颜色-->
+    <stroke
+        android:color="#999999"
+        android:width="2dp"/>
+
+    <!-- 填充 -->
+    <!--<solid
+        android:color="#FFFFFF"/>-->
+</shape>

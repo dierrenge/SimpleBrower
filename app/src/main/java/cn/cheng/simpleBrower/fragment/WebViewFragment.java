@@ -46,6 +46,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -274,7 +276,9 @@ public class WebViewFragment extends Fragment {
                         if (!url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
-                            callListener.downLoad(); // 下载的情况下自动关闭空白页面
+                            if (url.equals(jumpUrl)) {
+                                callListener.downLoad(); // 下载的情况下自动关闭空白页面
+                            }
                         } else {
                             feetDialog = new FeetDialog(requireContext());
                         }
@@ -405,49 +409,52 @@ public class WebViewFragment extends Fragment {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
-                // 获取下载文件名
-                String name = "";
-                try {
-                    name = URLUtil.guessFileName(url, disposition, mimetype);
-                } catch (Exception e) {}
-                if (StringUtils.isEmpty(name)) {
-                    name = CommonUtils.getUrlName(url);
-                }
-                try {
-                    name = URLDecoder.decode(name, "utf-8");
-                } catch (Exception e) {}
-                CommonUtils.saveLog("哈哈哈哈==================" + name);
-                // 会用到的权限
-                if (!CommonUtils.hasStoragePermissions(requireContext())) {
-                    CommonUtils.requestStoragePermissions(requireActivity(), null);
-                    if (!name.contains(".html;") && !url.contains(".m3u8")) {
-                        // 记录点击下载的链接url
-                        MyApplication.setClickDownloadUrl(url);
-                        Message msg = Message.obtain();
-                        msg.what = 7;
-                        handler.sendMessage(msg);
+                getDownloadName(map -> {
+                    // 获取下载文件名
+                    String name = map.get(url);
+                    if (StringUtils.isEmpty(name) || !name.contains(".")) {
+                        try {
+                            name = URLUtil.guessFileName(url, disposition, mimetype);
+                        } catch (Exception ignored) {}
+                        if (StringUtils.isEmpty(name) || name.endsWith(".bin")) {
+                            name = CommonUtils.getUrlName(url);
+                        }
                     }
-                    return;
-                }
-                // 调用系统下载处理
-                // downloadBySystem(url, disposition, mimetype);
-                // 使用自定义下载
-                String finalName = name;
-                new Thread(() -> {
-                    String title = finalName;
-                    // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
-                    title = M3u8DownLoader.getUrlContentFileSize(url, title);
-                    CommonUtils.saveLog("人人人==================" + title);
-                    if (!title.contains(".html;")) {
-                        // 记录点击下载的链接url
-                        MyApplication.setClickDownloadUrl(url);
-                        String[] arr = new String[]{finalName, url, title};
-                        Message msg = Message.obtain();
-                        msg.obj = arr;
-                        msg.what = 4;
-                        handler.sendMessage(msg);
+                    try {
+                        name = URLDecoder.decode(name, "utf-8");
+                    } catch (Exception ignored) {}
+                    // 会用到的权限
+                    if (!CommonUtils.hasStoragePermissions(requireContext())) {
+                        CommonUtils.requestStoragePermissions(requireActivity(), null);
+                        if (!name.contains(".html;") && !url.contains(".m3u8")) {
+                            // 记录点击下载的链接url
+                            MyApplication.setClickDownloadUrl(url);
+                            Message msg = Message.obtain();
+                            msg.what = 7;
+                            handler.sendMessage(msg);
+                        }
+                        return;
                     }
-                }).start();
+                    // 调用系统下载处理
+                    // downloadBySystem(url, disposition, mimetype);
+                    // 使用自定义下载
+                    String finalName = name;
+                    new Thread(() -> {
+                        String title = finalName;
+                        // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
+                        title = M3u8DownLoader.getUrlContentFileSize(url, title);
+
+                        if (!title.contains(".html;")) {
+                            // 记录点击下载的链接url
+                            MyApplication.setClickDownloadUrl(url);
+                            String[] arr = new String[]{finalName, url, title};
+                            Message msg = Message.obtain();
+                            msg.obj = arr;
+                            msg.what = 4;
+                            handler.sendMessage(msg);
+                        }
+                    }).start();
+                });
             }
         });
 
@@ -467,6 +474,40 @@ public class WebViewFragment extends Fragment {
                 boolean isEmpty = value == null || "null".equals(value) || !value.contains(">");
                 // if (!isEmpty) System.out.println(jumpUrl + "**************************\n" + value);
                 callback.onReceiveValue(isEmpty);
+            }
+        });
+    }
+
+    // 获取页面a标签下载文件名
+    public void getDownloadName(ValueCallback<HashMap<String, String>> callback) {
+        webView.evaluateJavascript("(function() { " +
+                "var aList = document.querySelectorAll('a[download]');" +
+                "var list = [];" +
+                "for (var i = 0; i < aList.length; i++) {" +
+                "  var href = aList[i].href;" +
+                "  var download = aList[i].download;" +
+                "  if (href && download) {" +
+                "    list.push({'href':href, 'download':download});" +
+                "  }" +
+                "}" +
+                "return list; " +
+                "})();", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String value) {
+                HashMap<String, String> map = new HashMap<>();
+                if (value != null && value.startsWith("[") && value.endsWith("]")) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(value);
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            map.put(jsonObject.getString("href"), jsonObject.getString("download"));
+                        }
+                    } catch (JSONException e) {
+                        CommonUtils.saveLog(value + "\ngetDownloadName=======" + e.getMessage());
+                    }
+                }
+                // if (!isEmpty) System.out.println(jumpUrl + "**************************\n" + value);
+                callback.onReceiveValue(map);
             }
         });
     }

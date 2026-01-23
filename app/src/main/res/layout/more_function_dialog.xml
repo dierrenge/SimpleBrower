@@ -45,7 +45,7 @@
                 android:background="@drawable/btn_bg1"
                 android:textColor="@color/blackGray"
                 android:textSize="16dp"
-                android:text="小说"/>
+                android:text="文本"/>
             <Button
                 android:id="@+id/downloadMoreBtn"
                 android:layout_width="40dp"
