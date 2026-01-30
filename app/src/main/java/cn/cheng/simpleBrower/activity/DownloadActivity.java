@@ -3,6 +3,7 @@ package cn.cheng.simpleBrower.activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -339,6 +340,18 @@ public class DownloadActivity extends AppCompatActivity {
                     } else if (formats.contains(format)) {
                         intent = new Intent(DownloadActivity.this, VideoActivity.class);
                         intent.putExtra("videoUrl", absolutePath);
+                    } else {
+                        // 系统选择打开方式
+                        intent = new Intent(Intent.ACTION_VIEW);
+                        File file = new File(absolutePath);
+                        Uri fileUri = Uri.fromFile(file);
+                        intent.setDataAndType(fileUri, "*/*");
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 解决权限问题
+                        intent = Intent.createChooser(intent, "选择要使用的应用"); // 弹出选择界面
+                        if (intent.resolveActivity(getPackageManager()) == null) {
+                            MyToast.getInstance("无应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
+                            return;
+                        }
                     }
                     if (intent != null) DownloadActivity.this.startActivity(intent);
                 }

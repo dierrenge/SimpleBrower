@@ -2,11 +2,7 @@ package cn.cheng.simpleBrower.fragment;
 
 import android.annotation.SuppressLint;
 
-import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -14,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.StrictMode;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,8 +60,6 @@ import java.util.Map;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.activity.BrowserActivity;
-import cn.cheng.simpleBrower.activity.BrowserActivity2;
 import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
@@ -76,7 +69,6 @@ import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AdBlocker;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
-import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class WebViewFragment extends Fragment {
     private LinearLayout viewViewLayout;
@@ -95,6 +87,8 @@ public class WebViewFragment extends Fragment {
     private FrameLayout video_fullView;// 全屏时视频加载view
     private View xCustomView;
     private WebChromeClient.CustomViewCallback xCustomViewCallback;
+    private ValueCallback<Uri[]> mFilePathCallback; // 文件上传回调
+    private static final int REQUESTCODE = 300;
 
     private Handler handler; // 子线程与主线程通信
     private FeetDialog feetDialog;
@@ -766,6 +760,21 @@ public class WebViewFragment extends Fragment {
             super.onConsoleMessage(consoleMessage);
             return false;
         }
+
+        @Override
+        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+            mFilePathCallback = filePathCallback;
+            Intent intent = fileChooserParams.createIntent();
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 解决权限问题
+            Intent chooser = Intent.createChooser(intent, "选择要使用的应用"); // 弹出选择界面
+            if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                startActivityForResult(chooser, REQUESTCODE); // 确保有应用可处理后启动
+            } else {
+                MyToast.getInstance("无应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
+            }
+            return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+            // return true;
+        }
     }
 
     // 超时处理进度条
@@ -790,6 +799,10 @@ public class WebViewFragment extends Fragment {
         url_stop.setVisibility(View.GONE);
         url_box2.setEnabled(true);
         progressHandler.removeCallbacks(myRunnable);
+    }
+
+    public WebView getWebView() {
+        return webView;
     }
 
     /**
@@ -838,7 +851,14 @@ public class WebViewFragment extends Fragment {
         progressHandler.removeCallbacks(myRunnable);
     }
 
-    public WebView getWebView() {
-        return webView;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == REQUESTCODE) {
+            Uri[] uris = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            if (mFilePathCallback != null && uris != null && uris.length > 0) {
+                mFilePathCallback.onReceiveValue(uris);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

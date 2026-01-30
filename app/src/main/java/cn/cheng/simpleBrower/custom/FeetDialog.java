@@ -1,5 +1,7 @@
 package cn.cheng.simpleBrower.custom;
 
+import static android.content.Context.INPUT_METHOD_SERVICE;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -8,6 +10,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -27,19 +30,24 @@ public class FeetDialog extends Dialog {
     private Button closeBth;
     private Button okBtn;
     private TouchListener touchListener;
+    private LinearLayout feet_dialog_l;
     private TextView dialog_title;
     private TextView dialog_text;
     private LinearLayout dialog_text_layout;
+    private View dialog_for_focus;
     private EditText dialog_text_filename;
     private TextView dialog_text_fileType;
     private String title, text, okName, closeName;
+    private Context context;
 
     public FeetDialog(@NonNull Context context) {
         super(context, R.style.dialog);
+        this.context = context;
     }
 
     public FeetDialog(@NonNull Context context, String title, String text, String okName, String closeName) {
         this(context);
+        this.context = context;
         this.title = title;
         this.text = text;
         this.okName = okName;
@@ -58,11 +66,13 @@ public class FeetDialog extends Dialog {
         setCanceledOnTouchOutside(true);
 
         // 初始化控件
+        feet_dialog_l = findViewById(R.id.feet_dialog_l);
         closeBth = findViewById(R.id.dialog_close);
         okBtn = findViewById(R.id.dialog_set_ok);
         dialog_title = findViewById(R.id.dialog_title);
         dialog_text = findViewById(R.id.dialog_text);
         dialog_text_layout = findViewById(R.id.dialog_text_layout);
+        dialog_for_focus = findViewById(R.id.dialog_for_focus);
         dialog_text_filename = findViewById(R.id.dialog_text_filename);
         dialog_text_fileType = findViewById(R.id.dialog_text_fileType);
         if (title != null) {
@@ -124,6 +134,14 @@ public class FeetDialog extends Dialog {
                     touchListener.ok(txt + type);
                 }
             }
+        });
+        // 隐藏输入键盘
+        feet_dialog_l.setOnClickListener(v -> {
+            InputMethodManager im = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+            if (im != null) { // 隐藏键盘
+                im.hideSoftInputFromWindow(dialog_text_filename.getWindowToken(), 0);
+            }
+            dialog_for_focus.requestFocus();
         });
     }
 
