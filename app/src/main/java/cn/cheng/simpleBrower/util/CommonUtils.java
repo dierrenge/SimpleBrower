@@ -740,7 +740,7 @@ public class CommonUtils {
      * @param file
      */
     public static boolean batchDeleteFile(File file) {
-        boolean ret = false;
+        boolean ret = true;
         if (file != null && file.exists()) {
             if (file.isFile() || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 ret = file.delete();
@@ -1893,6 +1893,23 @@ public class CommonUtils {
             }
         }
         return "";
+    }
+
+    // 文件大小换算
+    public static String getSize(int length)  {
+        String size = "未知大小";
+        if (length > 0) {
+            if (length < 1024) {
+                size = String.format("%.2f", length/1F) + "B";
+            } else if (length < 1024F*1024F) {
+                size = String.format("%.2f", length/1024F) + "KB";
+            } else if (length < 1024F*1024F*1024F) {
+                size = String.format("%.2f", length/1024F/1024F) + "MB";
+            } else {
+                size = String.format("%.2f", length/1024F/1024F/1024F) + "GB";
+            }
+        }
+        return size;
     }
 
 }

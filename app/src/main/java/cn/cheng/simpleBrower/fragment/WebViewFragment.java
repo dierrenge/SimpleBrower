@@ -1,5 +1,7 @@
 package cn.cheng.simpleBrower.fragment;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.annotation.SuppressLint;
 
 import android.content.Intent;
@@ -10,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
@@ -92,10 +96,11 @@ public class WebViewFragment extends Fragment {
 
     private Handler handler; // 子线程与主线程通信
     private FeetDialog feetDialog;
-    private boolean flag = true; // 是否展示检查下载的提示框
+    private boolean dialogFlag = true; // 是否展示检查下载的提示框
     private boolean flagGif = true; // 是否开启动图过滤
 
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
+    private HashMap<String, String> downloadNameMap = new HashMap<>(); // 记录a标签下载文件名
 
     // 无参构造函数
     public WebViewFragment() {
@@ -248,7 +253,7 @@ public class WebViewFragment extends Fragment {
                     String url = arr[1];
 
                     // 影音监测的情况
-                    if (what != 4 || url.contains(".m3u8")) {
+                    if ((what != 4 && what != 6) || url.contains(".m3u8")) {
                         String title0 = title;
                         try {
                             title0 = URLDecoder.decode(title0, "utf-8");
@@ -266,7 +271,7 @@ public class WebViewFragment extends Fragment {
                     }
 
                     // 弹框选择
-                    if (flag && (feetDialog == null || !feetDialog.isShowing())) {
+                    if (dialogFlag && (feetDialog == null || !feetDialog.isShowing())) {
                         if (!url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
@@ -279,21 +284,24 @@ public class WebViewFragment extends Fragment {
                         feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                             @Override
                             public void close() {
-                                flag = true;
+                                dialogFlag = true;
                                 feetDialog.dismiss();
                             }
 
                             @Override
                             public void ok(String txt) {
-                                flag = true;
-                                download(url, arr.length >= 3 && arr[2].contains(" / ") ? txt : title, what);
+                                try {
+                                    download(url, StringUtils.isNotEmpty(txt) ? txt : title, what);
+                                } catch (Exception e) {
+                                    CommonUtils.saveLog("download: " + e.getMessage());
+                                }
+                                dialogFlag = true;
                                 feetDialog.dismiss();
                             }
                         });
-                        flag = false;
+                        dialogFlag = false;
                         feetDialog.show();
                     }
-
                 }
                 return false;
             }
@@ -310,17 +318,27 @@ public class WebViewFragment extends Fragment {
     // 下载
     private void download(String url, String titleO, int what) {
         if (!CommonUtils.requestNotificationPermissions(requireActivity())) return; // 通知
-        String title = titleO;
-        try {
-            title = URLDecoder.decode(titleO, "utf-8");
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (what == 6) {
+            String base64Str = url.substring(url.indexOf(",")+1);
+            byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);
+            File file = CommonUtils.getFile("SimpleBrower/image", titleO, "");
+            try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                bos.write(decode);
+            } catch (Exception e) {
+                CommonUtils.saveLog("图片下载失败：" + e.getMessage());
+                MyToast.getInstance("图片下载失败").show();
+                return;
+            }
+            // 通知系统扫描该文件
+            requireContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
+            MyToast.getInstance("图片下载成功").show();
+        } else {
+            Intent intent = new Intent(requireContext(), DownloadService.class);
+            intent.putExtra("what", what);
+            intent.putExtra("url", url);
+            intent.putExtra("title", titleO);
+            requireContext().startService(intent);
         }
-        Intent intent = new Intent(requireContext(), DownloadService.class);
-        intent.putExtra("what", what);
-        intent.putExtra("url", url);
-        intent.putExtra("title", title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title);
-        requireContext().startService(intent);
     }
 
     // 刷新网址栏
@@ -403,15 +421,29 @@ public class WebViewFragment extends Fragment {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
-                getDownloadName(map -> {
+                // 防止重复下载链接
+
+                // getDownloadName(map -> {
                     // 获取下载文件名
-                    String name = map.get(url);
-                    if (StringUtils.isEmpty(name) || !name.contains(".")) {
-                        try {
-                            name = URLUtil.guessFileName(url, disposition, mimetype);
-                        } catch (Exception ignored) {}
-                        if (StringUtils.isEmpty(name) || name.endsWith(".bin")) {
-                            name = CommonUtils.getUrlName(url);
+                    // String name = map.get(url);
+                    String name = downloadNameMap.get(url);
+                    boolean base64Flag = url.startsWith("data:image/") && url.contains(";base64,");
+                    if (base64Flag) {
+                        String type = url.split(";base64,")[0];
+                        type = type.split("/")[1];
+                        if (StringUtils.isEmpty(name)) {
+                            name = "base64." + type;
+                        } else {
+                            name += "." + type;
+                        }
+                    } else {
+                        if (StringUtils.isEmpty(name) || !name.contains(".")) {
+                            try {
+                                name = URLUtil.guessFileName(url, disposition, mimetype);
+                            } catch (Exception ignored) {}
+                            if (StringUtils.isEmpty(name) || name.endsWith(".bin")) {
+                                name = CommonUtils.getUrlName(url);
+                            }
                         }
                     }
                     try {
@@ -425,6 +457,7 @@ public class WebViewFragment extends Fragment {
                             MyApplication.setClickDownloadUrl(url);
                             Message msg = Message.obtain();
                             msg.what = 7;
+                            msg.obj = url;
                             handler.sendMessage(msg);
                         }
                         return;
@@ -432,23 +465,25 @@ public class WebViewFragment extends Fragment {
                     // 调用系统下载处理
                     // downloadBySystem(url, disposition, mimetype);
                     // 使用自定义下载
-                    String finalName = name;
-                    new Thread(() -> {
-                        String title = finalName;
-                        // title = title.length() > 30 ? title.substring(0, 24) + "···" + title.substring(title.length() - 6) : title;
-                        title = M3u8DownLoader.getUrlContentFileSize(url, title);
-
-                        if (!title.contains(".html;")) {
+                    if (!name.contains(".html;")) {
+                        String finalName = name;
+                        new Thread(() -> {
+                            String title2 = finalName;
+                            if (base64Flag) {
+                                title2 = M3u8DownLoader.getBase64FileSize(url, title2);
+                            } else {
+                                title2 = M3u8DownLoader.getUrlContentFileSize(url, title2);
+                            }
                             // 记录点击下载的链接url
                             MyApplication.setClickDownloadUrl(url);
-                            String[] arr = new String[]{finalName, url, title};
+                            String[] arr = new String[]{finalName, url, title2};
                             Message msg = Message.obtain();
                             msg.obj = arr;
-                            msg.what = 4;
+                            msg.what = base64Flag ? 6 : 4;
                             handler.sendMessage(msg);
-                        }
-                    }).start();
-                });
+                        }).start();
+                    }
+                // });
             }
         });
 
@@ -548,6 +583,34 @@ public class WebViewFragment extends Fragment {
             MyApplication.setUrl(url); // 记录为历史网址
             hideProgress();
             super.onPageFinished(view, url);
+            // 记录a标签下载文件名
+            webView.evaluateJavascript("(function() { " +
+                    "var aList = document.querySelectorAll('a[download]');" +
+                    "var list = [];" +
+                    "for (var i = 0; i < aList.length; i++) {" +
+                    "  var href = aList[i].href;" +
+                    "  var download = aList[i].download;" +
+                    "  if (href && download) {" +
+                    "    list.push({'href':href, 'download':download});" +
+                    "  }" +
+                    "}" +
+                    "return list; " +
+                    "})();", new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    if (value != null && value.startsWith("[") && value.endsWith("]")) {
+                        try {
+                            JSONArray jsonArray = new JSONArray(value);
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                downloadNameMap.put(jsonObject.getString("href"), jsonObject.getString("download"));
+                            }
+                        } catch (JSONException e) {
+                            CommonUtils.saveLog(value + "\ngetDownloadName=======" + e.getMessage());
+                        }
+                    }
+                }
+            });
 
             // 打印网页源码
             /*webView.evaluateJavascript("(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();", new ValueCallback<String>() {
@@ -710,7 +773,7 @@ public class WebViewFragment extends Fragment {
             xCustomViewCallback = callback;
             video_fullView.setVisibility(View.VISIBLE);
             viewViewLayout.setVisibility(View.INVISIBLE);
-            flag = false;
+            dialogFlag = false;
         }
 
         // 视频播放退出全屏会被调用的
@@ -725,7 +788,7 @@ public class WebViewFragment extends Fragment {
             video_fullView.setVisibility(View.GONE);
             xCustomViewCallback.onCustomViewHidden();
             viewViewLayout.setVisibility(View.VISIBLE);
-            flag = true;
+            dialogFlag = false;
         }
 
         // 视频加载时进程loading
@@ -764,16 +827,20 @@ public class WebViewFragment extends Fragment {
         @Override
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
             mFilePathCallback = filePathCallback;
-            Intent intent = fileChooserParams.createIntent();
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 解决权限问题
-            Intent chooser = Intent.createChooser(intent, "选择要使用的应用"); // 弹出选择界面
-            if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
-                startActivityForResult(chooser, REQUESTCODE); // 确保有应用可处理后启动
+            String[] acceptTypes = fileChooserParams.getAcceptTypes();
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            if (acceptTypes == null || acceptTypes.length == 0) {
+                intent.setType("*/*");
+            } else if (acceptTypes.length == 1) {
+                intent.setType(acceptTypes[0]); // 选择所有类型的文件
             } else {
-                MyToast.getInstance("无应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
+                intent.setType("*/*"); // 设置文件类型
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, acceptTypes);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
             }
-            return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
-            // return true;
+            startActivityForResult(intent, REQUESTCODE);
+            return true;
+            // return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
         }
     }
 
@@ -853,12 +920,21 @@ public class WebViewFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (resultCode == REQUESTCODE) {
-            Uri[] uris = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
-            if (mFilePathCallback != null && uris != null && uris.length > 0) {
-                mFilePathCallback.onReceiveValue(uris);
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUESTCODE) {
+            if (resultCode == RESULT_OK && data != null) {
+                if (mFilePathCallback != null) {
+                    Uri[] uris = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+                    mFilePathCallback.onReceiveValue(uris);
+                    mFilePathCallback = null;
+                }
+            } else {
+                // 用户取消选择
+                if (mFilePathCallback != null) {
+                    mFilePathCallback.onReceiveValue(null);
+                    mFilePathCallback = null;
+                }
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 }

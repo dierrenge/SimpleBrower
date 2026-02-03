@@ -121,7 +121,10 @@ public class TxtListActivity extends AppCompatActivity {
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("text/*"); // 设置文件类型
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
-                startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
+                Intent chooser = Intent.createChooser(intent, "选择文件管理器");
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(chooser, REQUEST_CODE_PICK_FILE);
+                }
             } catch (Exception e1) {
                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
             }

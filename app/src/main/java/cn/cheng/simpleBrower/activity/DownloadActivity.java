@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,6 +41,7 @@ import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.MIMEUtils;
 import cn.cheng.simpleBrower.util.NotificationUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
@@ -341,16 +343,26 @@ public class DownloadActivity extends AppCompatActivity {
                         intent = new Intent(DownloadActivity.this, VideoActivity.class);
                         intent.putExtra("videoUrl", absolutePath);
                     } else {
-                        // 系统选择打开方式
-                        intent = new Intent(Intent.ACTION_VIEW);
-                        File file = new File(absolutePath);
-                        Uri fileUri = Uri.fromFile(file);
-                        intent.setDataAndType(fileUri, "*/*");
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 解决权限问题
-                        intent = Intent.createChooser(intent, "选择要使用的应用"); // 弹出选择界面
-                        if (intent.resolveActivity(getPackageManager()) == null) {
-                            MyToast.getInstance("无应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
-                            return;
+                        try {
+                            // 系统选择打开方式
+                            intent = new Intent(Intent.ACTION_VIEW);
+                            File file = new File(absolutePath);
+                            Uri fileUri;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                // 使用 FileProvider 获取 URI
+                                fileUri = FileProvider.getUriForFile(DownloadActivity.this, "cn.cheng.simpleBrower.fileprovider", file);
+                            } else {
+                                fileUri = Uri.fromFile(file);
+                            }
+                            intent.setDataAndType(fileUri, MIMEUtils.getMIMEType(absolutePath));
+                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 解决权限问题
+                            intent = Intent.createChooser(intent, "选择要使用的应用"); // 弹出选择界面
+                            if (intent.resolveActivity(getPackageManager()) == null) {
+                                MyToast.getInstance("无应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
+                                return;
+                            }
+                        } catch (Exception e) {
+                            CommonUtils.saveLog("系统选择打开方式" + e.getMessage());
                         }
                     }
                     if (intent != null) DownloadActivity.this.startActivity(intent);

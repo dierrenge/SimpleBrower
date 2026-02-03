@@ -2,6 +2,7 @@ package cn.cheng.simpleBrower.custom;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.webkit.URLUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -939,11 +940,7 @@ public class M3u8DownLoader {
             // 以识别各种格式
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
             // 获取长度
-            float contentLength = httpURLConnection.getContentLength()/1024F/1024F;
-            String fileSize = "未知大小";
-            if (contentLength > 0) {
-                fileSize = String.format("%.2f", contentLength) + "M";
-            }
+            String fileSize = CommonUtils.getSize(httpURLConnection.getContentLength());
             // System.out.println("=======contentLength=====" + contentLength);
             if (title.contains(".")) {
                 title += " / " + fileSize;
@@ -959,13 +956,21 @@ public class M3u8DownLoader {
             }
             // System.out.println("+++++++++++++++++++++++++++++++" + title);
         } catch (Exception e) {
-            e.printStackTrace();
+            CommonUtils.saveLog("getUrlContentFileSize：" + e.getMessage());
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
         }
         return title;
+    }
+
+    public static String getBase64FileSize(String downLoadUrl, String fileName) {
+        String title = fileName == null ? "未命名" : fileName;
+        String base64Str = downLoadUrl.substring(downLoadUrl.indexOf(",")+1);
+        byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);
+        String fileSize = CommonUtils.getSize(decode.length);
+        return title + " / " + fileSize;
     }
 
     public static void test(String str, Handler handler) {
