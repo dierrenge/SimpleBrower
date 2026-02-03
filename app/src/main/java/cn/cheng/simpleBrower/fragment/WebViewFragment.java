@@ -85,7 +85,6 @@ public class WebViewFragment extends Fragment {
     private Handler progressHandler;
     private WebView webView;
     private CallListener callListener;
-    private String jumpUrl;
 
     private CustomWebChromeClient xwebchromeclient;
     private FrameLayout video_fullView;// 全屏时视频加载view
@@ -157,7 +156,7 @@ public class WebViewFragment extends Fragment {
         // 获取 URL 参数
         Bundle args = getArguments();
         if (args != null) {
-            jumpUrl = args.getString("url");
+            MyApplication.jumpUrl = args.getString("url");
         }
 
         // 软件盘回车响应
@@ -188,14 +187,14 @@ public class WebViewFragment extends Fragment {
                             ) {
                                 Message message = Message.obtain();
                                 message.what = 1;
-                                String likeUrl = jumpUrl + "\n";
+                                String likeUrl = MyApplication.jumpUrl + "\n";
                                 if (hasFile) {
                                     List<String> likes = new ArrayList<>();
                                     String line = null;
                                     while ((line = reader.readLine()) != null) {
                                         likes.add(line);
                                     }
-                                    if (likes.size() > 0 && likes.contains(jumpUrl)) {
+                                    if (likes.size() > 0 && likes.contains(MyApplication.jumpUrl)) {
                                         message.obj = "该网页已收藏过了。";
                                         handler.sendMessage(message);
                                         return;
@@ -246,7 +245,11 @@ public class WebViewFragment extends Fragment {
                     MyToast.getInstance(message.obj + "").show();
                 } else if (what == 7) {
                     // 自动关闭空白页面
-                    callListener.downLoad();
+                    String url = (String) message.obj;
+                    if (url.equals(MyApplication.jumpUrl)) {
+                        callListener.downLoad(); // 下载的情况下自动关闭空白页面
+                    }
+                    MyApplication.downloadUrl = "";
                 } else {
                     String[] arr = (String[]) message.obj;
                     String title = arr[0];
@@ -275,7 +278,7 @@ public class WebViewFragment extends Fragment {
                         if (!url.contains(".m3u8")) {
                             String title2 = arr[2];
                             feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
-                            if (url.equals(jumpUrl)) {
+                            if (url.equals(MyApplication.jumpUrl)) {
                                 callListener.downLoad(); // 下载的情况下自动关闭空白页面
                             }
                         } else {
@@ -284,6 +287,7 @@ public class WebViewFragment extends Fragment {
                         feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                             @Override
                             public void close() {
+                                MyApplication.downloadUrl = "";
                                 dialogFlag = true;
                                 feetDialog.dismiss();
                             }
@@ -295,6 +299,7 @@ public class WebViewFragment extends Fragment {
                                 } catch (Exception e) {
                                     CommonUtils.saveLog("download: " + e.getMessage());
                                 }
+                                MyApplication.downloadUrl = "";
                                 dialogFlag = true;
                                 feetDialog.dismiss();
                             }
@@ -307,9 +312,9 @@ public class WebViewFragment extends Fragment {
             }
         });
 
-        if (jumpUrl != null) {
-            url_box2.setText(jumpUrl);
-            webView.loadUrl(jumpUrl);
+        if (MyApplication.jumpUrl != null) {
+            url_box2.setText(MyApplication.jumpUrl);
+            webView.loadUrl(MyApplication.jumpUrl);
         }
 
         return view;
@@ -422,7 +427,8 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onDownloadStart(String url, String userAgent, String disposition, String mimetype, long length) {
                 // 防止重复下载链接
-
+                if (url.equals(MyApplication.downloadUrl)) return;
+                MyApplication.downloadUrl = url;
                 // getDownloadName(map -> {
                     // 获取下载文件名
                     // String name = map.get(url);
@@ -501,7 +507,7 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onReceiveValue(String value) {
                 boolean isEmpty = value == null || "null".equals(value) || !value.contains(">");
-                // if (!isEmpty) System.out.println(jumpUrl + "**************************\n" + value);
+                // if (!isEmpty) System.out.println(MyApplication.jumpUrl + "**************************\n" + value);
                 callback.onReceiveValue(isEmpty);
             }
         });
@@ -535,7 +541,7 @@ public class WebViewFragment extends Fragment {
                         CommonUtils.saveLog(value + "\ngetDownloadName=======" + e.getMessage());
                     }
                 }
-                // if (!isEmpty) System.out.println(jumpUrl + "**************************\n" + value);
+                // if (!isEmpty) System.out.println(MyApplication.jumpUrl + "**************************\n" + value);
                 callback.onReceiveValue(map);
             }
         });
@@ -566,7 +572,7 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            jumpUrl = url;
+            MyApplication.jumpUrl = url;
             url_box2.setText(url);
             url_box2.setEnabled(false);
             progressBg.setVisibility(View.GONE);

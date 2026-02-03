@@ -43,6 +43,10 @@ public class MyApplication extends Application {
     // 标记打开txtActivity
     private static boolean openFlag;
 
+    public static String downloadUrl; // 记录下载链接以防止重复
+
+    public static String jumpUrl; // 记录当前网页地址
+
     @Override
     public void onCreate() {
         super.onCreate();
