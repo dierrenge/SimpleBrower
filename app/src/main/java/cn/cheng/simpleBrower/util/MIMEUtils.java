@@ -1,5 +1,7 @@
 package cn.cheng.simpleBrower.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * MIME格式转换
  */
@@ -91,11 +93,34 @@ public class MIMEUtils {
         String end=fName.substring(dotIndex,fName.length()).toLowerCase();
         if(end=="")return type;
         //在MIME和文件类型的匹配表中找到对应的MIME类型。
-        for(int i=0;i<MIME_MapTable.length;i++){ //MIME_MapTable??在这里你一定有疑问，这个MIME_MapTable是什么？
+        for(int i=0;i<MIME_MapTable.length;i++){
             if(end.equals(MIME_MapTable[i][0]))
                 type = MIME_MapTable[i][1];
         }
         return type;
     }
 
+    /**
+     * 根据MIME类型获得对应的文件后缀名。
+     * @param mimeType
+     */
+    public static String geType(String mimeType) {
+        String type = null;
+        if (StringUtils.isNotEmpty(mimeType)) {
+            for (int i = 0; i < MIME_MapTable.length; i++) {
+                if (mimeType.contains(MIME_MapTable[i][1]) && !"*/*".equals(MIME_MapTable[i][1]))
+                    type = MIME_MapTable[i][0];
+            }
+            if (type == null) {
+                if (mimeType.contains(";")) {
+                    mimeType = mimeType.split(";")[0];
+                }
+                String[] s = mimeType.split("/");
+                if (s.length > 0) {
+                    type = "." + s[s.length - 1];
+                }
+            }
+        }
+        return type == null ? ".未知格式" : type;
+    }
 }

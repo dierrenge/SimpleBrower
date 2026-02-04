@@ -369,7 +369,7 @@ public class MapActivity extends AppCompatActivity {
                             bean.setLatitude(latitude);
                             bean.setLongitude(longitude);
                             bean.setAddress(fullAddress);
-                            bean.setTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+                            bean.setTime(CommonUtils.randomStr());
                             CommonUtils.writeObjectIntoLocal("locationList", name, bean);
                         }
                         // 更新记录

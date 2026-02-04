@@ -18,7 +18,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import org.apache.commons.lang3.StringUtils;
+
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 /**
@@ -128,6 +131,7 @@ public class FeetDialog extends Dialog {
                     String type = "";
                     if (text.contains(" / ")) {
                         txt = dialog_text_filename.getText().toString();
+                        if (StringUtils.isEmpty(txt)) txt = CommonUtils.randomStr();
                         type = dialog_text_fileType.getText().toString();
                         type = type.substring(0, type.lastIndexOf(" / "));
                     }
