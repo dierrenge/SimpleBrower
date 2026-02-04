@@ -23,11 +23,11 @@ public class NotificationBean {
     private long timeoutMillisecond; // 连接超时时间（单位：毫秒）
     private String state; // 表示点击后呈现的状态
     private String absolutePath; // 存储文件的绝对路径
-    private int bytesum; // 记录已下载进度
+    private long bytesum; // 记录已下载进度
     private String rangeRequest; // 是否支持断点续传
-    private int totalSize; // 文件总大小
+    private long totalSize; // 文件总大小
     private List<String> tsList = new ArrayList<>(); // 所有ts片段下载链接
-    //private M3u8DownLoader m3u8Download;
+    // private M3u8DownLoader m3u8Download;
     // private ExecutorService fixedThreadPool; // 线程池
 
     private List<Integer> hlsFinishedNumList = new ArrayList<>();
@@ -124,11 +124,11 @@ public class NotificationBean {
         this.absolutePath = absolutePath;
     }
 
-    public int getBytesum() {
+    public long getBytesum() {
         return bytesum;
     }
 
-    public void setBytesum(int bytesum) {
+    public void setBytesum(long bytesum) {
         this.bytesum = bytesum;
     }
 
@@ -140,11 +140,11 @@ public class NotificationBean {
         this.rangeRequest = rangeRequest;
     }
 
-    public int getTotalSize() {
+    public long getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(int totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 

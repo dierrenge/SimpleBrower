@@ -37,7 +37,7 @@
     <LinearLayout
         android:id="@+id/dialog_text_layout"
         android:visibility="gone"
-        android:layout_width="260dp"
+        android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_gravity="center"
         android:gravity="center"
@@ -54,8 +54,10 @@
             android:background="@drawable/edit_text_bg3"
             android:paddingLeft="6dp"
             android:paddingRight="6dp"
-            android:gravity="center|start"
+            android:gravity="center"
             android:layout_width="wrap_content"
+            android:maxWidth="180dp"
+            android:minWidth="50dp"
             android:layout_height="32dp"
             android:textSize="17dp"
             android:inputType="text"
@@ -71,7 +73,8 @@
             android:textIsSelectable="false"
             android:textSize="17dp"
             android:inputType="text"
-            android:maxLines="1"/> <!-- android:textIsSelectable="true" 允许复制-->
+            android:maxLines="1"
+            android:layout_marginLeft="2dp"/> <!-- android:textIsSelectable="true" 允许复制-->
     </LinearLayout>
 
     <LinearLayout

@@ -669,16 +669,7 @@ public class CommonUtils {
         }
         // 根据请求文件格式判断
         if ("".equals(format)) {
-            if (contentType.contains("text/plain")) {
-                format = ".txt";
-            } else {
-                String[] s = contentType.split("/");
-                if (s.length > 0) {
-                    format = "." + s[s.length - 1];
-                } else {
-                    format = ".未知格式";
-                }
-            }
+            format =  MIMEUtils.geType(contentType);
         }
         return format;
     }
@@ -1798,6 +1789,16 @@ public class CommonUtils {
         return num;
     }
 
+    public static String randomStr() {
+        String str = "xxx";
+        try {
+            str = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        } catch (Exception e) {
+            saveLog("randomStr:" + e.getMessage());
+        }
+        return str;
+    }
+
     // HHmmssSSS 数字字符转换缺位补零
     public static String zeroPadding(Integer id) {
         return ("" + id).length() < 9 ? ("0" + id) : ("" + id);
@@ -1807,19 +1808,19 @@ public class CommonUtils {
     public static String preventDuplication(String str) {
         int num = 1;
         try {
-            String patternStr = "(\\d+)\\s*$"; // 这个正则表达式匹配末尾的整数序列
+            String patternStr = "（(\\d+)）\\s*$"; // 这个正则表达式匹配末尾的整数序列
             Pattern pattern = Pattern.compile(patternStr);
             Matcher matcher = pattern.matcher(str);
             if (matcher.find()) {
                 num = Integer.parseInt(matcher.group(1));
-                str = str.substring(0, str.lastIndexOf("" + num));
+                str = str.substring(0, str.lastIndexOf("（" + num + "）"));
                 num++;
             }
         } catch (Exception e) {
             num = new Random().nextInt();
             saveLog("preventDuplication==============" + e.getMessage());
         }
-        return str + num;
+        return str + "（" + num + "）";
     }
 
     // 判断数字（包括小数）
@@ -1848,7 +1849,7 @@ public class CommonUtils {
     }
 
     // 计算两个数百分比值
-    public static Float getPercentage(int a, int b) {
+    public static Float getPercentage(long a, long b) {
         if (b == 0) {
             return 0F;
         } else {

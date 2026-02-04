@@ -149,7 +149,7 @@ public class M3u8DownLoader {
                 httpURLConnection.setUseCaches(false);
                 httpURLConnection.setDoInput(true);
                 // 模拟电脑请求
-                httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+                httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
                 // 跨域设置相关
                 httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
                 //* 代办允许所有方法
@@ -628,7 +628,7 @@ public class M3u8DownLoader {
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        int bytesum = 0;
+        long bytesum = 0;
         if (!"false".equals(notificationBean.getRangeRequest())) {
             bytesum = notificationBean.getBytesum(); // 尝试恢复进度
         }
@@ -640,7 +640,7 @@ public class M3u8DownLoader {
             httpURLConnection.setUseCaches(false);
             httpURLConnection.setDoInput(true);
             // 模拟电脑请求
-            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
             // 跨域设置相关
             httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
             //* 代办允许所有方法
@@ -656,7 +656,7 @@ public class M3u8DownLoader {
 
             // 保存文件的绝对路径
             String absolutePath = notificationBean.getAbsolutePath();
-            if (absolutePath == null) {
+            if (StringUtils.isEmpty(absolutePath)) {
                 absolutePath = supDir + "/" + fileName;
                 if (!fileName.contains(".") || what != 4) {
                     // 获取格式
@@ -664,23 +664,31 @@ public class M3u8DownLoader {
                     String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
                     absolutePath = supDir + "/" + fileName + format;
                 }
-                notificationBean.setAbsolutePath(absolutePath);
             }
 
             // System.out.println("+++++++++++++++++++++++++++++++" + absolutePath);
-            File file = new File(absolutePath);
             // 检查本地文件是否存在
+            File file = new File(absolutePath);
             if (file.exists()) {
-                if (notificationBean.getTotalSize() == 0) {
-                    String m = "已存在相同文件";
-                    stopAndSendMsg(m, 4, bytesum);
-                    return;
-                }
-                if (bytesum > 0) {
+                if (StringUtils.isEmpty(notificationBean.getAbsolutePath())) { // 不在下载任务中的不能复用文件名
+                    // String m = "已存在相同文件";
+                    // stopAndSendMsg(m, 4, bytesum);
+                    // return;
+                    while ((file = new File(absolutePath)).exists()) {
+                        if (absolutePath.contains(".")) {
+                            String name = absolutePath.substring(0, absolutePath.lastIndexOf("."));
+                            String type = absolutePath.substring(absolutePath.lastIndexOf("."));
+                            absolutePath = CommonUtils.preventDuplication(name) + type;
+                        } else {
+                            absolutePath = CommonUtils.preventDuplication(absolutePath);
+                        }
+                    }
+                } else if (bytesum > 0) {
                     bytesum = (int) file.length();
                     httpURLConnection.setRequestProperty("Range", "bytes=" + bytesum + "-");
                 }
             }
+            notificationBean.setAbsolutePath(absolutePath);
 
             // 连接并判断请求状态
             httpURLConnection.connect();
@@ -781,7 +789,7 @@ public class M3u8DownLoader {
             httpURLConnection.setUseCaches(false);
             httpURLConnection.setDoInput(true);
             // 模拟电脑请求
-            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
             // 跨域设置相关
             httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
             //* 代办允许所有方法
@@ -831,7 +839,7 @@ public class M3u8DownLoader {
             httpURLConnection.setUseCaches(false);
             httpURLConnection.setDoInput(true);
             // 模拟电脑请求
-            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
             // 跨域设置相关
             httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
             //* 代办允许所有方法
@@ -895,7 +903,7 @@ public class M3u8DownLoader {
     }
 
     // 暂停下载消息，发送指定提示
-    private void stopAndSendMsg(String m, int w, int bytesum) {
+    private void stopAndSendMsg(String m, int w, long bytesum) {
         // 保存下载进度
         notificationBean.setBytesum(bytesum);
         // 消息提示
@@ -926,7 +934,7 @@ public class M3u8DownLoader {
             httpURLConnection.setUseCaches(false);
             httpURLConnection.setDoInput(true);
             // 模拟电脑请求
-            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36");
+            httpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
             // 跨域设置相关
             httpURLConnection.setRequestProperty("Access-Control-Allow-Origin", "*");
             //* 代办允许所有方法
