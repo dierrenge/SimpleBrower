@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -1923,4 +1924,20 @@ public class CommonUtils {
         return title + " / " + fileSize;
     }
 
+    // 获取手机文件管理包名
+    public static String[] getPackageName(Context context) {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("*/*"); // 设置文件类型
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> activities = pm.queryIntentActivities(intent, 0);
+        for (ResolveInfo info : activities) {
+            String packageName = info.activityInfo.packageName;
+            String name = info.activityInfo.name;
+            if (packageName != null && packageName.startsWith("com.android.")) {
+                return new String[] {packageName, name};
+            }
+        }
+        return null;
+    }
 }

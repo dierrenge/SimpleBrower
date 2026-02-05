@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -122,20 +123,24 @@ public class VideoListActivity extends AppCompatActivity {
         // 文件管理
         video_file.setOnClickListener(view -> {
             try {
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("*/*"); // 设置文件类型
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                PackageManager pm = this.getPackageManager();
-                List<ResolveInfo> activities = pm.queryIntentActivities(intent, 0);
-                String packageN = null;
-                for (ResolveInfo info : activities) {
-                    String packageName = info.activityInfo.packageName;
-                    if ("com.android.fileexplorer".equals(packageName)) {
-                        packageN = packageName;
-                        break;
-                    }
+                String[] packageName = CommonUtils.getPackageName(this);
+                Intent intent = null;
+                // 1. 创建Intent
+                if (packageName == null) {
+                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                } else {
+                    intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    // intent.setComponent(new ComponentName(packageName[0], packageName[1]));
                 }
-                intent.setPackage(packageN);
+                // 2. 关键：启用多选模式
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                // 3. 可选：限制文件类型
+                intent.setType("*/*");  // 允许所有文件类型
+                String[] mimeTypes = {"audio/*", "video/*"};
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+                // 4. 添加临时文件读取权限
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                // 5. 启动选择器
                 startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
             } catch (Exception e1) {
                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());

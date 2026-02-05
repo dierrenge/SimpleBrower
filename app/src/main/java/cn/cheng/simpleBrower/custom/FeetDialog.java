@@ -42,6 +42,7 @@ public class FeetDialog extends Dialog {
     private View dialog_for_focus;
     private EditText dialog_text_filename;
     private TextView dialog_text_fileType;
+    private TextView dialog_text_fileSize;
     private String title, text, okName, closeName;
     private Context context;
     private String url, fName;
@@ -82,6 +83,7 @@ public class FeetDialog extends Dialog {
         dialog_for_focus = findViewById(R.id.dialog_for_focus);
         dialog_text_filename = findViewById(R.id.dialog_text_filename);
         dialog_text_fileType = findViewById(R.id.dialog_text_fileType);
+        dialog_text_fileSize = findViewById(R.id.dialog_text_fileSize);
         if (title != null) {
             dialog_title.setText(title);
         }
@@ -154,7 +156,6 @@ public class FeetDialog extends Dialog {
         if (url != null && fName != null) {
             new Thread(() -> {
                 String finalText = M3u8DownLoader.getUrlContentFileSize(url, fName);
-                new Handler().post(() -> loadFileSize(finalText));
                 Message msg = Message.obtain();
                 msg.obj = finalText;
                 handler.sendMessage(msg);
@@ -164,10 +165,11 @@ public class FeetDialog extends Dialog {
 
     private void loadFileSize(String text) {
         String name = text.substring(0, text.lastIndexOf(" / "));
-        String type = text.substring(text.lastIndexOf(" / "));
-        if (type.startsWith(" / http")) {
-            type = " / ◦◦•";
-            url = text.split(" / ")[1];
+        String type = " / ";
+        String size = text.substring(text.lastIndexOf(" / ") + 3);
+        if (size.startsWith("http")) {
+            url = size;
+            size = "加载中";
             fName = name;
         }
         if (name.contains(".")) {
@@ -176,6 +178,7 @@ public class FeetDialog extends Dialog {
         }
         dialog_text_filename.setText(name);
         dialog_text_fileType.setText(type);
+        dialog_text_fileSize.setText(size);
     }
 
     @Override

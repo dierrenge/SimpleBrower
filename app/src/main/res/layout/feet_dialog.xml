@@ -71,10 +71,22 @@
             android:layout_width="wrap_content"
             android:layout_height="32dp"
             android:textIsSelectable="false"
+            android:textColor="@color/blackGray"
             android:textSize="17dp"
             android:inputType="text"
             android:maxLines="1"
             android:layout_marginLeft="2dp"/> <!-- android:textIsSelectable="true" 允许复制-->
+        <TextView
+            android:id="@+id/dialog_text_fileSize"
+            android:gravity="center|start"
+            android:layout_width="wrap_content"
+            android:minWidth="50dp"
+            android:layout_height="32dp"
+            android:textIsSelectable="false"
+            android:textColor="@color/blackGray"
+            android:textSize="12dp"
+            android:inputType="text"
+            android:maxLines="1" /> <!-- android:textIsSelectable="true" 允许复制-->
     </LinearLayout>
 
     <LinearLayout
