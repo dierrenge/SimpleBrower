@@ -8,13 +8,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.InputType;
 import android.view.KeyEvent;
@@ -117,17 +121,23 @@ public class TxtListActivity extends AppCompatActivity {
         // 文件管理
         txt_file.setOnClickListener(view -> {
             try {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("*/*"); // 设置文件类型
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
-                Intent chooser = Intent.createChooser(intent, "选择文件管理器应用");
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(chooser, REQUEST_CODE_PICK_FILE);
-                } else {
-                    MyToast.getInstance("无文件管理器应用可使用").show(); // 如果未找到处理程序，提供错误提示（可选）
-                    startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                PackageManager pm = this.getPackageManager();
+                List<ResolveInfo> activities = pm.queryIntentActivities(intent, 0);
+                ResolveInfo in = null;
+                for (ResolveInfo info : activities) {
+                    String name = info.activityInfo.name;
+                    if ("com.android.fileexplorer.activity.FileActivity".equals(name)) {
+                        in = info;
+                        break;
+                    }
                 }
+                if (in != null) {
+                    intent.setComponent(new ComponentName(in.activityInfo.packageName, in.activityInfo.name));
+                }
+                startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
             } catch (Exception e1) {
                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());
             }

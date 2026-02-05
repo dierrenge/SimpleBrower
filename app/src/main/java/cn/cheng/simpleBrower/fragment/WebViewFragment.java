@@ -276,8 +276,8 @@ public class WebViewFragment extends Fragment {
                     // 弹框选择
                     if (dialogFlag && (feetDialog == null || !feetDialog.isShowing())) {
                         if (!url.contains(".m3u8")) {
-                            String title2 = arr[2];
-                            feetDialog = new FeetDialog(requireContext(), "下载", title2, "下载", "取消");
+                            String text = arr[2];
+                            feetDialog = new FeetDialog(requireContext(), "下载", text, "下载", "取消");
                             if (url.equals(MyApplication.jumpUrl)) {
                                 callListener.downLoad(); // 下载的情况下自动关闭空白页面
                             }
@@ -430,65 +430,64 @@ public class WebViewFragment extends Fragment {
                 if (url.equals(MyApplication.downloadUrl)) return;
                 MyApplication.downloadUrl = url;
                 // getDownloadName(map -> {
-                    // 获取下载文件名
-                    // String name = map.get(url);
-                    String name = downloadNameMap.get(url);
-                    boolean base64Flag = url.startsWith("data:image/") && url.contains(";base64,");
-                    if (base64Flag) {
-                        String type = url.split(";base64,")[0];
-                        type = type.split("/")[1];
-                        if (StringUtils.isEmpty(name)) {
-                            name = "base64." + type;
-                        } else {
-                            name += "." + type;
-                        }
+                // 获取下载文件名
+                // String name = map.get(url);
+                String name = downloadNameMap.get(url);
+                boolean base64Flag = url.startsWith("data:image/") && url.contains(";base64,");
+                if (base64Flag) {
+                    String type = url.split(";base64,")[0];
+                    type = type.split("/")[1];
+                    if (StringUtils.isEmpty(name)) {
+                        name = "base64." + type;
                     } else {
-                        if (StringUtils.isEmpty(name) || !name.contains(".")) {
-                            try {
-                                name = URLUtil.guessFileName(url, disposition, mimetype);
-                            } catch (Exception ignored) {}
-                            if (StringUtils.isEmpty(name) || name.endsWith(".bin")) {
-                                name = CommonUtils.getUrlName(url);
-                            }
+                        name += "." + type;
+                    }
+                } else {
+                    if (StringUtils.isEmpty(name) || !name.contains(".")) {
+                        try {
+                            name = URLUtil.guessFileName(url, disposition, mimetype);
+                        } catch (Exception ignored) {
+                        }
+                        if (StringUtils.isEmpty(name) || name.endsWith(".bin")) {
+                            name = CommonUtils.getUrlName(url);
                         }
                     }
-                    try {
-                        name = URLDecoder.decode(name, "utf-8");
-                    } catch (Exception ignored) {}
-                    // 会用到的权限
-                    if (!CommonUtils.hasStoragePermissions(requireContext())) {
-                        CommonUtils.requestStoragePermissions(requireActivity(), null);
-                        if (!name.contains(".html;") && !url.contains(".m3u8")) {
-                            // 记录点击下载的链接url
-                            MyApplication.setClickDownloadUrl(url);
-                            Message msg = Message.obtain();
-                            msg.what = 7;
-                            msg.obj = url;
-                            handler.sendMessage(msg);
-                        }
-                        return;
+                }
+                try {
+                    name = URLDecoder.decode(name, "utf-8");
+                } catch (Exception ignored) {
+                }
+                // 会用到的权限
+                if (!CommonUtils.hasStoragePermissions(requireContext())) {
+                    CommonUtils.requestStoragePermissions(requireActivity(), null);
+                    if (!name.contains(".html;") && !url.contains(".m3u8")) {
+                        // 记录点击下载的链接url
+                        MyApplication.setClickDownloadUrl(url);
+                        Message msg = Message.obtain();
+                        msg.what = 7;
+                        msg.obj = url;
+                        handler.sendMessage(msg);
                     }
-                    // 调用系统下载处理
-                    // downloadBySystem(url, disposition, mimetype);
-                    // 使用自定义下载
-                    if (!name.contains(".html;")) {
-                        String finalName = name;
-                        new Thread(() -> {
-                            String title2 = finalName;
-                            if (base64Flag) {
-                                title2 = M3u8DownLoader.getBase64FileSize(url, title2);
-                            } else {
-                                title2 = M3u8DownLoader.getUrlContentFileSize(url, title2);
-                            }
-                            // 记录点击下载的链接url
-                            MyApplication.setClickDownloadUrl(url);
-                            String[] arr = new String[]{finalName, url, title2};
-                            Message msg = Message.obtain();
-                            msg.obj = arr;
-                            msg.what = base64Flag ? 6 : 4;
-                            handler.sendMessage(msg);
-                        }).start();
+                    return;
+                }
+                // 调用系统下载处理
+                // downloadBySystem(url, disposition, mimetype);
+                // 使用自定义下载
+                if (!name.contains(".html;")) {
+                    String text = name;
+                    if (base64Flag) {
+                        text = CommonUtils.getBase64FileSize(url, text);
+                    } else {
+                        text += " / " + url;
                     }
+                    // 记录点击下载的链接url
+                    MyApplication.setClickDownloadUrl(url);
+                    String[] arr = new String[]{name, url, text};
+                    Message msg = Message.obtain();
+                    msg.obj = arr;
+                    msg.what = base64Flag ? 6 : 4;
+                    handler.sendMessage(msg);
+                }
                 // });
             }
         });

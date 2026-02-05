@@ -6,6 +6,8 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -42,6 +44,8 @@ public class FeetDialog extends Dialog {
     private TextView dialog_text_fileType;
     private String title, text, okName, closeName;
     private Context context;
+    private String url, fName;
+    private Handler handler;
 
     public FeetDialog(@NonNull Context context) {
         super(context, R.style.dialog);
@@ -85,14 +89,7 @@ public class FeetDialog extends Dialog {
             if (text.contains(" / ")) {
                 dialog_text.setVisibility(View.GONE);
                 dialog_text_layout.setVisibility(View.VISIBLE);
-                String name = text.substring(0, text.lastIndexOf(" / "));
-                String type = text.substring(text.lastIndexOf(" / "));
-                if (name.contains(".")) {
-                    type = name.substring(name.lastIndexOf(".")) + type;
-                    name = name.substring(0, name.lastIndexOf("."));
-                }
-                dialog_text_filename.setText(name);
-                dialog_text_fileType.setText(type);
+                loadFileSize(text);
             } else {
                 dialog_text.setText(text);
             }
@@ -147,6 +144,38 @@ public class FeetDialog extends Dialog {
             }
             dialog_for_focus.requestFocus();
         });
+
+        // 异步获取文件大小
+        handler = new Handler(message -> {
+            String finalText = (String) message.obj;
+            loadFileSize(finalText);
+            return false;
+        });
+        if (url != null && fName != null) {
+            new Thread(() -> {
+                String finalText = M3u8DownLoader.getUrlContentFileSize(url, fName);
+                new Handler().post(() -> loadFileSize(finalText));
+                Message msg = Message.obtain();
+                msg.obj = finalText;
+                handler.sendMessage(msg);
+            }).start();
+        }
+    }
+
+    private void loadFileSize(String text) {
+        String name = text.substring(0, text.lastIndexOf(" / "));
+        String type = text.substring(text.lastIndexOf(" / "));
+        if (type.startsWith(" / http")) {
+            type = " / ◦◦•";
+            url = text.split(" / ")[1];
+            fName = name;
+        }
+        if (name.contains(".")) {
+            type = name.substring(name.lastIndexOf(".")) + type;
+            name = name.substring(0, name.lastIndexOf("."));
+        }
+        dialog_text_filename.setText(name);
+        dialog_text_fileType.setText(type);
     }
 
     @Override

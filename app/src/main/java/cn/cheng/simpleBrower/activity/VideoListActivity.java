@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -120,12 +122,20 @@ public class VideoListActivity extends AppCompatActivity {
         // 文件管理
         video_file.setOnClickListener(view -> {
             try {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("*/*"); // 设置文件类型
-                String[] mimeTypes = {"audio/*", "video/*"};
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许多选
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                PackageManager pm = this.getPackageManager();
+                List<ResolveInfo> activities = pm.queryIntentActivities(intent, 0);
+                String packageN = null;
+                for (ResolveInfo info : activities) {
+                    String packageName = info.activityInfo.packageName;
+                    if ("com.android.fileexplorer".equals(packageName)) {
+                        packageN = packageName;
+                        break;
+                    }
+                }
+                intent.setPackage(packageN);
                 startActivityForResult(intent, REQUEST_CODE_PICK_FILE);
             } catch (Exception e1) {
                 CommonUtils.saveLog("download_file.setOnClickListener：" + e1.getMessage());

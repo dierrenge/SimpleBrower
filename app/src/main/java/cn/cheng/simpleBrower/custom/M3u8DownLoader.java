@@ -973,14 +973,6 @@ public class M3u8DownLoader {
         return title;
     }
 
-    public static String getBase64FileSize(String downLoadUrl, String fileName) {
-        String title = fileName == null ? "未命名" : fileName;
-        String base64Str = downLoadUrl.substring(downLoadUrl.indexOf(",")+1);
-        byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);
-        String fileSize = CommonUtils.getSize(decode.length);
-        return title + " / " + fileSize;
-    }
-
     public static void test(String str, Handler handler) {
         new Thread(()-> {
             long thatTime = System.currentTimeMillis();

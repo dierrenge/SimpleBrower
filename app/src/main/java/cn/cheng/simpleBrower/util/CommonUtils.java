@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
+import android.util.Base64;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.ActivityCompat;
@@ -1911,6 +1912,15 @@ public class CommonUtils {
             }
         }
         return size;
+    }
+
+    // Base64文件大小
+    public static String getBase64FileSize(String downLoadUrl, String fileName) {
+        String title = fileName == null ? "未命名" : fileName;
+        String base64Str = downLoadUrl.substring(downLoadUrl.indexOf(",")+1);
+        byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);
+        String fileSize = CommonUtils.getSize(decode.length);
+        return title + " / " + fileSize;
     }
 
 }
