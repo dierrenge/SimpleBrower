@@ -169,7 +169,7 @@ public class FeetDialog extends Dialog {
         String size = text.substring(text.lastIndexOf(" / ") + 3);
         if (size.startsWith("http")) {
             url = size;
-            size = "加载中";
+            size = "  ∞";
             fName = name;
         }
         if (name.contains(".")) {

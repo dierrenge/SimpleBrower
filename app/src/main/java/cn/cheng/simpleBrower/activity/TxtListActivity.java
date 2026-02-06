@@ -121,15 +121,10 @@ public class TxtListActivity extends AppCompatActivity {
         // 文件管理
         txt_file.setOnClickListener(view -> {
             try {
-                String[] packageName = CommonUtils.getPackageName(this);
-                Intent intent = null;
                 // 1. 创建Intent
-                if (packageName == null) {
-                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                } else {
-                    intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setComponent(new ComponentName(packageName[0], packageName[1]));
-                }
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                // String[] packageName = CommonUtils.getPackageName(this);
+                // intent.setComponent(new ComponentName(packageName[0], packageName[1])); // 只能单选 已弃用
                 // 2. 关键：启用多选模式
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 // 3. 可选：限制文件类型

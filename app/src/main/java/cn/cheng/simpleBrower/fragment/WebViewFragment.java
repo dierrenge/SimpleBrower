@@ -21,6 +21,7 @@ import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
@@ -429,17 +430,18 @@ public class WebViewFragment extends Fragment {
                 // 防止重复下载链接
                 if (url.equals(MyApplication.downloadUrl)) return;
                 MyApplication.downloadUrl = url;
-                // getDownloadName(map -> {
                 // 获取下载文件名
-                // String name = map.get(url);
                 String name = downloadNameMap.get(url);
                 boolean base64Flag = url.startsWith("data:image/") && url.contains(";base64,");
                 if (base64Flag) {
                     String type = url.split(";base64,")[0];
                     type = type.split("/")[1];
                     if (StringUtils.isEmpty(name)) {
-                        name = "base64." + type;
+                        name = CommonUtils.randomStr() + "." + type;
                     } else {
+                        if (name.contains(".")) {
+                            name = name.substring(0, name.lastIndexOf("."));
+                        }
                         name += "." + type;
                     }
                 } else {
@@ -488,9 +490,16 @@ public class WebViewFragment extends Fragment {
                     msg.what = base64Flag ? 6 : 4;
                     handler.sendMessage(msg);
                 }
-                // });
             }
         });
+
+        // js 向 java 传递数据
+        webView.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void listenerA(String value) {
+                getInfoA(value);
+            }
+        }, "AndroidInterface");
 
         // 设置 WebViewClient 和 WebChromeClient
         webView.setWebViewClient(myClient);
@@ -512,38 +521,20 @@ public class WebViewFragment extends Fragment {
         });
     }
 
-    // 获取页面a标签下载文件名
-    public void getDownloadName(ValueCallback<HashMap<String, String>> callback) {
-        webView.evaluateJavascript("(function() { " +
-                "var aList = document.querySelectorAll('a[download]');" +
-                "var list = [];" +
-                "for (var i = 0; i < aList.length; i++) {" +
-                "  var href = aList[i].href;" +
-                "  var download = aList[i].download;" +
-                "  if (href && download) {" +
-                "    list.push({'href':href, 'download':download});" +
-                "  }" +
-                "}" +
-                "return list; " +
-                "})();", new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String value) {
-                HashMap<String, String> map = new HashMap<>();
-                if (value != null && value.startsWith("[") && value.endsWith("]")) {
-                    try {
-                        JSONArray jsonArray = new JSONArray(value);
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            map.put(jsonObject.getString("href"), jsonObject.getString("download"));
-                        }
-                    } catch (JSONException e) {
-                        CommonUtils.saveLog(value + "\ngetDownloadName=======" + e.getMessage());
-                    }
+    // 获取页面a标签下载文件名 解析字符串
+    private void getInfoA(String value) {
+        try {
+            if (value != null && value.startsWith("[") && value.endsWith("]")) {
+                JSONArray jsonArray = new JSONArray(value);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    downloadNameMap.remove(jsonObject.getString("href"));
+                    downloadNameMap.put(jsonObject.getString("href"), jsonObject.getString("download"));
                 }
-                // if (!isEmpty) System.out.println(MyApplication.jumpUrl + "**************************\n" + value);
-                callback.onReceiveValue(map);
             }
-        });
+        } catch (JSONException e) {
+            CommonUtils.saveLog(value + "\n==getInfoA=======" + e.getMessage());
+        }
     }
 
     // 判断广告链接
@@ -590,30 +581,33 @@ public class WebViewFragment extends Fragment {
             super.onPageFinished(view, url);
             // 记录a标签下载文件名
             webView.evaluateJavascript("(function() { " +
-                    "var aList = document.querySelectorAll('a[download]');" +
-                    "var list = [];" +
-                    "for (var i = 0; i < aList.length; i++) {" +
-                    "  var href = aList[i].href;" +
-                    "  var download = aList[i].download;" +
-                    "  if (href && download) {" +
-                    "    list.push({'href':href, 'download':download});" +
+                    // 捕获动态创建并移除的a标签的download和href属性值
+                    "  const originalAppend = Element.prototype.appendChild;" +
+                    "  Element.prototype.appendChild = function(element) {" +
+                    "    if (element.tagName === 'A' && element.download && element.href) {" +
+                    "      if (AndroidInterface) {" +
+                    "        var href = element.href;" +
+                    "        var download = element.download;" +
+                    "        AndroidInterface.listenerA('[{\"href\":\"' + href + '\",\"download\":\"' + download + '\"}]');" +
+                    "      }" +
+                    "    }" +
+                    "    return originalAppend.call(this, element);" +
+                    "  };" +
+                    // 捕获页面已经存在的a标签的download和href属性值
+                    "  var aList = document.querySelectorAll('a[download]');" +
+                    "  var list = [];" +
+                    "  for (var i = 0; i < aList.length; i++) {" +
+                    "    var href = aList[i].href;" +
+                    "    var download = aList[i].download;" +
+                    "    if (href && download) {" +
+                    "      list.push({'href':href, 'download':download});" +
+                    "    }" +
                     "  }" +
-                    "}" +
-                    "return list; " +
+                    "  return list;" +
                     "})();", new ValueCallback<String>() {
                 @Override
                 public void onReceiveValue(String value) {
-                    if (value != null && value.startsWith("[") && value.endsWith("]")) {
-                        try {
-                            JSONArray jsonArray = new JSONArray(value);
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                                downloadNameMap.put(jsonObject.getString("href"), jsonObject.getString("download"));
-                            }
-                        } catch (JSONException e) {
-                            CommonUtils.saveLog(value + "\ngetDownloadName=======" + e.getMessage());
-                        }
-                    }
+                    getInfoA(value);
                 }
             });
 

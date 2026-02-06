@@ -288,7 +288,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        // Intent intent = new Intent(MainActivity.this, BrowserActivity.class);
         Intent intent = new Intent(MainActivity.this, BrowserActivity2.class);
         intent.putExtra("webInfo", webInfo);
         this.startActivity(intent);

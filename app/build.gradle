@@ -77,8 +77,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled false // 设置混淆
+            // shrinkResources true // 启用资源压缩
+            // zipAlignEnabled true // zipAlign优化
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' // 混淆配置文件
         }
     }
     compileOptions {
@@ -121,8 +123,6 @@ dependencies {
 
     implementation files('libs\\bcprov-jdk16-139.jar')
 
-    // FloatingActionButton 一个按钮ui框架
-    implementation 'com.github.clans:fab:1.6.4'
     // 沉浸式状态栏(状态栏工具)
     // 需在项目根目录下的gradle.properties文件中加入这两行
     // android.useAndroidX=true //是否使用androidx
@@ -146,7 +146,7 @@ dependencies {
     implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv7a:v9.0.0-release-jitpack'
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-armv5:v9.0.0-release-jitpack'
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x86:v9.0.0-release-jitpack'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'*/
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyVideoPlayer-x64:v9.0.0-release-jitpack'*/
 
     // v10.2.0完整版引入
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer:v10.2.0'
@@ -157,15 +157,18 @@ dependencies {
     //是否需要AliPlayer模式
     // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-aliplay:v10.2.0'
     //根据你的需求ijk模式的so
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-arm64:v10.2.0'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv7a:v10.2.0'
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv5:v10.2.0'
-    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x86:v10.2.0'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x64:v10.2.0'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv7a:v10.2.0' // 中低端手机（如Redmi系列）
+    implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-arm64:v10.2.0' // 旗舰手机（如Samsung S系列）
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x86:v10.2.0' // 	Android平板、模拟器（如BlueStacks）
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-x64:v10.2.0' // 高端平板如Pixel Tablet
+    // implementation 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer-armv5:v10.2.0' // 旧设备（如初代Galaxy S）
 
     // 高德地图
     // implementation 'com.amap.api:map2d:6.0.0' // 轻量但模糊
-    implementation 'com.amap.api:3dmap:7.4.0' // 清晰但偏大
+    implementation('com.amap.api:3dmap:7.4.0')  // 清晰但偏大
+            {
+                exclude group: 'com.amap.api', module: 'search'  // 排除重复类所在的子库
+            }
     implementation 'com.amap.api:location:6.5.1' // 定位
     implementation 'com.amap.api:search:8.1.0' // 搜索
 }

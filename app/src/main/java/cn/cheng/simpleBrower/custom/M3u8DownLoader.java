@@ -689,6 +689,7 @@ public class M3u8DownLoader {
                 }
             }
             notificationBean.setAbsolutePath(absolutePath);
+            notificationBean.setTitle(absolutePath.substring(absolutePath.lastIndexOf("/") + 1));
 
             // 连接并判断请求状态
             httpURLConnection.connect();
