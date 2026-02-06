@@ -77,9 +77,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false // 设置混淆
-            // shrinkResources true // 启用资源压缩
-            // zipAlignEnabled true // zipAlign优化
+            minifyEnabled true // 设置混淆
+            shrinkResources true // 启用资源压缩
+            zipAlignEnabled true // zipAlign优化
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' // 混淆配置文件
         }
     }
