@@ -38,7 +38,7 @@
 -dontwarn com.autonavi.**
 
 #################### 其他依赖（补充您原规则缺失） ####################
-# 📦 Apache Commons Lang3
+# Apache Commons Lang3
 -keep class org.apache.commons.lang3.** { *; }
 -dontwarn org.apache.commons.lang3.**
 

@@ -357,7 +357,7 @@ public class VideoListActivity extends AppCompatActivity {
             if (hasM3u8) {
                 Message message = Message.obtain();
                 message.what = 1;
-                message.obj = "删除中，请稍后";
+                message.obj = "后台删除中，请勿关闭应用";
                 handler.sendMessage(message);
             }
             // 先删除单个文件的

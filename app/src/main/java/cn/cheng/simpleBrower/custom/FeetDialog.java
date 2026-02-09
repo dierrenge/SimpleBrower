@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -43,6 +44,8 @@ public class FeetDialog extends Dialog {
     private EditText dialog_text_filename;
     private TextView dialog_text_fileType;
     private TextView dialog_text_fileSize;
+    private LinearLayout delete_select_l;
+    private CheckBox delete_select;
     private String title, text, okName, closeName;
     private Context context;
     private String url, fName;
@@ -62,7 +65,7 @@ public class FeetDialog extends Dialog {
         this.closeName = closeName;
     }
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,10 +87,15 @@ public class FeetDialog extends Dialog {
         dialog_text_filename = findViewById(R.id.dialog_text_filename);
         dialog_text_fileType = findViewById(R.id.dialog_text_fileType);
         dialog_text_fileSize = findViewById(R.id.dialog_text_fileSize);
+        delete_select_l = findViewById(R.id.delete_select_l);
+        delete_select = findViewById(R.id.delete_select);
         if (title != null) {
             dialog_title.setText(title);
         }
         if (text != null) {
+            if (text.contains("下载记录")) {
+                delete_select_l.setVisibility(View.VISIBLE);
+            }
             if (text.contains(" / ")) {
                 dialog_text.setVisibility(View.GONE);
                 dialog_text_layout.setVisibility(View.VISIBLE);
@@ -128,11 +136,14 @@ public class FeetDialog extends Dialog {
                 if (touchListener != null) {
                     String txt = "";
                     String type = "";
-                    if (text.contains(" / ")) {
+                    if (text != null && text.contains(" / ")) {
                         txt = dialog_text_filename.getText().toString();
                         if (StringUtils.isEmpty(txt)) txt = CommonUtils.randomStr();
                         type = dialog_text_fileType.getText().toString();
                         type = type.substring(0, type.lastIndexOf(" / "));
+                    }
+                    if (delete_select.isChecked()) {
+                        txt = "delete";
                     }
                     touchListener.ok(txt + type);
                 }

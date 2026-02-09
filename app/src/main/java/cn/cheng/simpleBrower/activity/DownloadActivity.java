@@ -156,7 +156,7 @@ public class DownloadActivity extends AppCompatActivity {
         // 删除
         menu_clear.setOnClickListener(view -> {
             if (clearUrls.isEmpty()) return;
-            FeetDialog feetDialog = new FeetDialog(DownloadActivity.this, "删除", "确定要删除选中记录吗？", "删除", "取消");
+            FeetDialog feetDialog = new FeetDialog(DownloadActivity.this, "删除", "确定删除选中的下载记录吗？", "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -166,7 +166,7 @@ public class DownloadActivity extends AppCompatActivity {
                 @Override
                 public void ok(String txt) {
                     // 删除本项记录
-                    deleteFileRecord();
+                    deleteFileRecord(txt);
                     feetDialog.dismiss();
                 }
             });
@@ -222,14 +222,14 @@ public class DownloadActivity extends AppCompatActivity {
                             select(fileRecordUrl, item_select);
                             return; // 编辑模式不可跳转
                         }
-                        click(button.getText().toString(), bean);
+                        click(button, bean);
                     });
                     item_l.setOnClickListener(view -> {
                         if (isChange) {
                             select(fileRecordUrl, item_select);
                             return; // 编辑模式不可跳转
                         }
-                        click(button.getText().toString(), bean);
+                        click(button, bean);
                     });
                     button.setOnClickListener(view -> {
                         try {
@@ -328,10 +328,30 @@ public class DownloadActivity extends AppCompatActivity {
                 return fileUrls.size();
             }
 
-            public void click(String btnTxt, NotificationBean bean) {
+            public void click(Button button, NotificationBean bean) {
+                String btnTxt = button.getText().toString();
                 if ("完成".equals(btnTxt) && bean != null) {
                     String absolutePath = bean.getAbsolutePath();
-                    if (absolutePath == null || !new File(absolutePath).exists()) return;
+                    if (absolutePath == null) return;
+                    if (!new File(absolutePath).exists()) {
+                        FeetDialog feetDialog = new FeetDialog(DownloadActivity.this, "下载", "原文件已删除，是否重新下载？", "下载", "取消");
+                        feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                            @Override
+                            public void close() {
+                                feetDialog.dismiss();
+                            }
+
+                            @Override
+                            public void ok(String txt) {
+                                bean.setState("暂停");
+                                button.setText("重置");
+                                button.callOnClick();
+                                feetDialog.dismiss();
+                            }
+                        });
+                        feetDialog.show();
+                        return;
+                    }
                     String format = CommonUtils.getUrlFormat(absolutePath);
                     List<String> formats = AssetsReader.getList("audioVideo.txt");
                     // 跳转该网址
@@ -442,12 +462,22 @@ public class DownloadActivity extends AppCompatActivity {
         }
     }
 
-    private void deleteFileRecord() {
+    private void deleteFileRecord(String txt) {
         if (Build.VERSION.SDK_INT >= 29 ) { // android 12的sd卡读写
+            boolean isDeleteO = "delete".equals(txt);
             //启动线程开始执行 删除网址存档
             for (String url : clearUrls) {
                 new Thread(() -> {
                     try {
+                        if (isDeleteO) { // 删除原文件
+                            NotificationBean bean = CommonUtils.readObjectFromLocal(NotificationBean.class, url);
+                            if (bean != null && bean.getAbsolutePath() != null) {
+                                String absolutePath = bean.getAbsolutePath();
+                                if (!url.endsWith(".m3u8") && !url.contains("SimpleBrower")) {
+                                    CommonUtils.deleteFile(new File(absolutePath));
+                                }
+                            }
+                        }
                         File file = new File(url);
                         boolean isDelete = CommonUtils.deleteFile(file);
                         // 通知handler 数据删除完成 可以刷新recyclerview
