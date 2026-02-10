@@ -96,7 +96,7 @@ public class M3u8DownLoader {
     private String method;
 
     //密钥
-    private String key = "";
+    private String key;
 
     //所有ts片段下载链接
     private List<String> tsList = new ArrayList<>();
@@ -204,7 +204,7 @@ public class M3u8DownLoader {
 
     /**
      * 获取所有的ts片段下载链接
-     * @return 链接是否被加密，null为非加密
+     * @return 链接是否被加密，""为非加密
      */
     private void getTsUrl() throws M3u8Exception, URISyntaxException {
         StringBuilder content = getUrlContent(DOWNLOADURL);
@@ -212,38 +212,43 @@ public class M3u8DownLoader {
         if (!content.toString().contains("#EXTM3U"))
             throw new M3u8Exception(DOWNLOADURL + "不是m3u8链接");
         String[] split = content.toString().split("\\n");
-        String keyUrl = "";
+        String m3u8Url = "";
         boolean isKey = false;
         for (String s : split) {
             //如果含有此字段，则说明只有一层m3u8链接
             if (s.contains("#EXT-X-KEY") || s.contains("#EXTINF")) {
                 isKey = true;
-                keyUrl = DOWNLOADURL;
+                m3u8Url = DOWNLOADURL;
                 break;
             }
             //如果含有此字段，则说明ts片段链接需要从第二个m3u8链接获取
             if (s.contains(".m3u8")) {
                 if (s.startsWith("http://") || s.startsWith("https://")) {
-                    keyUrl = s;
+                    m3u8Url = s;
                 } else {
                     String relativeUrl = DOWNLOADURL.substring(0, DOWNLOADURL.lastIndexOf("/") + 1);
                     String relativeUrl2 = DOWNLOADURL.split("//")[0] + "//" +new URI(DOWNLOADURL).getHost();
                     if (s.startsWith("/")) {
-                        keyUrl = relativeUrl2 + s;
+                        m3u8Url = relativeUrl2 + s;
                     } else {
-                        keyUrl = relativeUrl + s;
+                        m3u8Url = relativeUrl + s;
                     }
                 }
                 break;
             }
         }
-        if (StringUtils.isEmpty(keyUrl))
+        if (StringUtils.isEmpty(m3u8Url))
             throw new M3u8Exception("未发现有效链接");
-        //获取密钥
-        String key1;
-        key1 = isKey ? getKey(keyUrl, content) : getKey(keyUrl, null);
-        if (StringUtils.isNotEmpty(key1)) key = key1; // 需要解密
-        else key = null; // 不需要解密
+        //获取ts和密钥
+        String key1 = isKey ? getKey(m3u8Url, content) : getKey(m3u8Url, null);
+        if (StringUtils.isNotEmpty(key1)) {
+            key = key1; // 需要解密
+        } else { // 不需要解密
+            key = "";
+            method = "";
+        }
+        notificationBean.setKey(key);
+        notificationBean.setMethod(method);
     }
 
     /**
@@ -260,8 +265,10 @@ public class M3u8DownLoader {
         else urlContent = content;
         if (!urlContent.toString().contains("#EXTM3U"))
             throw new M3u8Exception(DOWNLOADURL + "不是m3u8链接");
+        // 解析整理ts链接和加密key链接
         String[] split = urlContent.toString().split("\\n");
         boolean isTsUrl = false;
+        String keyUrl = null;
         int n = 0;
         String relativeUrl = url.substring(0, url.lastIndexOf("/") + 1);
         String relativeUrl2 = DOWNLOADURL.split("//")[0] + "//" + new URI(DOWNLOADURL).getHost();
@@ -276,7 +283,7 @@ public class M3u8DownLoader {
                     if (split1[0].contains("METHOD"))
                         method = split1[0].split("=", 2)[1];
                     if (split1[1].contains("URI"))
-                        key = split1[1].split("=", 2)[1];
+                        keyUrl = split1[1].split("=", 2)[1];
                 }
             } else {
                 // 保存m3u8文本行
@@ -307,6 +314,7 @@ public class M3u8DownLoader {
                 }
             }
         }
+        notificationBean.setTsList(tsList);
         // 开始整理m3u8文本
         new Thread(() -> {
             File dir = new File(supDir);
@@ -314,7 +322,6 @@ public class M3u8DownLoader {
                 dir.mkdirs();
             }
             String absolutePath = supDir + "/" + fileName + ".m3u8";
-            notificationBean.setAbsolutePath(absolutePath);
             File file = new File(absolutePath);
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 StringBuffer buffer = new StringBuffer();
@@ -323,16 +330,17 @@ public class M3u8DownLoader {
                 }
                 bw.write(buffer.toString());
                 bw.flush();
+                notificationBean.setAbsolutePath(absolutePath);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
-        if (!StringUtils.isEmpty(key)) {
-            key = key.replace("\"", "");
-            if (key.startsWith("/")) {
-                return getUrlContent(relativeUrl2 + key).toString().replaceAll("\\s+", "");
+        if (!StringUtils.isEmpty(keyUrl)) {
+            keyUrl = keyUrl.replace("\"", "");
+            if (keyUrl.startsWith("/")) {
+                return getUrlContent(relativeUrl2 + keyUrl).toString().replaceAll("\\s+", "");
             } else {
-                return getUrlContent(relativeUrl + key).toString().replaceAll("\\s+", "");
+                return getUrlContent(relativeUrl + keyUrl).toString().replaceAll("\\s+", "");
             }
         }
         return null;
@@ -468,7 +476,6 @@ public class M3u8DownLoader {
             finishedCount++;
             notificationBean.setHlsFinishedCount(finishedCount);
             notificationBean.setHlsFinishedNum(i);
-            notificationBean.setTsList(tsList);
             // System.out.println(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个");
         });
     }
@@ -594,11 +601,14 @@ public class M3u8DownLoader {
                     this.fixedThreadPool = Executors.newFixedThreadPool(threadCount);
                     // notificationBean.setFixedThreadPool(fixedThreadPool);
                     // 获取并整理所有ts片段链接
-                    if (notificationBean.getHlsFinishedNumList().isEmpty()) {
+                    if (notificationBean.getAbsolutePath() == null || notificationBean.getTsList().isEmpty()
+                       || notificationBean.getKey() == null || notificationBean.getMethod() == null) {
                         getTsUrl(); // 首次获取ts片段
                     } else {
                         finishedCount = notificationBean.getHlsFinishedCount(); // 非首次继续上次进度
                         tsList = notificationBean.getTsList();
+                        key = notificationBean.getKey();
+                        method = notificationBean.getMethod();
                     }
                     // 下载存盘所以ts片段
                     startDownload0();

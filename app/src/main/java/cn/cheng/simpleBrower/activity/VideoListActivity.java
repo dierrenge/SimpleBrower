@@ -353,7 +353,7 @@ public class VideoListActivity extends AppCompatActivity {
     private void deleteVideoUrl() {
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
             //启动线程开始执行 删除网址存档
-            boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8") && url.contains("SimpleBrower"));
+            boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8"));
             if (hasM3u8) {
                 Message message = Message.obtain();
                 message.what = 1;
@@ -362,13 +362,13 @@ public class VideoListActivity extends AppCompatActivity {
             }
             // 先删除单个文件的
             for (String url : clearUrls) {
-                if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+                if (!url.endsWith(".m3u8")) {
                     delete(url);
                 }
             }
             // 后删除多个文件的
             for (String url : clearUrls) {
-                if (url.endsWith(".m3u8") && url.contains("SimpleBrower")) {
+                if (url.endsWith(".m3u8")) {
                     delete(url);
                 }
             }
@@ -378,7 +378,7 @@ public class VideoListActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 boolean isDelete = true;
-                if (!url.endsWith(".m3u8") || !url.contains("SimpleBrower")) {
+                if (!url.endsWith(".m3u8")) {
                     File file = new File(url);
                     isDelete = CommonUtils.deleteFile(file);
                 } else {

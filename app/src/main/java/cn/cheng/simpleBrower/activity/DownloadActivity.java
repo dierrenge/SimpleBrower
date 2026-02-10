@@ -222,14 +222,14 @@ public class DownloadActivity extends AppCompatActivity {
                             select(fileRecordUrl, item_select);
                             return; // 编辑模式不可跳转
                         }
-                        click(button, bean);
+                        click(button, bean, processView);
                     });
                     item_l.setOnClickListener(view -> {
                         if (isChange) {
                             select(fileRecordUrl, item_select);
                             return; // 编辑模式不可跳转
                         }
-                        click(button, bean);
+                        click(button, bean, processView);
                     });
                     button.setOnClickListener(view -> {
                         try {
@@ -328,7 +328,7 @@ public class DownloadActivity extends AppCompatActivity {
                 return fileUrls.size();
             }
 
-            public void click(Button button, NotificationBean bean) {
+            public void click(Button button, NotificationBean bean, TextView processView) {
                 String btnTxt = button.getText().toString();
                 if ("完成".equals(btnTxt) && bean != null) {
                     String absolutePath = bean.getAbsolutePath();
@@ -343,7 +343,12 @@ public class DownloadActivity extends AppCompatActivity {
 
                             @Override
                             public void ok(String txt) {
-                                bean.setState("暂停");
+                                bean.setState("继续");
+                                bean.setBytesum(0);
+                                bean.setTotalSize(0);
+                                bean.setHlsFinishedCount(0);
+                                bean.getHlsFinishedNumList().clear();
+                                processView.setText("0.00%");
                                 button.setText("重置");
                                 button.callOnClick();
                                 feetDialog.dismiss();
@@ -473,7 +478,7 @@ public class DownloadActivity extends AppCompatActivity {
                             NotificationBean bean = CommonUtils.readObjectFromLocal(NotificationBean.class, url);
                             if (bean != null && bean.getAbsolutePath() != null) {
                                 String absolutePath = bean.getAbsolutePath();
-                                if (!url.endsWith(".m3u8") && !url.contains("SimpleBrower")) {
+                                if (!url.endsWith(".m3u8")) {
                                     CommonUtils.deleteFile(new File(absolutePath));
                                 }
                             }

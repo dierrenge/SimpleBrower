@@ -1,18 +1,13 @@
 package cn.cheng.simpleBrower.bean;
 
-import android.app.Notification;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-
-import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 
 /**
  * 下载任务消息
  */
 public class NotificationBean {
-    // private Notification notification;
+
     private String title; // 名称
     private String url;
     private int notificationId; // 消息id
@@ -27,22 +22,11 @@ public class NotificationBean {
     private String rangeRequest; // 是否支持断点续传
     private long totalSize; // 文件总大小
     private List<String> tsList = new ArrayList<>(); // 所有ts片段下载链接
-    // private M3u8DownLoader m3u8Download;
-    // private ExecutorService fixedThreadPool; // 线程池
-
     private List<Integer> hlsFinishedNumList = new ArrayList<>();
-
     private int hlsFinishedCount;
-
     private String date; // 下载日期
-
-    // public Notification getNotification() {
-    //     return notification;
-    // }
-
-    // public void setNotification(Notification notification) {
-    //     this.notification = notification;
-    // }
+    private String method; //解密算法名称
+    private String key = ""; // 密钥
 
     public String getTitle() {
         return title;
@@ -148,32 +132,12 @@ public class NotificationBean {
         this.totalSize = totalSize;
     }
 
-    // public M3u8DownLoader getM3u8Download() {
-    //     return m3u8Download;
-    // }
-
-    // public void setM3u8Download(M3u8DownLoader m3u8Download) {
-    //     this.m3u8Download = m3u8Download;
-    // }
-
-    // public ExecutorService getFixedThreadPool() {
-    //     return fixedThreadPool;
-    // }
-
-    // public void setFixedThreadPool(ExecutorService fixedThreadPool) {
-    //     this.fixedThreadPool = fixedThreadPool;
-    // }
-
     public List<Integer> getHlsFinishedNumList() {
         return hlsFinishedNumList;
     }
 
     public void setHlsFinishedNum(int hlsFinishedNum) {
         this.hlsFinishedNumList.add(hlsFinishedNum);
-    }
-
-    public void setHlsFinishedNumList(List<Integer> hlsFinishedNumList) {
-        this.hlsFinishedNumList = hlsFinishedNumList;
     }
 
     public int getHlsFinishedCount() {
@@ -198,5 +162,21 @@ public class NotificationBean {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }
