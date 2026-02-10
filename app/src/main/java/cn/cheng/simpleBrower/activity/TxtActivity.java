@@ -97,29 +97,13 @@ public class TxtActivity extends AppCompatActivity {
         setContentView(R.layout.activity_txt);
         txtActivity = this;
         try {
-            //Service
+            // Service
             intentS = new Intent(this, ReadService.class);
             // 绑定式service
             // bindService(intentS, conn, Context.BIND_AUTO_CREATE);
-
-            //动态注册广播接收器
-            msgReceiver = new MsgReceiver();
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction("com.example.communication.RECEIVER");
-            registerReceiver(msgReceiver, intentFilter);
-
-            msgHandler = new Handler(new Handler.Callback() {
-                @Override
-                public boolean handleMessage(@NonNull Message message) {
-                    if (message.what == 0) {
-                        MyToast.getInstance(message.obj + "").show();
-                    }
-                    return false;
-                }
-            });
+            msgReceiver = (MsgReceiver) MyApplication.getReadReceiver();
 
             Intent intent = getIntent();
-
             String action = intent.getAction();
             Uri uri = intent.getData();
             if (Intent.ACTION_VIEW.equals(action) && uri != null) {
@@ -147,10 +131,7 @@ public class TxtActivity extends AppCompatActivity {
             // 复用朗读服务的情况
             if (otherFlag || (txtUrl != null && !txtUrl.equals(MyApplication.getTxtUrl()))) {
                 flagRead = false;
-                // 停止服务
-                stopService(intentS);
-                // 注销广播
-                // unregisterReceiver(msgReceiver);
+                stopService(intentS); // 停止服务
             } else {
                 flagRead = true;
             }
@@ -158,10 +139,8 @@ public class TxtActivity extends AppCompatActivity {
 
             // 读取内存中的小说行
             Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
-            ArrayList<String> list = novelLinesMap.get(txtUrl);
-            if (list != null) {
-                lines = list;
-            } else {
+            lines = novelLinesMap.get(txtUrl);
+            if (lines == null) {
                 lines = new ArrayList<>();
                 CommonUtils.readLines(txtUrl, lines);
                 MyApplication.setNovelLines(txtUrl, lines);
@@ -310,6 +289,17 @@ public class TxtActivity extends AppCompatActivity {
                             break;
                     }
                     return true;
+                }
+            });
+
+            // 提示消息
+            msgHandler = new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(@NonNull Message message) {
+                    if (message.what == 0) {
+                        MyToast.getInstance(message.obj + "").show();
+                    }
+                    return false;
                 }
             });
 
@@ -534,7 +524,10 @@ public class TxtActivity extends AppCompatActivity {
         // 注销广播
         // 退出该activity也要能播放所以这里停止播放时才注销
         if (!flagRead) {
-            unregisterReceiver(msgReceiver);
+            if (msgReceiver != null) {
+                unregisterReceiver(msgReceiver);
+                MyApplication.setReadReceiver(null);
+            }
             MyApplication.setTxtUrl(null);
         }
 
@@ -545,6 +538,7 @@ public class TxtActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void read() {
         if (txtUrl != null && positionBean != null) {
             // 记录进度
@@ -552,6 +546,14 @@ public class TxtActivity extends AppCompatActivity {
                 CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
             });
             if (flagRead) {
+                // 动态注册广播接收器
+                if (msgReceiver == null) {
+                    msgReceiver = new MsgReceiver();
+                    IntentFilter intentFilter = new IntentFilter();
+                    intentFilter.addAction("com.example.communication.RECEIVER");
+                    registerReceiver(msgReceiver, intentFilter);
+                    MyApplication.setReadReceiver(msgReceiver);
+                }
                 // 朗读文本
                 String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
                 // 绑定式service

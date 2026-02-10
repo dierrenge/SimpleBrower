@@ -129,12 +129,12 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
         return new MsgBinder();
     }
 
-    public class MsgBinder extends Binder{
+    public class MsgBinder extends Binder {
         /**
          * 获取当前Service的实例
          * @return
          */
-        public ReadService getService(){
+        public ReadService getService() {
             return ReadService.this;
         }
     }
