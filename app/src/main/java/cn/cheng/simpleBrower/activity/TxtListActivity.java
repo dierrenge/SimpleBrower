@@ -274,6 +274,10 @@ public class TxtListActivity extends AppCompatActivity {
                         return; // 编辑模式不可跳转
                     }
                     // 跳转该网址
+                    if (MyApplication.isTurnPageFlag()) {
+                        MyToast.getInstance("朗读翻页中，请稍后").show();
+                        return;
+                    }
                     Intent intent = new Intent(TxtListActivity.this, TxtActivity.class);
                     intent.putExtra("txtUrl", txtUrl);
                     TxtListActivity.this.startActivity(intent);

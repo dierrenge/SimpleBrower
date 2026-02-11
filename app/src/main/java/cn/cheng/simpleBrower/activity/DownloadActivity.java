@@ -362,6 +362,10 @@ public class DownloadActivity extends AppCompatActivity {
                     // 跳转该网址
                     Intent intent = null;
                     if (".txt".equalsIgnoreCase(format)) {
+                        if (MyApplication.isTurnPageFlag()) {
+                            MyToast.getInstance("朗读翻页中，请稍后").show();
+                            return;
+                        }
                         intent = new Intent(DownloadActivity.this, TxtActivity.class);
                         intent.putExtra("txtUrl", absolutePath);
                     } else if (formats.contains(format)) {

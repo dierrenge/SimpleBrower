@@ -22,8 +22,6 @@ public class MyApplication extends Application {
     // 存放 当前网页 路径
     private static List<String> urls = new ArrayList<>();
 
-    private static BroadcastReceiver readReceiver;
-
     // 存放 当前小说行
     private static Map<String, ArrayList<String>> novelLinesMap = new HashMap<>();
 
@@ -45,6 +43,9 @@ public class MyApplication extends Application {
 
     // 标记打开txtActivity
     private static boolean openFlag;
+
+    // 语音翻页标记（自动翻页时不可进入txtActivity）
+    private static boolean turnPageFlag;
 
     public static String downloadUrl; // 记录下载链接以防止重复
 
@@ -77,14 +78,6 @@ public class MyApplication extends Application {
 
     public static void clearUrls() {
         urls.clear();
-    }
-
-    public static BroadcastReceiver getReadReceiver() {
-        return readReceiver;
-    }
-
-    public static void setReadReceiver(BroadcastReceiver broadcastReceiver) {
-        readReceiver = broadcastReceiver;
     }
 
     public static Map<String, ArrayList<String>> getNovelLinesMap() {
@@ -185,5 +178,13 @@ public class MyApplication extends Application {
 
     public static void setOpenFlag(boolean openFlag) {
         MyApplication.openFlag = openFlag;
+    }
+
+    public static boolean isTurnPageFlag() {
+        return turnPageFlag;
+    }
+
+    public static void setTurnPageFlag(boolean turnPageFlag) {
+        MyApplication.turnPageFlag = turnPageFlag;
     }
 }

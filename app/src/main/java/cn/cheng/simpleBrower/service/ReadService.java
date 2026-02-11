@@ -15,22 +15,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
+import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.activity.TxtActivity;
 import cn.cheng.simpleBrower.receiver.HeadphoneReceiver;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.NotificationUtils;
 
 public class ReadService extends Service implements TextToSpeech.OnInitListener {
-
-    private Reader reader;
-
-    public void setReader(Reader reader) {
-        this.reader = reader;
-    }
-
-    public interface Reader {
-        void read();
-    }
 
     public TextToSpeech textToSpeech;
     private final HeadphoneReceiver receiver = new HeadphoneReceiver();
@@ -93,7 +84,8 @@ public class ReadService extends Service implements TextToSpeech.OnInitListener 
 
                 @Override
                 public void onDone(String s) {
-                    // reader.read();
+                    // 标记开始翻页
+                    MyApplication.setTurnPageFlag(true);
                     // 发送Action为com.example.communication.RECEIVER的广播
                     intent.putExtra("txtUrl", txtUrl);
                     sendBroadcast(intent);

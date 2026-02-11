@@ -6,21 +6,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
-import android.os.PowerManager;
 import android.provider.Settings;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -28,7 +23,6 @@ import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -99,9 +93,12 @@ public class TxtActivity extends AppCompatActivity {
         try {
             // Service
             intentS = new Intent(this, ReadService.class);
-            // 绑定式service
-            // bindService(intentS, conn, Context.BIND_AUTO_CREATE);
-            msgReceiver = (MsgReceiver) MyApplication.getReadReceiver();
+
+            // 动态注册广播接收器
+            msgReceiver = new MsgReceiver();
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction("com.example.communication.RECEIVER");
+            registerReceiver(msgReceiver, intentFilter);
 
             Intent intent = getIntent();
             String action = intent.getAction();
@@ -131,7 +128,8 @@ public class TxtActivity extends AppCompatActivity {
             // 复用朗读服务的情况
             if (otherFlag || (txtUrl != null && !txtUrl.equals(MyApplication.getTxtUrl()))) {
                 flagRead = false;
-                stopService(intentS); // 停止服务
+                // 停止服务
+                stopService(intentS);
             } else {
                 flagRead = true;
             }
@@ -292,7 +290,7 @@ public class TxtActivity extends AppCompatActivity {
                 }
             });
 
-            // 提示消息
+            // 消息提示
             msgHandler = new Handler(new Handler.Callback() {
                 @Override
                 public boolean handleMessage(@NonNull Message message) {
@@ -333,60 +331,8 @@ public class TxtActivity extends AppCompatActivity {
                 }
             });
 
-            // 设置电话状态监听
-            try {
-                telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-                phoneStateListener = new PhoneStateListener() {
-                    @Override
-                    public void onCallStateChanged(int state, String phoneNumber) {
-                        switch (state) {
-                            case TelephonyManager.CALL_STATE_RINGING:
-                                // 来电响铃
-                                break;
-                            case TelephonyManager.CALL_STATE_OFFHOOK:
-                                // 通话开始（接听或拨出）
-                                stopDuringCall();
-                                break;
-                            case TelephonyManager.CALL_STATE_IDLE:
-                                // 通话结束
-                                break;
-                        }
-                    }
-                };
-                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-            } catch (Throwable e) {}
-
-            // 设置微信等通话状态监听（请求音频焦点开始监听）
-            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            audioListener = new AudioManager.OnAudioFocusChangeListener() {
-                @Override
-                public void onAudioFocusChange(int focusChange) {
-                    switch (focusChange) {
-                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                            // 焦点临时丢失：可能微信通话开始
-                            // 发现朗读时再次进入该页面也会触发该项监听，故需在onResume中设置标记
-                            if (MyApplication.isOpenFlag()) stopDuringCall();
-                            break;
-                        case AudioManager.AUDIOFOCUS_LOSS:
-                            // 焦点永久丢失：微信通话接管
-                            break;
-                        case AudioManager.AUDIOFOCUS_GAIN:
-                            // 焦点恢复：微信通话结束
-                            break;
-                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                            // 焦点临时丢失，可降低音量（较少用于通话）
-                            break;
-                    }
-                }
-            };
-            int result = audioManager.requestAudioFocus(
-                    audioListener,
-                    AudioManager.STREAM_VOICE_CALL, // 使用语音通话流，与微信通话一致
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT // 临时请求焦点
-            );
-            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                CommonUtils.saveLog("TxtActivity:" + "音频焦点请求失败");
-            }
+            // 语音行为的监听
+            phoneAndAudioListen();
         } catch (Throwable e) {
             MyToast.getInstance("打开异常咯").show();
             e.printStackTrace();
@@ -518,16 +464,10 @@ public class TxtActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // 绑定式service
-        // unbindService(conn);
-
         // 注销广播
         // 退出该activity也要能播放所以这里停止播放时才注销
         if (!flagRead) {
-            if (msgReceiver != null) {
-                unregisterReceiver(msgReceiver);
-                MyApplication.setReadReceiver(null);
-            }
+            unregisterReceiver(msgReceiver);
             MyApplication.setTxtUrl(null);
         }
 
@@ -538,7 +478,6 @@ public class TxtActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void read() {
         if (txtUrl != null && positionBean != null) {
             // 记录进度
@@ -546,18 +485,8 @@ public class TxtActivity extends AppCompatActivity {
                 CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
             });
             if (flagRead) {
-                // 动态注册广播接收器
-                if (msgReceiver == null) {
-                    msgReceiver = new MsgReceiver();
-                    IntentFilter intentFilter = new IntentFilter();
-                    intentFilter.addAction("com.example.communication.RECEIVER");
-                    registerReceiver(msgReceiver, intentFilter);
-                    MyApplication.setReadReceiver(msgReceiver);
-                }
                 // 朗读文本
-                String txt = positionBean != null && flagRead ? positionBean.getTxt() : "";
-                // 绑定式service
-                // readService.startRead(txt, flagRead);
+                String txt = positionBean != null ? positionBean.getTxt() : "";
                 intentS.putExtra("txtUrl", txtUrl);
                 intentS.putExtra("txt", txt);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -565,31 +494,72 @@ public class TxtActivity extends AppCompatActivity {
                 } else {
                     startService(intentS);
                 }
+                // 标记结束翻页
+                MyApplication.setTurnPageFlag(false);
             } else {
                 stopService(intentS);
             }
         }
     }
 
-    // 绑定式service
-    /*ServiceConnection conn = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
+    // 设置电话等语音行为的监听
+    private void phoneAndAudioListen() {
+        if (telephonyManager == null && phoneStateListener == null && audioManager == null && audioListener == null) {
+            // 设置电话状态监听
+            try {
+                telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                phoneStateListener = new PhoneStateListener() {
+                    @Override
+                    public void onCallStateChanged(int state, String phoneNumber) {
+                        switch (state) {
+                            case TelephonyManager.CALL_STATE_RINGING:
+                                // 来电响铃
+                                break;
+                            case TelephonyManager.CALL_STATE_OFFHOOK:
+                                // 通话开始（接听或拨出）
+                                stopDuringCall();
+                                break;
+                            case TelephonyManager.CALL_STATE_IDLE:
+                                // 通话结束
+                                break;
+                        }
+                    }
+                };
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            } catch (Throwable e) {}
 
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            //返回一个MsgService对象
-            readService = ((ReadService.MsgBinder)service).getService();
-
-            readService.setReader(new ReadService.Reader() {
+            // 设置微信等通话状态监听（请求音频焦点开始监听）
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audioListener = new AudioManager.OnAudioFocusChangeListener() {
                 @Override
-                public void read() {
-                    Message message = handler.obtainMessage();
-                    message.what = 0;
-                    handler.sendMessage(message);
+                public void onAudioFocusChange(int focusChange) {
+                    switch (focusChange) {
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            // 焦点临时丢失：可能微信通话开始
+                            // 发现朗读时再次进入该页面也会触发该项监听，故需在onResume中设置标记
+                            if (MyApplication.isOpenFlag()) stopDuringCall();
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            // 焦点永久丢失：微信通话接管
+                            break;
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            // 焦点恢复：微信通话结束
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                            // 焦点临时丢失，可降低音量（较少用于通话）
+                            break;
+                    }
                 }
-            });
+            };
+            int result = audioManager.requestAudioFocus(
+                    audioListener,
+                    AudioManager.STREAM_VOICE_CALL, // 使用语音通话流，与微信通话一致
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT // 临时请求焦点
+            );
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                CommonUtils.saveLog("TxtActivity:" + "音频焦点请求失败");
+            }
         }
-    };*/
+    }
+
 }
