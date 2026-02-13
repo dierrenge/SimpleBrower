@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/click_dialog_l"
+    android:layout_width="160dp"
+    android:layout_height="wrap_content"
+    android:background="@color/translucent"
+    android:gravity="center"
+    android:visibility="gone"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/dialog_open"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingTop="10dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="打  开"
+        android:textAlignment="center"
+        android:textColor="@color/blackGray"
+        android:background="@drawable/btn_bg5_top"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/dialog_copy"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="复  制"
+        android:textAlignment="center"
+        android:textColor="@color/blackGray"
+        android:background="@drawable/btn_bg5"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/dialog_modify"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="修  改"
+        android:textAlignment="center"
+        android:textColor="@color/blackGray"
+        android:background="@drawable/btn_bg5"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/dialog_delete"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="删  除"
+        android:textAlignment="center"
+        android:textColor="@color/blackGray"
+        android:background="@drawable/btn_bg5"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/dialog_selectMore"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingBottom="10dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="多  选"
+        android:textAlignment="center"
+        android:textColor="@color/blackGray"
+        android:background="@drawable/btn_bg5_bottom"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+</LinearLayout>

@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -36,6 +37,8 @@ import java.util.List;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.LongClickDialog;
+import cn.cheng.simpleBrower.custom.LongTouchListener;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -51,6 +54,12 @@ public class LikeActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
 
     private RecyclerView.Adapter adapter;
+
+    private int mWindowTop;
+    private int popupHeight;
+    private int popupWidth;
+
+    private ItemTouchHelper itemTouchHelper;
 
     private TextView like_t1;
 
@@ -173,11 +182,15 @@ public class LikeActivity extends AppCompatActivity {
                     edit_head.setVisibility(View.GONE);
                     menu_edit.setVisibility(View.VISIBLE);
                     menu_clear.setVisibility(View.GONE);
+                    // 不处理滑动事件
+                    itemTouchHelper.attachToRecyclerView(null);
                 } else {
                     like_head.setVisibility(View.GONE);
                     edit_head.setVisibility(View.VISIBLE);
                     menu_edit.setVisibility(View.GONE);
                     menu_clear.setVisibility(View.VISIBLE);
+                    // 处理滑动事件
+                    itemTouchHelper.attachToRecyclerView(recyclerView);
                 }
                 isChange = !isChange;
                 change();
@@ -207,6 +220,16 @@ public class LikeActivity extends AppCompatActivity {
     private void initRecyclerView() {
         // 获取recyclerview视图实例
         recyclerView = findViewById(R.id.like_list);
+        recyclerView.post(() -> {
+            int[] outLocation = new int[2];
+            recyclerView.getLocationOnScreen(outLocation);
+            mWindowTop = outLocation[1];
+        });
+        View view = LayoutInflater.from(this).inflate(R.layout.click_dialog, null, false);
+        view.post(() -> {
+            popupHeight = view.getMeasuredHeight();
+            popupWidth = view.getMeasuredWidth();
+        });
 
         // 创建线性布局管理器 赋值给recyclerview
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -224,9 +247,13 @@ public class LikeActivity extends AppCompatActivity {
                 };
             }
 
+            @SuppressLint("ClickableViewAccessibility")
             @Override
-            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 String likeUrl = likeUrls.get(position);
+                LinearLayout item_layout = holder.itemView.findViewById(R.id.item_layout);
+                item_layout.setBackgroundResource(R.color.white);
+                LinearLayout item_drag = holder.itemView.findViewById(R.id.item_drag);
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
@@ -236,6 +263,49 @@ public class LikeActivity extends AppCompatActivity {
                 textView.setText(likeUrl);
                 textView.setOnClickListener(view -> {
                     click(likeUrl, item_select);
+                });
+                textView.setOnLongClickListener(view -> true);
+                textView.setOnTouchListener(new LongTouchListener() {
+                    @Override
+                    public void downEvent() {
+                        item_layout.setBackgroundResource(R.color.colorLightGray1);
+                    }
+                    @Override
+                    public void realUpEvent() {
+                        item_layout.setBackgroundResource(R.color.white);
+                    }
+                    @Override
+                    public void upEvent(float x, float y) {
+                        if (isChange) return;
+                        LongClickDialog dialog = new LongClickDialog(LikeActivity.this, x, y - mWindowTop, popupWidth, popupHeight);
+                        dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
+                            @Override
+                            public void close() {
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void open() {
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void copy() {
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void modify() {
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void delete() {
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void selectMore() {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.show();
+                    }
                 });
                 item_l.setOnClickListener(view -> {
                     click(likeUrl, item_select);
@@ -251,9 +321,11 @@ public class LikeActivity extends AppCompatActivity {
                 item_select.setChecked(clearUrls.contains(likeUrls.get(position)));
                 if (isChange) {
                     item_select.setVisibility(View.VISIBLE);
+                    item_drag.setVisibility(View.VISIBLE);
                     item_select_bg.setVisibility(View.GONE);
                 } else {
                     item_select.setVisibility(View.GONE);
+                    item_drag.setVisibility(View.GONE);
                     item_select_bg.setVisibility(View.VISIBLE);
                     item_select.setChecked(false);
                 }
@@ -305,8 +377,12 @@ public class LikeActivity extends AppCompatActivity {
             }
         });
 
-        // 配置触摸事件
-        ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
+        // 配置触摸滑动事件
+        itemTouchHelper = new ItemTouchHelper(getTouchCallback());
+    }
+
+    ItemTouchHelper.Callback getTouchCallback() {
+        return new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN, // 拖拽方向
                 0 // 左右不滑动
                 // ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT // 滑动方向
@@ -337,9 +413,6 @@ public class LikeActivity extends AppCompatActivity {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         };
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
-        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     void initHandler() {

@@ -73,12 +73,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
                     android:textColor="@color/gray3"
+                    android:textSize="13.5dp"
                     android:text="• 双击屏幕亦可朗读/停止"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
                     android:textColor="@color/gray3"
+                    android:textSize="13.5dp"
                     android:text="• 推荐下载讯飞语记，切换引擎设置更多语音"/>
             </LinearLayout>
 
