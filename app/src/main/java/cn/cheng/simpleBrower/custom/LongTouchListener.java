@@ -22,6 +22,7 @@ public abstract class LongTouchListener implements View.OnTouchListener {
             float timeMove = Math.abs(timeDown - event.getEventTime());
             if (timeMove > 300) {
                 upEvent(event.getRawX(), event.getRawY());
+                return true;
             }
         }
         return false;

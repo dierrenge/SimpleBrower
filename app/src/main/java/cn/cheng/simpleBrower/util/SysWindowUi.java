@@ -6,11 +6,10 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
-import androidx.annotation.RequiresApi;
 
 import java.lang.reflect.Method;
 
@@ -260,5 +259,23 @@ public class SysWindowUi {
         return dm.widthPixels;
     }
 
+    // 获取视图的长宽
+    public static int[] getLayoutPixelSize(Context context, int resource) {
+        View view = LayoutInflater.from(context).inflate(resource, null);
+        // 设置测量规格
+        int widthSpec = View.MeasureSpec.makeMeasureSpec(
+                Resources.getSystem().getDisplayMetrics().widthPixels, // 屏幕宽度为约束
+                View.MeasureSpec.AT_MOST
+        );
+
+        int heightSpec = View.MeasureSpec.makeMeasureSpec(
+                Resources.getSystem().getDisplayMetrics().heightPixels, // 屏幕高度
+                View.MeasureSpec.AT_MOST
+        );
+        view.measure(widthSpec, heightSpec);
+        int popupWidth = view.getMeasuredWidth();
+        int popupHeight = view.getMeasuredHeight();
+        return new int[]{popupWidth, popupHeight};
+    }
 
 }

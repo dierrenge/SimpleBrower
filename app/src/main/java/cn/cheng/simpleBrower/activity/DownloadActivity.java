@@ -105,8 +105,6 @@ public class DownloadActivity extends AppCompatActivity {
 
         // 初始化线程通信工具
         initHandler();
-
-        initFileUrls();
     }
 
     // 按钮事件
@@ -600,8 +598,9 @@ public class DownloadActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        timer.postDelayed(runnable, 1000);
         super.onResume();
+        initFileUrls();
+        timer.postDelayed(runnable, 1000);
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.util.CommonUtils;
+import cn.cheng.simpleBrower.util.SysWindowUi;
 
 /**
  * Created by YanGeCheng on 2026/2/10.
@@ -47,14 +48,15 @@ public class LongClickDialog extends Dialog {
     int screenWidth, screenHeight; // 屏幕的大小
     int popupWidth, popupHeight; // 弹框的大小
 
-    public LongClickDialog(@NonNull Context context, float x, float y, int popupWidth, int popupHeight) {
+    public LongClickDialog(@NonNull Context context, float x, float y) {
         super(context, R.style.dialog);
         // 点击屏幕的位置
         this.x = Math.round(x);
         this.y = Math.round(y);
         // 弹框的大小
-        this.popupWidth = popupWidth;
-        this.popupHeight = popupHeight;
+        int[] size = SysWindowUi.getLayoutPixelSize(context, R.layout.click_dialog);
+        this.popupWidth = size[0];
+        this.popupHeight = size[1];
         // 屏幕的大小
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         screenWidth = metrics.widthPixels;
@@ -80,7 +82,6 @@ public class LongClickDialog extends Dialog {
         delete = findViewById(R.id.dialog_delete);
         selectMore = findViewById(R.id.dialog_selectMore);
         // 间距
-        int padding = 40;
         // view窗口显示设置
         Window window = this.getWindow();
         window.setGravity(Gravity.TOP | Gravity.START);
@@ -89,16 +90,18 @@ public class LongClickDialog extends Dialog {
         params.width = WindowManager.LayoutParams.WRAP_CONTENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
         params.dimAmount = 0.3F;
-        params.x = (x + popupWidth > screenWidth) ? screenWidth - popupWidth - padding : (x + padding) < popupWidth ? padding : x - popupWidth/2;
-        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight - padding : (y + padding) < popupHeight ? padding : y - popupHeight/2;
+        params.x = (x + popupWidth > screenWidth) ? screenWidth - popupWidth : popupWidth/2 > x ? 0 : x - popupWidth/2;
+        if (params.x < 60) params.x = 60;
+        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight : popupHeight/2 > y ? 0 : y - popupHeight/2;
+        if (params.y < 60) params.y = 60;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             params.setCanPlayMoveAnimation(false);
         }
         window.setAttributes(params);
-        CommonUtils.saveLog( "x=======" + x + ",   y=======" + y);
-        CommonUtils.saveLog( "popupWidth=======" + popupWidth + ",   popupHeight=======" + popupHeight);
-        CommonUtils.saveLog( "screenWidth=======" + screenWidth + ",   screenHeight=======" + screenHeight);
-        CommonUtils.saveLog( "params.x=======" + params.x + ",   params.y=======" + params.y);
+        /*System.out.println( "x=======" + x + ",   y=======" + y);
+        System.out.println( "popupWidth=======" + popupWidth + ",   popupHeight=======" + popupHeight);
+        System.out.println( "screenWidth=======" + screenWidth + ",   screenHeight=======" + screenHeight);
+        System.out.println( "params.x=======" + params.x + ",   params.y=======" + params.y);*/
         click_dialog_l.setVisibility(View.VISIBLE);
 
         // 按钮触摸事件

@@ -109,9 +109,6 @@ public class VideoListActivity extends AppCompatActivity {
 
         // 初始化线程通信工具
         initHandler();
-
-        // 读取影音文件地址
-        new Handler().post(this::initVideoUrls);
     }
 
     // 按钮事件
@@ -478,5 +475,7 @@ public class VideoListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // 读取影音文件地址
+        new Handler().post(this::initVideoUrls);
     }
 }

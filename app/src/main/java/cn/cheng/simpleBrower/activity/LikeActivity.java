@@ -56,8 +56,6 @@ public class LikeActivity extends AppCompatActivity {
     private RecyclerView.Adapter adapter;
 
     private int mWindowTop;
-    private int popupHeight;
-    private int popupWidth;
 
     private ItemTouchHelper itemTouchHelper;
 
@@ -123,8 +121,6 @@ public class LikeActivity extends AppCompatActivity {
                 like_t1.setTextColor(LikeActivity.this.getResources().getColor(R.color.gray));
             });
         }
-
-        getLikeUrls();
     }
 
     private void initEvent() {
@@ -225,11 +221,6 @@ public class LikeActivity extends AppCompatActivity {
             recyclerView.getLocationOnScreen(outLocation);
             mWindowTop = outLocation[1];
         });
-        View view = LayoutInflater.from(this).inflate(R.layout.click_dialog, null, false);
-        view.post(() -> {
-            popupHeight = view.getMeasuredHeight();
-            popupWidth = view.getMeasuredWidth();
-        });
 
         // 创建线性布局管理器 赋值给recyclerview
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -277,7 +268,7 @@ public class LikeActivity extends AppCompatActivity {
                     @Override
                     public void upEvent(float x, float y) {
                         if (isChange) return;
-                        LongClickDialog dialog = new LongClickDialog(LikeActivity.this, x, y - mWindowTop, popupWidth, popupHeight);
+                        LongClickDialog dialog = new LongClickDialog(LikeActivity.this, x, y - mWindowTop);
                         dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                             @Override
                             public void close() {
@@ -368,6 +359,29 @@ public class LikeActivity extends AppCompatActivity {
             }
         };
         recyclerView.setAdapter(adapter);
+
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    // 获取第一个可见项的位置
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                    // 获取最后一个可见项的位置
+                    int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+                    // 遍历可见项，获取具体的元素
+                    for (int i = firstVisibleItemPosition; i <= lastVisibleItemPosition; i++) {
+                        View view = layoutManager.findViewByPosition(i);
+                        if (view != null) {
+                            // 对可见元素进行操作
+                            LinearLayout item_layout = view.findViewById(R.id.item_layout);
+                            item_layout.setBackgroundResource(R.color.white);
+                        }
+                    }
+                }
+                return false;
+            }
+        });
 
         // 滑动监听
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -612,5 +626,6 @@ public class LikeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        getLikeUrls();
     }
 }

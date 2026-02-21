@@ -107,9 +107,6 @@ public class TxtListActivity extends AppCompatActivity {
 
         // 初始化线程通信工具
         initHandler();
-
-        // 读取文本文件地址
-        new Handler().post(this::initTxtUrls);
     }
 
     // 按钮事件
@@ -457,5 +454,7 @@ public class TxtListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // 读取文本文件地址
+        new Handler().post(this::initTxtUrls);
     }
 }
