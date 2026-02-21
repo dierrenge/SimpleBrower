@@ -654,6 +654,7 @@ public class WebViewFragment extends Fragment {
                         });
                     } catch (Throwable e) {}
 
+                    String title = view.getTitle();
                     // 判断格式
                     String format = CommonUtils.getUrlFormat(url);
                     Message msg = Message.obtain();
@@ -669,7 +670,7 @@ public class WebViewFragment extends Fragment {
                             msg.what = 3;
                         }
                         if (msg.what != 0) {
-                            msg.obj = new String[]{view.getTitle(), urlOrg, format};
+                            msg.obj = new String[]{title, urlOrg, format};
                             handler.sendMessage(msg);
                         }
                     } else { // 无格式的情况
@@ -690,7 +691,7 @@ public class WebViewFragment extends Fragment {
                                 List<String> formats = AssetsReader.getList("audioVideo.txt");
                                 fileType = "." + fileType;
                                 if (formats.contains(fileType)) {
-                                    String[] arr = new String[]{view.getTitle(), urlOrg, fileType};
+                                    String[] arr = new String[]{title, urlOrg, fileType};
                                     msg.obj = arr;
                                     msg.what = 9;
                                     handler.sendMessage(msg);

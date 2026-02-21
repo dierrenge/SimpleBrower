@@ -1495,6 +1495,13 @@ public class CommonUtils {
             httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
             // 获取格式
             mimeType = httpURLConnection.getContentType();
+            // m3u8特殊判断
+            String line = null;
+            try (InputStream inputStream = httpURLConnection.getInputStream();
+                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+                line = bufferedReader.readLine();
+                if (StringUtils.isNotEmpty(line) && line.contains("#EXTM3U")) mimeType = "m3u8";
+            } catch (Exception ignored) {}
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
