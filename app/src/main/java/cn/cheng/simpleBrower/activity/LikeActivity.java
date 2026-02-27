@@ -55,7 +55,7 @@ public class LikeActivity extends AppCompatActivity {
 
     private RecyclerView.Adapter adapter;
 
-    private int mWindowTop;
+    private int mWindowTop; // recyclerView距离屏幕顶部的高度
 
     private ItemTouchHelper itemTouchHelper;
 
@@ -195,7 +195,11 @@ public class LikeActivity extends AppCompatActivity {
         // 删除
         menu_clear.setOnClickListener(view -> {
             if (clearUrls.isEmpty()) return;
-            FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", "确定要删除选中记录吗？", "删除", "取消");
+            String text = "确定要删除选中记录吗？";
+            if (clearUrls.size() == 1) {
+                text = "确定要删除记录“" + clearUrls.get(0) + "”吗？";
+            }
+            FeetDialog feetDialog = new FeetDialog(LikeActivity.this, "删除", text, "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -277,10 +281,12 @@ public class LikeActivity extends AppCompatActivity {
                             @Override
                             public void open() {
                                 dialog.dismiss();
+                                click(likeUrl, item_select);
                             }
                             @Override
                             public void copy() {
                                 dialog.dismiss();
+                                CommonUtils.copy(LikeActivity.this, likeUrl);
                             }
                             @Override
                             public void modify() {
@@ -289,10 +295,13 @@ public class LikeActivity extends AppCompatActivity {
                             @Override
                             public void delete() {
                                 dialog.dismiss();
+                                clearUrls.add(likeUrl);
+                                menu_clear.callOnClick();
                             }
                             @Override
                             public void selectMore() {
                                 dialog.dismiss();
+                                menu_edit.callOnClick();
                             }
                         });
                         dialog.show();

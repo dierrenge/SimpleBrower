@@ -3,21 +3,17 @@ package cn.cheng.simpleBrower.custom;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 
-import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.util.CommonUtils;
 
@@ -43,7 +39,7 @@ public class SettingDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.setting_dialog);
+        setContentView(R.layout.dialog_setting);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框

@@ -1,8 +1,6 @@
 package cn.cheng.simpleBrower.service;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -48,7 +46,7 @@ public class MockLocationService extends Service {
     public void onCreate() {
         super.onCreate();
         // 创建悬浮窗视图
-        floatingView = LayoutInflater.from(this).inflate(R.layout.location_dialog, null);
+        floatingView = LayoutInflater.from(this).inflate(R.layout.dialog_location, null);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,

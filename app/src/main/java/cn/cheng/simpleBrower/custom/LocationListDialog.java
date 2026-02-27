@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,7 +52,7 @@ public class LocationListDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.location_list_dialog);
+        setContentView(R.layout.dialog_location_list);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框
@@ -94,7 +93,7 @@ public class LocationListDialog extends Dialog {
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 // 加载子项布局
                 View itemView = LayoutInflater.from(context)
-                        .inflate(R.layout.location_recyclerview_item, parent, false); // 第三个参数必须是 false！
+                        .inflate(R.layout.recyclerview_location_item, parent, false); // 第三个参数必须是 false！
                 return new RecyclerView.ViewHolder(itemView) {
                 };
             }

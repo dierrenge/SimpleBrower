@@ -7,20 +7,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
-import android.content.ClipData;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
-import android.provider.Settings;
-import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,11 +23,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +31,8 @@ import java.util.List;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.LongClickDialog;
+import cn.cheng.simpleBrower.custom.LongTouchListener;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.PhoneSysPath;
@@ -75,6 +65,8 @@ public class TxtListActivity extends AppCompatActivity {
     private Handler handler;
 
     private static RecyclerView recyclerView;
+
+    private int mWindowTop; // recyclerView距离屏幕顶部的高度
 
     private List<String> txtUrls = new ArrayList<>();
 
@@ -175,7 +167,14 @@ public class TxtListActivity extends AppCompatActivity {
         // 删除
         menu_clear.setOnClickListener(view -> {
             if (clearUrls.isEmpty()) return;
-            FeetDialog feetDialog = new FeetDialog(TxtListActivity.this, "删除", "确定要删除选中文件吗？", "删除", "取消");
+            String text = "确定要删除选中文件吗？";
+            if (clearUrls.size() == 1) {
+                String[] s = clearUrls.get(0).split("/");
+                if (s.length > 0) {
+                    text = "确定要删除文件“" + s[s.length - 1] + "”吗？";
+                }
+            }
+            FeetDialog feetDialog = new FeetDialog(TxtListActivity.this, "删除", text, "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -196,6 +195,11 @@ public class TxtListActivity extends AppCompatActivity {
     private void initRecyclerView() {
         // 获取recyclerview视图实例
         recyclerView = findViewById(R.id.txt_list);
+        recyclerView.post(() -> {
+            int[] outLocation = new int[2];
+            recyclerView.getLocationOnScreen(outLocation);
+            mWindowTop = outLocation[1];
+        });
 
         // 创建线性布局管理器 赋值给recyclerview
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -213,8 +217,11 @@ public class TxtListActivity extends AppCompatActivity {
                 };
             }
 
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+                LinearLayout item_layout = holder.itemView.findViewById(R.id.item_layout);
+                item_layout.setBackgroundResource(R.color.white);
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
@@ -226,6 +233,54 @@ public class TxtListActivity extends AppCompatActivity {
                     textView.setText(s[s.length - 1]);
                     textView.setOnClickListener(view -> {
                         click(txtUrl, item_select);
+                    });
+                    textView.setOnLongClickListener(view -> true);
+                    textView.setOnTouchListener(new LongTouchListener() {
+                        @Override
+                        public void downEvent() {
+                            item_layout.setBackgroundResource(R.color.colorLightGray1);
+                        }
+                        @Override
+                        public void realUpEvent() {
+                            item_layout.setBackgroundResource(R.color.white);
+                        }
+                        @Override
+                        public void upEvent(float x, float y) {
+                            if (isChange) return;
+                            LongClickDialog dialog = new LongClickDialog(TxtListActivity.this, x, y - mWindowTop);
+                            dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
+                                @Override
+                                public void close() {
+                                    dialog.dismiss();
+                                }
+                                @Override
+                                public void open() {
+                                    dialog.dismiss();
+                                    click(txtUrl, item_select);
+                                }
+                                @Override
+                                public void copy() {
+                                    dialog.dismiss();
+                                    CommonUtils.copy(TxtListActivity.this, textView.getText().toString());
+                                }
+                                @Override
+                                public void modify() {
+                                    dialog.dismiss();
+                                }
+                                @Override
+                                public void delete() {
+                                    dialog.dismiss();
+                                    clearUrls.add(txtUrl);
+                                    menu_clear.callOnClick();
+                                }
+                                @Override
+                                public void selectMore() {
+                                    dialog.dismiss();
+                                    menu_edit.callOnClick();
+                                }
+                            });
+                            dialog.show();
+                        }
                     });
                     item_l.setOnClickListener(view -> {
                         click(txtUrl, item_select);
@@ -292,6 +347,29 @@ public class TxtListActivity extends AppCompatActivity {
                     clearUrls.add(likeUrl);
                 }
                 clearChange();
+            }
+        });
+
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    // 获取第一个可见项的位置
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                    // 获取最后一个可见项的位置
+                    int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+                    // 遍历可见项，获取具体的元素
+                    for (int i = firstVisibleItemPosition; i <= lastVisibleItemPosition; i++) {
+                        View view = layoutManager.findViewByPosition(i);
+                        if (view != null) {
+                            // 对可见元素进行操作
+                            LinearLayout item_layout = view.findViewById(R.id.item_layout);
+                            item_layout.setBackgroundResource(R.color.white);
+                        }
+                    }
+                }
+                return false;
             }
         });
 

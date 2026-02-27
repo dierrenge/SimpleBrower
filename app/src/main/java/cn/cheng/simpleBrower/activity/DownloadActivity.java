@@ -2,7 +2,6 @@ package cn.cheng.simpleBrower.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +10,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -21,7 +21,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -36,6 +35,8 @@ import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.LongClickDialog;
+import cn.cheng.simpleBrower.custom.LongTouchListener;
 import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
@@ -74,6 +75,8 @@ public class DownloadActivity extends AppCompatActivity {
     private Handler timer = new Handler();
 
     private static RecyclerView recyclerView;
+
+    private int mWindowTop; // recyclerView距离屏幕顶部的高度
 
     private List<String> fileUrls = new ArrayList<>();
 
@@ -154,7 +157,12 @@ public class DownloadActivity extends AppCompatActivity {
         // 删除
         menu_clear.setOnClickListener(view -> {
             if (clearUrls.isEmpty()) return;
-            FeetDialog feetDialog = new FeetDialog(DownloadActivity.this, "删除", "确定删除选中的下载记录吗？", "删除", "取消");
+            String text = "确定删除选中的下载记录吗？";
+            if (clearUrls.size() == 1) {
+                String fileRecordUrl = clearUrls.get(0);
+                text = "确定要删除下载记录“" + clearMap.get(fileRecordUrl) + "”吗？";
+            }
+            FeetDialog feetDialog = new FeetDialog(DownloadActivity.this, "删除", text, "删除", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -175,6 +183,11 @@ public class DownloadActivity extends AppCompatActivity {
     private void initRecyclerView() {
         // 获取recyclerview视图实例
         recyclerView = findViewById(R.id.download_mg_list);
+        recyclerView.post(() -> {
+            int[] outLocation = new int[2];
+            recyclerView.getLocationOnScreen(outLocation);
+            mWindowTop = outLocation[1];
+        });
 
         // 创建线性布局管理器 赋值给recyclerview
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -194,9 +207,12 @@ public class DownloadActivity extends AppCompatActivity {
                 return new RecyclerView.ViewHolder(itemView) {};
             }
 
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 try {
+                    LinearLayout item_layout = holder.itemView.findViewById(R.id.item_download_layout);
+                    item_layout.setBackgroundResource(R.color.white);
                     LinearLayout item_l = holder.itemView.findViewById(R.id.item_download_l);
                     TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
                     TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
@@ -221,6 +237,54 @@ public class DownloadActivity extends AppCompatActivity {
                             return; // 编辑模式不可跳转
                         }
                         click(button, bean, processView);
+                    });
+                    textView.setOnLongClickListener(view -> true);
+                    textView.setOnTouchListener(new LongTouchListener() {
+                        @Override
+                        public void downEvent() {
+                            item_layout.setBackgroundResource(R.color.colorLightGray1);
+                        }
+                        @Override
+                        public void realUpEvent() {
+                            item_layout.setBackgroundResource(R.color.white);
+                        }
+                        @Override
+                        public void upEvent(float x, float y) {
+                            if (isChange) return;
+                            LongClickDialog dialog = new LongClickDialog(DownloadActivity.this, x, y - mWindowTop);
+                            dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
+                                @Override
+                                public void close() {
+                                    dialog.dismiss();
+                                }
+                                @Override
+                                public void open() {
+                                    dialog.dismiss();
+                                    click(button, bean, processView);
+                                }
+                                @Override
+                                public void copy() {
+                                    dialog.dismiss();
+                                    CommonUtils.copy(DownloadActivity.this, textView.getText().toString());
+                                }
+                                @Override
+                                public void modify() {
+                                    dialog.dismiss();
+                                }
+                                @Override
+                                public void delete() {
+                                    dialog.dismiss();
+                                    clearUrls.add(fileRecordUrl);
+                                    menu_clear.callOnClick();
+                                }
+                                @Override
+                                public void selectMore() {
+                                    dialog.dismiss();
+                                    menu_edit.callOnClick();
+                                }
+                            });
+                            dialog.show();
+                        }
                     });
                     item_l.setOnClickListener(view -> {
                         if (isChange) {
@@ -270,8 +334,7 @@ public class DownloadActivity extends AppCompatActivity {
                                     intent.putExtra("title", bean.getTitle());
                                     intent.putExtra("notificationId", notificationId);
                                     DownloadActivity.this.startService(intent);
-                                    String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-                                    String url = dir + "/SimpleBrower/0_like/downloadList/" + fileRecordUrl + ".json";
+                                    String url = getDownloadDir() + fileRecordUrl + ".json";
                                     fileUrls.set(position, url);
                                     MyApplication.setDownLoadInfo(notificationId, bean);
                                 }
@@ -409,6 +472,29 @@ public class DownloadActivity extends AppCompatActivity {
         };
         recyclerView.setAdapter(adapter);
 
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    // 获取第一个可见项的位置
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                    // 获取最后一个可见项的位置
+                    int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+                    // 遍历可见项，获取具体的元素
+                    for (int i = firstVisibleItemPosition; i <= lastVisibleItemPosition; i++) {
+                        View view = layoutManager.findViewByPosition(i);
+                        if (view != null) {
+                            // 对可见元素进行操作
+                            LinearLayout item_layout = view.findViewById(R.id.item_download_layout);
+                            item_layout.setBackgroundResource(R.color.white);
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+
         // 滑动监听
         recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
@@ -460,9 +546,8 @@ public class DownloadActivity extends AppCompatActivity {
         notificationNum = MyApplication.getDownLoadInfoMap().size();
         fileUrls.clear();
         if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
             new Handler().post(() -> {
-                CommonUtils.downloadListFileWalk(dir + "/SimpleBrower/0_like/downloadList", fileUrls);
+                CommonUtils.downloadListFileWalk(getDownloadDir(), fileUrls);
                 Message message = handler.obtainMessage(0);
                 handler.sendMessage(message);
             });
@@ -473,7 +558,13 @@ public class DownloadActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 29 ) { // android 12的sd卡读写
             boolean isDeleteO = "delete".equals(txt);
             //启动线程开始执行 删除网址存档
-            for (String url : clearUrls) {
+            for (String url0 : clearUrls) {
+                if (!url0.contains("/")) { // 下载时，先删除对应通知
+                    int notificationId = Integer.parseInt(url0.substring(8));
+                    NotificationUtils.deleteNotification(this, notificationId);
+                    url0 = getDownloadDir() + url0 + ".json";
+                }
+                final String url = url0;
                 new Thread(() -> {
                     try {
                         if (isDeleteO) { // 删除原文件
@@ -581,6 +672,12 @@ public class DownloadActivity extends AppCompatActivity {
             menu_clear.setAlpha(1f);
             edit_txt.setText("已选择" + clearUrls.size() + "项");
         }
+    }
+
+    // 获取下载记录文件目录
+    private String getDownloadDir() {
+        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        return dir + "/SimpleBrower/0_like/downloadList/";
     }
 
     // 物理按键

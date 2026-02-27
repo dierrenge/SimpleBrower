@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.util.CommonUtils;
-import cn.cheng.simpleBrower.util.SysWindowUi;
 
 /**
  * Created by YanGeCheng on 2023/4/2.
@@ -70,7 +69,7 @@ public class FeetDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.feet_dialog);
+        setContentView(R.layout.dialog_feet);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框

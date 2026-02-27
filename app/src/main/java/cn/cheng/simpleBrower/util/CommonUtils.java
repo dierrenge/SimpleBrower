@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.app.NotificationManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -69,10 +71,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import cn.cheng.simpleBrower.MyApplication;
+import cn.cheng.simpleBrower.activity.LikeActivity;
 import cn.cheng.simpleBrower.bean.LocationBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
+import cn.cheng.simpleBrower.custom.MyToast;
 
 public class CommonUtils {
 
@@ -1946,5 +1950,17 @@ public class CommonUtils {
             }
         }
         return null;
+    }
+
+    // 复制到剪贴板
+    public static void copy(Context context, String text) {
+        try {
+            ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData mClipData = ClipData.newPlainText("Label", text);
+            cm.setPrimaryClip(mClipData);
+            MyToast.getInstance("复制成功").show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

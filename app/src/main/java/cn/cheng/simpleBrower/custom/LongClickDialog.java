@@ -1,32 +1,21 @@
 package cn.cheng.simpleBrower.custom;
 
-import static android.content.Context.INPUT_METHOD_SERVICE;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import org.apache.commons.lang3.StringUtils;
-
 import cn.cheng.simpleBrower.R;
-import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 /**
@@ -54,7 +43,7 @@ public class LongClickDialog extends Dialog {
         this.x = Math.round(x);
         this.y = Math.round(y);
         // 弹框的大小
-        int[] size = SysWindowUi.getLayoutPixelSize(context, R.layout.click_dialog);
+        int[] size = SysWindowUi.getLayoutPixelSize(context, R.layout.dialog_click);
         this.popupWidth = size[0];
         this.popupHeight = size[1];
         // 屏幕的大小
@@ -68,7 +57,7 @@ public class LongClickDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.click_dialog);
+        setContentView(R.layout.dialog_click);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框
@@ -90,9 +79,9 @@ public class LongClickDialog extends Dialog {
         params.width = WindowManager.LayoutParams.WRAP_CONTENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
         params.dimAmount = 0.3F;
-        params.x = (x + popupWidth > screenWidth) ? screenWidth - popupWidth : popupWidth/2 > x ? 0 : x - popupWidth/2;
+        params.x = (x + popupWidth > screenWidth) ? screenWidth - popupWidth : popupWidth*3/5 > x ? 0 : x - popupWidth*3/5;
         if (params.x < 60) params.x = 60;
-        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight : popupHeight/2 > y ? 0 : y - popupHeight/2;
+        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight : popupHeight/4 > y ? 0 : y - popupHeight/4;
         if (params.y < 60) params.y = 60;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             params.setCanPlayMoveAnimation(false);

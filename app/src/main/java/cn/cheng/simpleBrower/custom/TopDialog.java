@@ -8,7 +8,6 @@ import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -37,7 +36,7 @@ public class TopDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.top_dialog);
+        setContentView(R.layout.dialog_top);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框

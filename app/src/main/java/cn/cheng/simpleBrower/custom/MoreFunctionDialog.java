@@ -1,40 +1,21 @@
 package cn.cheng.simpleBrower.custom;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Collections;
-import java.util.List;
-
-import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.activity.DownloadActivity;
 import cn.cheng.simpleBrower.activity.LikeActivity;
-import cn.cheng.simpleBrower.activity.MainActivity;
 import cn.cheng.simpleBrower.activity.TxtListActivity;
-import cn.cheng.simpleBrower.bean.DownloadBean;
-import cn.cheng.simpleBrower.service.DownloadService;
-import cn.cheng.simpleBrower.util.CommonUtils;
 
 /**
  * Created by YanGeCheng on 2025/4/25.
@@ -58,7 +39,7 @@ public class MoreFunctionDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // 绑定view
-        setContentView(R.layout.more_function_dialog);
+        setContentView(R.layout.dialog_more_function);
         // 设置返回键可以关闭弹框
         setCancelable(true);
         // 设置触摸弹框以外区域可以关闭弹框

@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.ConsoleMessage;
-import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
@@ -32,7 +31,6 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -61,14 +59,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.DownloadBean;
 import cn.cheng.simpleBrower.bean.SysBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
-import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AdBlocker;
@@ -796,7 +792,7 @@ public class WebViewFragment extends Fragment {
         public View getVideoLoadingProgressView() {
             if (xprogressvideo == null) {
                 LayoutInflater inflater = callListener.onProgressView();
-                xprogressvideo = inflater.inflate(R.layout.video_loading_progress, null);
+                xprogressvideo = inflater.inflate(R.layout.progress_video_loading, null);
             }
             return xprogressvideo;
         }

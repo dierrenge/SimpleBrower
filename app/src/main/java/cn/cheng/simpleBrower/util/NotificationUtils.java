@@ -137,4 +137,19 @@ public class NotificationUtils {
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         nm.notify(0, summaryNotification);
     }
+
+    // 删除指定下载通知
+    public static void deleteNotification(Context context, int notificationId) {
+        try {
+            NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
+            if (downLoadInfo == null) return;
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            downLoadInfo.setState("继续");
+            MyApplication.deleteDownLoadInfo(notificationId);
+            notificationManager.cancel(notificationId);
+            CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
+        } catch (Throwable e) {
+            CommonUtils.saveLog("=======处理删除事件notification_cancelled=======" + e.getMessage());
+        }
+    }
 }
