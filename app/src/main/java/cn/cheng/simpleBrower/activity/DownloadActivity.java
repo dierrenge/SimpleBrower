@@ -250,7 +250,10 @@ public class DownloadActivity extends AppCompatActivity {
                         }
                         @Override
                         public void upEvent(float x, float y) {
-                            if (isChange) return;
+                            if (isChange) {
+                                select(fileRecordUrl, item_select);
+                                return; // 编辑模式不可跳转
+                            }
                             LongClickDialog dialog = new LongClickDialog(DownloadActivity.this, x, y - mWindowTop);
                             dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                                 @Override
@@ -266,10 +269,6 @@ public class DownloadActivity extends AppCompatActivity {
                                 public void copy() {
                                     dialog.dismiss();
                                     CommonUtils.copy(DownloadActivity.this, textView.getText().toString());
-                                }
-                                @Override
-                                public void modify() {
-                                    dialog.dismiss();
                                 }
                                 @Override
                                 public void delete() {
@@ -559,9 +558,10 @@ public class DownloadActivity extends AppCompatActivity {
             boolean isDeleteO = "delete".equals(txt);
             //启动线程开始执行 删除网址存档
             for (String url0 : clearUrls) {
+                final String url1 = url0;
                 if (!url0.contains("/")) { // 下载时，先删除对应通知
                     int notificationId = Integer.parseInt(url0.substring(8));
-                    NotificationUtils.deleteNotification(this, notificationId);
+                    NotificationUtils.deleteDownloadNotification(this, notificationId);
                     url0 = getDownloadDir() + url0 + ".json";
                 }
                 final String url = url0;
@@ -582,10 +582,10 @@ public class DownloadActivity extends AppCompatActivity {
                         Message message = Message.obtain();
                         if (isDelete) {
                             message.what = 3;
-                            message.obj = url;
+                            message.obj = url1;
                         } else {
                             message.what = 1;
-                            message.obj = "删除失败（" + clearMap.get(url) + "）";
+                            message.obj = "删除失败（" + clearMap.get(url1) + "）";
                         }
                         handler.sendMessage(message);
                     } catch (Exception e) {

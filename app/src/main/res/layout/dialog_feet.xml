@@ -52,13 +52,6 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:orientation="horizontal">
-            <!-- 添加这个View是为了控制EditText的焦点问题 -->
-            <View
-                android:id="@+id/dialog_for_focus"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:focusable="true"
-                android:focusableInTouchMode="true" />
             <EditText
                 android:id="@+id/dialog_text_filename"
                 android:background="@drawable/edit_text_bg3"
@@ -66,7 +59,8 @@
                 android:paddingRight="6dp"
                 android:gravity="center"
                 android:layout_width="wrap_content"
-                android:maxWidth="180dp"
+                android:layout_marginLeft="10dp"
+                android:maxWidth="175dp"
                 android:minWidth="50dp"
                 android:layout_height="32dp"
                 android:textSize="17dp"
@@ -90,7 +84,7 @@
                 android:id="@+id/dialog_text_fileSize"
                 android:gravity="center|start"
                 android:layout_width="wrap_content"
-                android:minWidth="65dp"
+                android:minWidth="85dp"
                 android:layout_height="32dp"
                 android:textIsSelectable="false"
                 android:textColor="@color/blackGray"

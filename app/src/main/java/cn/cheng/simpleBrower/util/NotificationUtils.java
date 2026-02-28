@@ -1,7 +1,5 @@
 package cn.cheng.simpleBrower.util;
 
-import static android.content.Context.NOTIFICATION_SERVICE;
-
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,7 +9,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
 
@@ -139,7 +136,7 @@ public class NotificationUtils {
     }
 
     // 删除指定下载通知
-    public static void deleteNotification(Context context, int notificationId) {
+    public static void deleteDownloadNotification(Context context, int notificationId) {
         try {
             NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
             if (downLoadInfo == null) return;

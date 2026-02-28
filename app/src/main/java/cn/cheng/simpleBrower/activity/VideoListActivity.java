@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.custom.FeetDialog;
@@ -249,7 +250,10 @@ public class VideoListActivity extends AppCompatActivity {
                         }
                         @Override
                         public void upEvent(float x, float y) {
-                            if (isChange) return;
+                            if (isChange) {
+                                select(videoUrl, item_select);
+                                return;
+                            }
                             LongClickDialog dialog = new LongClickDialog(VideoListActivity.this, x, y - mWindowTop);
                             dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                                 @Override
@@ -269,6 +273,33 @@ public class VideoListActivity extends AppCompatActivity {
                                 @Override
                                 public void modify() {
                                     dialog.dismiss();
+                                    FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "重命名", textView.getText().toString(), "确定", "取消");
+                                    feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                        @Override
+                                        public void close() {
+                                            feetDialog.dismiss();
+                                        }
+                                        @Override
+                                        public void ok(String txt) {
+                                            String fileUrl = videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1) + txt;
+                                            if (!txt.startsWith(".") && !videoUrl.equals(fileUrl)) {
+                                                new Thread(() -> {
+                                                    boolean re = new File(videoUrl).renameTo(new File(fileUrl));
+                                                    Message message = Message.obtain();
+                                                    if (!re) {
+                                                        message.what = 1;
+                                                        message.obj = "更名失败" ;
+                                                    } else {
+                                                        message.what = 2;
+                                                        message.obj = new String[] {txt, videoUrl, fileUrl, position+""};
+                                                    }
+                                                    handler.sendMessage(message);
+                                                }).start();
+                                            }
+                                            feetDialog.dismiss();
+                                        }
+                                    });
+                                    feetDialog.show();
                                 }
                                 @Override
                                 public void delete() {
@@ -390,6 +421,21 @@ public class VideoListActivity extends AppCompatActivity {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                         menu_edit.setAlpha(0.5f);
+                    }
+                } else if (message.what == 2) {
+                    if (recyclerView != null) {
+                        String[] arr = (String[]) message.obj;
+                        String txt = arr[0];
+                        String videoUrl = arr[1];
+                        String fileUrl = arr[2];
+                        int position = Integer.parseInt(arr[3]);
+                        videoUrls = videoUrls.stream().map(item -> videoUrl.equals(item) ? fileUrl : item).collect(Collectors.toList());
+                        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+                        if (holder != null) {
+                            TextView textView = holder.itemView.findViewById(R.id.item_txt);
+                            textView.setText(txt);
+                            recyclerView.getAdapter().notifyItemChanged(position);
+                        }
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {

@@ -469,6 +469,7 @@ public class TxtActivity extends AppCompatActivity {
         if (!flagRead) {
             unregisterReceiver(msgReceiver);
             MyApplication.setTxtUrl(null);
+            TxtActivity.txtActivity = null;
         }
 
         if (positionBean != null) {

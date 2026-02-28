@@ -271,7 +271,10 @@ public class LikeActivity extends AppCompatActivity {
                     }
                     @Override
                     public void upEvent(float x, float y) {
-                        if (isChange) return;
+                        if (isChange) {
+                            select(likeUrl, item_select);
+                            return;
+                        }
                         LongClickDialog dialog = new LongClickDialog(LikeActivity.this, x, y - mWindowTop);
                         dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                             @Override
@@ -287,10 +290,6 @@ public class LikeActivity extends AppCompatActivity {
                             public void copy() {
                                 dialog.dismiss();
                                 CommonUtils.copy(LikeActivity.this, likeUrl);
-                            }
-                            @Override
-                            public void modify() {
-                                dialog.dismiss();
                             }
                             @Override
                             public void delete() {

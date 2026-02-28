@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -39,7 +40,6 @@ public class FeetDialog extends Dialog {
     private TextView dialog_title;
     private TextView dialog_text;
     private LinearLayout dialog_text_layout;
-    private View dialog_for_focus;
     private EditText dialog_text_filename;
     private TextView dialog_text_fileType;
     private TextView dialog_text_fileSize;
@@ -82,7 +82,6 @@ public class FeetDialog extends Dialog {
         dialog_title = findViewById(R.id.dialog_title);
         dialog_text = findViewById(R.id.dialog_text);
         dialog_text_layout = findViewById(R.id.dialog_text_layout);
-        dialog_for_focus = findViewById(R.id.dialog_for_focus);
         dialog_text_filename = findViewById(R.id.dialog_text_filename);
         dialog_text_fileType = findViewById(R.id.dialog_text_fileType);
         dialog_text_fileSize = findViewById(R.id.dialog_text_fileSize);
@@ -92,15 +91,27 @@ public class FeetDialog extends Dialog {
             dialog_title.setText(title);
         }
         if (text != null) {
-            if (text.contains("下载记录")) {
-                delete_select_l.setVisibility(View.VISIBLE);
-            }
-            if (text.contains(" / ")) {
+            if ("重命名".equals(title)) {
                 dialog_text.setVisibility(View.GONE);
                 dialog_text_layout.setVisibility(View.VISIBLE);
-                loadFileSize(text);
+                dialog_text_fileSize.setVisibility(View.GONE);
+                dialog_text_filename.setMinWidth(CommonUtils.dpToPx(context, 200));
+                dialog_text_filename.setMaxWidth(CommonUtils.dpToPx(context, 260));
+                String name = text.substring(0, text.lastIndexOf("."));
+                String type = text.substring(text.lastIndexOf("."));
+                dialog_text_filename.setText(name);
+                dialog_text_fileType.setText(type);
             } else {
-                dialog_text.setText(text);
+                if (text.contains("下载记录")) {
+                    delete_select_l.setVisibility(View.VISIBLE);
+                }
+                if (text.contains(" / ")) {
+                    dialog_text.setVisibility(View.GONE);
+                    dialog_text_layout.setVisibility(View.VISIBLE);
+                    loadFileSize(text);
+                } else {
+                    dialog_text.setText(text);
+                }
             }
         }
         if (okName != null) {
@@ -133,28 +144,45 @@ public class FeetDialog extends Dialog {
             @Override
             public void upEvent() {
                 if (touchListener != null) {
-                    String txt = "";
+                    String name = "";
                     String type = "";
-                    if (text != null && text.contains(" / ")) {
-                        txt = dialog_text_filename.getText().toString();
-                        if (StringUtils.isEmpty(txt)) txt = CommonUtils.randomStr();
+                    if ("重命名".equals(title)) {
+                        name = dialog_text_filename.getText().toString();
                         type = dialog_text_fileType.getText().toString();
-                        type = type.substring(0, type.lastIndexOf(" / "));
+                    } else {
+                        if (text != null && text.contains(" / ")) {
+                            name = dialog_text_filename.getText().toString();
+                            if (StringUtils.isEmpty(name)) name = CommonUtils.randomStr();
+                            type = dialog_text_fileType.getText().toString();
+                            type = type.substring(0, type.lastIndexOf(" / "));
+                        }
+                        if (delete_select.isChecked()) {
+                            name = "delete";
+                        }
                     }
-                    if (delete_select.isChecked()) {
-                        txt = "delete";
-                    }
-                    touchListener.ok(txt + type);
+                    touchListener.ok(name + type);
                 }
             }
         });
         // 隐藏输入键盘
-        feet_dialog_l.setOnClickListener(v -> {
-            InputMethodManager im = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-            if (im != null) { // 隐藏键盘
-                im.hideSoftInputFromWindow(dialog_text_filename.getWindowToken(), 0);
+        feet_dialog_l.setOnTouchListener((View view, MotionEvent motionEvent) -> {
+            if(null != this.getCurrentFocus()){
+                dialog_text_filename.clearFocus();
+                /**
+                 * 点击空白位置 隐藏软键盘
+                 */
+                InputMethodManager mInputMethodManager = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+                mInputMethodManager.hideSoftInputFromWindow(dialog_text_filename.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             }
-            dialog_for_focus.requestFocus();
+            return true;
+        });
+        // 显示输入键盘
+        dialog_text_filename.setOnTouchListener((View view, MotionEvent motionEvent) -> {
+            //获得焦点
+            dialog_text_filename.setFocusable(true);
+            dialog_text_filename.setFocusableInTouchMode(true);
+            dialog_text_filename.requestFocus();
+            return false;
         });
 
         // 异步获取文件大小

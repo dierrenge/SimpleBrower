@@ -1372,6 +1372,41 @@ public class CommonUtils {
     }
 
     /**
+     * 重命名对象保存到本地
+     *
+     * @param oldName  旧名
+     * @param newName  新名
+     * @return true 保存成功
+     */
+    public static boolean renameObjectIntoLocal(String oldName, String newName) {
+        try {
+            File file = CommonUtils.getFile("SimpleBrower/0_like", "set2.txt", oldName);
+            JSONObject jsonObject = new JSONObject();
+            if (file.exists()) {
+                String json = "";
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    String line = "";
+                    while ((line = br.readLine()) != null) {
+                        json = json + line;
+                    }
+                }
+                jsonObject = new JSONObject(json);
+            }
+            String info = jsonObject.getString(oldName);
+            // jsonObject.remove(oldName);
+            jsonObject.put(newName, info);
+            String jsonStr = jsonObject.toString();
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(jsonStr);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * 删除对象保存到本地
      *
      * @return true 保存成功
@@ -1963,4 +1998,11 @@ public class CommonUtils {
             e.printStackTrace();
         }
     }
+
+    // 工具方法：dp转px
+    public static int dpToPx(Context context, int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round(dp * density); // 公式：px = dp × (dpi / 160)
+    }
+
 }

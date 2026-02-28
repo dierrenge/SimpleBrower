@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 
 import cn.cheng.simpleBrower.R;
+import cn.cheng.simpleBrower.activity.DownloadActivity;
+import cn.cheng.simpleBrower.activity.LikeActivity;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
 /**
@@ -30,7 +32,7 @@ public class LongClickDialog extends Dialog {
     private Button modify;
     private Button delete;
     private Button selectMore;
-
+    private Context context;
     private TouchListener touchListener;
 
     private int x, y; // 点击屏幕的位置
@@ -39,6 +41,7 @@ public class LongClickDialog extends Dialog {
 
     public LongClickDialog(@NonNull Context context, float x, float y) {
         super(context, R.style.dialog);
+        this.context = context;
         // 点击屏幕的位置
         this.x = Math.round(x);
         this.y = Math.round(y);
@@ -68,6 +71,9 @@ public class LongClickDialog extends Dialog {
         open = findViewById(R.id.dialog_open);
         copy = findViewById(R.id.dialog_copy);
         modify = findViewById(R.id.dialog_modify);
+        if (context instanceof LikeActivity || context instanceof DownloadActivity) {
+            modify.setVisibility(View.GONE);
+        }
         delete = findViewById(R.id.dialog_delete);
         selectMore = findViewById(R.id.dialog_selectMore);
         // 间距
@@ -201,19 +207,18 @@ public class LongClickDialog extends Dialog {
         this.touchListener = touchListener;
     }
 
-    public interface TouchListener {
-        // 关闭弹框
-        void close();
+    public abstract static class TouchListener {
+        public abstract void close();
         // 打开
-        void open();
+        public abstract void open();
         // 复制
-        void copy();
+        public abstract void copy();
         // 修改
-        void modify();
+        public void modify() {};
         // 删除
-        void delete();
+        public abstract void delete();
         // 多选
-        void selectMore();
+        public abstract void selectMore();
     }
 
 }

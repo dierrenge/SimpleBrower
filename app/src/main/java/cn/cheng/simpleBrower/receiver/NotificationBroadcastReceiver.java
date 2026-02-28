@@ -1,13 +1,9 @@
 package cn.cheng.simpleBrower.receiver;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import cn.cheng.simpleBrower.MyApplication;
-import cn.cheng.simpleBrower.bean.NotificationBean;
-import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.NotificationUtils;
 
 // 用于接受下载完成提示的广播接收者
@@ -21,7 +17,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
-            NotificationUtils.deleteNotification(context, notificationId);
+            NotificationUtils.deleteDownloadNotification(context, notificationId);
         }
     }
 }

@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
@@ -34,6 +35,7 @@ import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.LongClickDialog;
 import cn.cheng.simpleBrower.custom.LongTouchListener;
 import cn.cheng.simpleBrower.custom.MyToast;
+import cn.cheng.simpleBrower.service.ReadService;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.PhoneSysPath;
 import cn.cheng.simpleBrower.util.SysWindowUi;
@@ -246,7 +248,10 @@ public class TxtListActivity extends AppCompatActivity {
                         }
                         @Override
                         public void upEvent(float x, float y) {
-                            if (isChange) return;
+                            if (isChange) {
+                                select(txtUrl, item_select);
+                                return;
+                            }
                             LongClickDialog dialog = new LongClickDialog(TxtListActivity.this, x, y - mWindowTop);
                             dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                                 @Override
@@ -266,6 +271,38 @@ public class TxtListActivity extends AppCompatActivity {
                                 @Override
                                 public void modify() {
                                     dialog.dismiss();
+                                    FeetDialog feetDialog = new FeetDialog(TxtListActivity.this, "重命名", textView.getText().toString(), "确定", "取消");
+                                    feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
+                                        @Override
+                                        public void close() {
+                                            feetDialog.dismiss();
+                                        }
+                                        @Override
+                                        public void ok(String txt) {
+                                            String fileUrl = txtUrl.substring(0, txtUrl.lastIndexOf("/") + 1) + txt;
+                                            if (!txt.startsWith(".") && !txtUrl.equals(fileUrl)) {
+                                                new Thread(() -> {
+                                                    if (TxtActivity.txtActivity != null && TxtActivity.flagRead) { // 停止服务
+                                                        Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+                                                        TxtActivity.txtActivity.stopService(intentS);
+                                                    }
+                                                    boolean re = CommonUtils.renameObjectIntoLocal(txtUrl, fileUrl); // 更名阅读记录
+                                                    if (re) re = new File(txtUrl).renameTo(new File(fileUrl)); // 更名文件
+                                                    Message message = Message.obtain();
+                                                    if (!re) {
+                                                        message.what = 1;
+                                                        message.obj = "更名失败" ;
+                                                    } else {
+                                                        message.what = 2;
+                                                        message.obj = new String[] {txt, txtUrl, fileUrl, position+""};
+                                                    }
+                                                    handler.sendMessage(message);
+                                                }).start();
+                                            }
+                                            feetDialog.dismiss();
+                                        }
+                                    });
+                                    feetDialog.show();
                                 }
                                 @Override
                                 public void delete() {
@@ -396,6 +433,21 @@ public class TxtListActivity extends AppCompatActivity {
                         recyclerView.setVisibility(View.GONE);
                         layout.setVisibility(View.VISIBLE);
                         menu_edit.setAlpha(0.5f);
+                    }
+                } else if (message.what == 2) {
+                    if (recyclerView != null) {
+                        String[] arr = (String[]) message.obj;
+                        String txt = arr[0];
+                        String txtUrl = arr[1];
+                        String fileUrl = arr[2];
+                        int position = Integer.parseInt(arr[3]);
+                        txtUrls = txtUrls.stream().map(item -> txtUrl.equals(item) ? fileUrl : item).collect(Collectors.toList());
+                        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+                        if (holder != null) {
+                            TextView textView = holder.itemView.findViewById(R.id.item_txt);
+                            textView.setText(txt);
+                            recyclerView.getAdapter().notifyItemChanged(position);
+                        }
                     }
                 } else if (message.what == 3) {
                     if (recyclerView != null) {

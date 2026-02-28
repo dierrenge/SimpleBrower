@@ -347,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (isExit) {
                 // 停止服务
-                if (TxtActivity.txtActivity != null) {
+                if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
                     Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
                     TxtActivity.txtActivity.stopService(intentS);
                 }
