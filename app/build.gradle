@@ -56,6 +56,14 @@ def buildTime() {
     return formattedDate
 }
 
+//用于生成时间
+def buildDate() {
+    def date = new Date()
+    //yy年 MM月 dd日
+    def formattedDate = date.format('yyMMdd')
+    return formattedDate
+}
+
 plugins {
     id 'com.android.application'
 }
@@ -99,7 +107,7 @@ android {
                     //这里也可以调用上面的 (':app:assembleRelease' in runTasks) 进行判断 感觉会更好一些
                     if (outputFile.name.contains("release")) {
                         //在字符串里面调用方法的话，得要${ }里面调用 切记
-                        outputFileName = new File("../release/","release-${getProperty("version.properties","versionName")}_DATE-${buildTime()}.apk");
+                        outputFileName = new File("../release/","彼黍_${getProperty("version.properties","versionName")}_${buildDate()}.apk");
                         //调用方法 versionName 自动更新
                         PropertyAdd("version.properties", "versionName")
                     }
