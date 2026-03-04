@@ -453,6 +453,12 @@ public class TxtActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
+        if (ReadService.textToSpeech != null && flagRead) {
+            // 根据实际情况判断是否正在朗读
+            if (!ReadService.textToSpeech.isSpeaking()) {
+                flagRead = false;
+            }
+        }
         MyApplication.setOpenFlag(false);
         new Handler().postDelayed(() -> {
             MyApplication.setOpenFlag(true);

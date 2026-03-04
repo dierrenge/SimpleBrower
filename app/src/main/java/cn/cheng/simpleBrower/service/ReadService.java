@@ -23,7 +23,7 @@ import cn.cheng.simpleBrower.util.NotificationUtils;
 
 public class ReadService extends Service implements TextToSpeech.OnInitListener {
 
-    public TextToSpeech textToSpeech;
+    public static TextToSpeech textToSpeech;
     private final HeadphoneReceiver receiver = new HeadphoneReceiver();
     private Intent intent = new Intent("com.example.communication.RECEIVER");
     private String txtUrl = "";
