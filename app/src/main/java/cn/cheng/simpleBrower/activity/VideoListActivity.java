@@ -234,7 +234,8 @@ public class VideoListActivity extends AppCompatActivity {
                 String videoUrl = videoUrls.get(position);
                 String[] s = videoUrl.split("/");
                 if (s.length > 0) {
-                    textView.setText(s[s.length - 1]);
+                    String name = s[s.length - 1];
+                    textView.setText(name);
                     textView.setOnClickListener(view -> {
                         click(videoUrl, item_select);
                     });
@@ -268,12 +269,12 @@ public class VideoListActivity extends AppCompatActivity {
                                 @Override
                                 public void copy() {
                                     dialog.dismiss();
-                                    CommonUtils.copy(VideoListActivity.this, textView.getText().toString());
+                                    CommonUtils.copy(VideoListActivity.this, name);
                                 }
                                 @Override
                                 public void modify() {
                                     dialog.dismiss();
-                                    FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "重命名", textView.getText().toString(), "确定", "取消");
+                                    FeetDialog feetDialog = new FeetDialog(VideoListActivity.this, "重命名", name, "确定", "取消");
                                     feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                                         @Override
                                         public void close() {

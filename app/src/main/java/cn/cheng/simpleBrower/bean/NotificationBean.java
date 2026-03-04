@@ -9,6 +9,7 @@ import java.util.List;
 public class NotificationBean {
 
     private String title; // 名称
+    private String fileType; // 文件类型
     private String url;
     private int notificationId; // 消息id
     private int what; // 下载类型（网站自身提供的下载为4）
@@ -34,6 +35,14 @@ public class NotificationBean {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 
     public String getUrl() {

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.service.notification.StatusBarNotification;
 
 import androidx.core.app.NotificationCompat;
 
@@ -84,7 +85,6 @@ public class NotificationUtils {
         // 获取基础信息
         NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(id);
         if (context == null || downLoadInfo == null || text == null) return;
-        String url = downLoadInfo.getUrl();
         String supDir = downLoadInfo.getSupDir();
         String title = downLoadInfo.getTitle();
         int progress = 0;
@@ -99,7 +99,7 @@ public class NotificationUtils {
         // 设置下载进度
         nBuilder.setProgress(100, progress, false);
         // 设置排序标识
-        nBuilder.setSortKey(url);
+        nBuilder.setSortKey(title);
 
         // 创建一个用于记录滑动删除的intent 调用广播
         Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
@@ -136,17 +136,33 @@ public class NotificationUtils {
     }
 
     // 删除指定下载通知
-    public static void deleteDownloadNotification(Context context, int notificationId) {
+    public static void deleteDownloadNotification(Context context, int notificationId, boolean flag) {
         try {
             NotificationBean downLoadInfo = MyApplication.getDownLoadInfo(notificationId);
             if (downLoadInfo == null) return;
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             downLoadInfo.setState("继续");
-            MyApplication.deleteDownLoadInfo(notificationId);
+            if (flag) MyApplication.deleteDownLoadInfo(notificationId);
             notificationManager.cancel(notificationId);
             CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
         } catch (Throwable e) {
             CommonUtils.saveLog("=======处理删除事件notification_cancelled=======" + e.getMessage());
         }
+    }
+
+    // 是否存在相同通知
+    public static boolean hasSameNotification(Context context, String sortKey) {
+        try {
+            NotificationManager nm = context.getSystemService(NotificationManager.class);
+            for (StatusBarNotification activeNotification : nm.getActiveNotifications()) {
+                if (activeNotification.getNotification() != null) {
+                    String sortKey0 = activeNotification.getNotification().getSortKey();
+                    if (sortKey.equals(sortKey0)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 }

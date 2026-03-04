@@ -86,22 +86,25 @@ public class M3u8DownLoader {
     // dir的上级目录
     private String supDir;
 
-    //视频文件名称
+    // 文件名称
     private String fileName;
 
-    //已完成ts片段个数
+    // 文件类型
+    private String fileType;
+
+    // 已完成ts片段个数
     private int finishedCount = 0;
 
-    //解密算法名称
+    // 解密算法名称
     private String method;
 
-    //密钥
+    // 密钥
     private String key;
 
-    //所有ts片段下载链接
+    // 所有ts片段下载链接
     private List<String> tsList = new ArrayList<>();
 
-    //m3u8文本行
+    // m3u8文本行
     private ArrayList<String> m3u8Lines = new ArrayList<>();
 
     // 下载任务消息记录
@@ -116,15 +119,17 @@ public class M3u8DownLoader {
         this.DOWNLOADURL = notificationBean.getUrl();
         // 设置下载类型（网站自身提供的下载为4）
         this.what = notificationBean.getWhat();
-        //设置生成目录
+        // 设置生成目录
         this.supDir = notificationBean.getSupDir();
-        //设置视频名称
+        // 设置名称
         this.fileName = notificationBean.getTitle();
-        //设置线程数
+        // 文件类型
+        this.fileType = notificationBean.getFileType();
+        // 设置线程数
         this.threadCount = notificationBean.getThreadCount();
-        //设置重试次数
+        // 设置重试次数
         this.retryCount = notificationBean.getRetryCount();
-        //设置连接超时时间（单位：毫秒）
+        // 设置连接超时时间（单位：毫秒）
         this.timeoutMillisecond = notificationBean.getTimeoutMillisecond();
     }
 
@@ -595,7 +600,7 @@ public class M3u8DownLoader {
         if (notificationBean == null) return;
         TaskExecutionManager.getInstance().executeTask(id, () -> {
             System.out.println("下载文件原始链接：" + DOWNLOADURL);
-            if (DOWNLOADURL.endsWith(".m3u8")) {
+            if (DOWNLOADURL.endsWith(".m3u8") || ".m3u8".equals(fileType)) {
                 try {
                     // 创建并记录线程池
                     this.fixedThreadPool = Executors.newFixedThreadPool(threadCount);
@@ -670,9 +675,11 @@ public class M3u8DownLoader {
                 absolutePath = supDir + "/" + fileName;
                 if (!fileName.contains(".") || what != 4) {
                     // 获取格式
-                    String contentType = httpURLConnection.getContentType();
-                    String format = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
-                    absolutePath = supDir + "/" + fileName + format;
+                    if (fileType == null) {
+                        String contentType = httpURLConnection.getContentType();
+                        fileType = CommonUtils.getUrlFormat(DOWNLOADURL, contentType);
+                    }
+                    absolutePath = supDir + "/" + fileName + fileType;
                 }
             }
 
@@ -685,7 +692,8 @@ public class M3u8DownLoader {
                     // stopAndSendMsg(m, 4, bytesum);
                     // return;
                     while ((file = new File(absolutePath)).exists()) {
-                        if (absolutePath.contains(".")) {
+                        String fileName = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+                        if (fileName.contains(".")) {
                             String name = absolutePath.substring(0, absolutePath.lastIndexOf("."));
                             String type = absolutePath.substring(absolutePath.lastIndexOf("."));
                             absolutePath = CommonUtils.preventDuplication(name) + type;

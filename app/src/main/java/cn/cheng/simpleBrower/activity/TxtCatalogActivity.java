@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -108,6 +109,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
                 LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 Button button = holder.itemView.findViewById(R.id.item_true);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
+                textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setTextSize(18);
                 textView.setTextIsSelectable(false);
                 HashMap<String, String> map = chapters.get(position);

@@ -231,6 +231,7 @@ public class DownloadActivity extends AppCompatActivity {
                         bean = MyApplication.getDownLoadInfo(notificationId);
                         if (bean == null) return;
                     }
+                    String name = CommonUtils.getUrlName2(bean.getAbsolutePath());
                     textView.setOnClickListener(view -> {
                         if (isChange) {
                             select(fileRecordUrl, item_select);
@@ -268,7 +269,7 @@ public class DownloadActivity extends AppCompatActivity {
                                 @Override
                                 public void copy() {
                                     dialog.dismiss();
-                                    CommonUtils.copy(DownloadActivity.this, textView.getText().toString());
+                                    CommonUtils.copy(DownloadActivity.this, name);
                                 }
                                 @Override
                                 public void delete() {
@@ -305,14 +306,14 @@ public class DownloadActivity extends AppCompatActivity {
                                     NotificationBean info = MyApplication.getDownLoadInfo(notificationId);
                                     if (info == null) { // 内存中没有 说明没重复
                                         // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + CommonUtils.zeroPadding(bean.getNotificationId()));
+                                        fileUrls.set(position, CommonUtils.getUrlName(fileRecordUrl));
+                                        MyApplication.setDownLoadInfo(notificationId, bean);
                                         Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
                                         intent.putExtra("what", bean.getWhat());
                                         intent.putExtra("url", bean.getUrl());
                                         intent.putExtra("title", bean.getTitle());
                                         intent.putExtra("notificationId", notificationId);
                                         DownloadActivity.this.startService(intent);
-                                        fileUrls.set(position, CommonUtils.getUrlName(fileRecordUrl));
-                                        MyApplication.setDownLoadInfo(notificationId, bean);
                                     }
                                 }
                             } else { // 从内存中读取
@@ -323,19 +324,20 @@ public class DownloadActivity extends AppCompatActivity {
                                     // bean.setState(state);
                                     // CommonUtils.writeObjectIntoLocal("downloadList", bean.getDate() + CommonUtils.zeroPadding(bean.getNotificationId()), bean);
                                     if (state.equals("暂停") && !processStr.contains("100")) {
-                                        new M3u8DownLoader(notificationId).start();
+                                        boolean flag = DownloadService.downloadServiceCheck(DownloadActivity.this, notificationId);
+                                        if (flag) DownloadService.start(notificationId);
                                     }
                                 } else if (state.equals("暂停")) { // 内存中的记录被删除的情况
                                     // CommonUtils.deleteLocalObject("downloadList", bean.getDate() + CommonUtils.zeroPadding(bean.getNotificationId()));
+                                    String url = getDownloadDir() + fileRecordUrl + ".json";
+                                    fileUrls.set(position, url);
+                                    MyApplication.setDownLoadInfo(notificationId, bean);
                                     Intent intent = new Intent(DownloadActivity.this, DownloadService.class);
                                     intent.putExtra("what", bean.getWhat());
                                     intent.putExtra("url", bean.getUrl());
                                     intent.putExtra("title", bean.getTitle());
                                     intent.putExtra("notificationId", notificationId);
                                     DownloadActivity.this.startService(intent);
-                                    String url = getDownloadDir() + fileRecordUrl + ".json";
-                                    fileUrls.set(position, url);
-                                    MyApplication.setDownLoadInfo(notificationId, bean);
                                 }
                             }
                             button.setText(state);
@@ -346,8 +348,8 @@ public class DownloadActivity extends AppCompatActivity {
                     });
 
                     // 刷新ui
-                    clearMap.put(fileRecordUrl, CommonUtils.getUrlName(bean.getAbsolutePath()));
-                    textView.setText(CommonUtils.getUrlName2(bean.getAbsolutePath()));
+                    clearMap.put(fileRecordUrl, name);
+                    textView.setText(name);
                     String processStr = getProcess(bean);
                     processView.setText(processStr);
                     if (processStr.contains("100")) {
@@ -561,7 +563,7 @@ public class DownloadActivity extends AppCompatActivity {
                 final String url1 = url0;
                 if (!url0.contains("/")) { // 下载时，先删除对应通知
                     int notificationId = Integer.parseInt(url0.substring(8));
-                    NotificationUtils.deleteDownloadNotification(this, notificationId);
+                    NotificationUtils.deleteDownloadNotification(this, notificationId, true);
                     url0 = getDownloadDir() + url0 + ".json";
                 }
                 final String url = url0;
@@ -619,6 +621,7 @@ public class DownloadActivity extends AppCompatActivity {
                                 String btnTxt = button.getText().toString();
                                 String processTxt = processView.getText().toString();
                                 String process = getProcess(bean);
+                                if (process.contains("100")) NotificationUtils.deleteDownloadNotification(DownloadActivity.this, notificationId, true);
                                 if ("完成".equals(btnTxt) || (btnTxt.equals(bean.getState()) && process.equals(processTxt))) continue;
                                 recyclerView.getAdapter().notifyItemChanged(i);
                             }

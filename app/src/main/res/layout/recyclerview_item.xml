@@ -48,8 +48,8 @@
                 android:layout_height="40dp"
                 android:textIsSelectable="false"
                 android:textSize="14dp"
-                android:inputType="text"
-                android:maxLines="1"/> <!-- android:textIsSelectable="true" 允许复制-->
+                android:maxLines="1"
+                android:ellipsize="middle"/> <!-- android:textIsSelectable="true" 允许复制-->
         </LinearLayout>
 
         <LinearLayout

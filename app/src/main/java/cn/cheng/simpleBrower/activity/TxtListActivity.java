@@ -232,7 +232,8 @@ public class TxtListActivity extends AppCompatActivity {
                 String txtUrl = txtUrls.get(position);
                 String[] s = txtUrl.split("/");
                 if (s.length > 0) {
-                    textView.setText(s[s.length - 1]);
+                    String name = s[s.length - 1];
+                    textView.setText(name);
                     textView.setOnClickListener(view -> {
                         click(txtUrl, item_select);
                     });
@@ -266,12 +267,12 @@ public class TxtListActivity extends AppCompatActivity {
                                 @Override
                                 public void copy() {
                                     dialog.dismiss();
-                                    CommonUtils.copy(TxtListActivity.this, textView.getText().toString());
+                                    CommonUtils.copy(TxtListActivity.this, name);
                                 }
                                 @Override
                                 public void modify() {
                                     dialog.dismiss();
-                                    FeetDialog feetDialog = new FeetDialog(TxtListActivity.this, "重命名", textView.getText().toString(), "确定", "取消");
+                                    FeetDialog feetDialog = new FeetDialog(TxtListActivity.this, "重命名", name, "确定", "取消");
                                     feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                                         @Override
                                         public void close() {

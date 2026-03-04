@@ -44,7 +44,7 @@ public class DownLoadHandler extends Handler {
             switch (msg.what) {
                 case 0:
                     MyToast.getInstance(arr[0]).show();
-                    if (arr.length >= 3 && downLoadInfo != null) {
+                    if (arr.length >= 3 && downLoadInfo != null) { // 网络下载中被校验住
                         if ("0".equals(arr[2])) {
                             downLoadInfo.setState("继续");
                         } else if ("10".equals(arr[2])) {
@@ -54,6 +54,9 @@ public class DownLoadHandler extends Handler {
                             downLoadInfo.setRangeRequest("false");
                         }
                         CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
+                    }
+                    if (arr.length == 2 && downLoadInfo != null) { // 下载服务启动时被校验住
+                        NotificationUtils.deleteDownloadNotification(context, n, false);
                     }
                     break;
                 case 1:

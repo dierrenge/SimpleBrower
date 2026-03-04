@@ -128,7 +128,8 @@ public class DownloadListDialog extends Dialog {
                         intent.putExtra("what", bean.getWhat());
                         intent.putExtra("url", bean.getUrl());
                         String title0 = editText.getText().toString();
-                        intent.putExtra("title", title0.length() > 30 ? title0.substring(0, 24) + "···" + title0.substring(title0.length() - 6) : title0);
+                        intent.putExtra("title", title0);
+                        intent.putExtra("fileType", bean.getFileType());
                         MyApplication.getContext().startService(intent);
                     } catch (Throwable e) {
                         CommonUtils.saveLog("=====底部对话框====点击下载=====" + e.getMessage());

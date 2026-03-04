@@ -17,7 +17,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         // 处理删除事件
         if ("notification_cancelled".equals(action)) {
-            NotificationUtils.deleteDownloadNotification(context, notificationId);
+            NotificationUtils.deleteDownloadNotification(context, notificationId, true);
         }
     }
 }
