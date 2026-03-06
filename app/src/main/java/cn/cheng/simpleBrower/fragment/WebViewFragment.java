@@ -319,7 +319,6 @@ public class WebViewFragment extends Fragment {
 
     // 下载
     private void download(String url, String titleO, int what) {
-        if (!CommonUtils.requestNotificationPermissions(requireActivity(), "开启通知接收下载进度信息")) return; // 通知
         if (what == 6) {
             String base64Str = url.substring(url.indexOf(",")+1);
             byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);
@@ -335,6 +334,7 @@ public class WebViewFragment extends Fragment {
             requireContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
             MyToast.getInstance("图片下载成功").show();
         } else {
+            if (!CommonUtils.requestNotificationPermissions(requireActivity(), "开启“通知”接收下载进度信息")) return; // 通知
             Intent intent = new Intent(requireContext(), DownloadService.class);
             intent.putExtra("what", what);
             intent.putExtra("url", url);
