@@ -319,7 +319,7 @@ public class WebViewFragment extends Fragment {
 
     // 下载
     private void download(String url, String titleO, int what) {
-        if (!CommonUtils.requestNotificationPermissions(requireActivity())) return; // 通知
+        if (!CommonUtils.requestNotificationPermissions(requireActivity(), "开启通知接收下载进度信息")) return; // 通知
         if (what == 6) {
             String base64Str = url.substring(url.indexOf(",")+1);
             byte[] decode = Base64.decode(base64Str, Base64.DEFAULT);

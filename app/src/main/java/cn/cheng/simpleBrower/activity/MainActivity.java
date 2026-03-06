@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
                                 MyToast.getInstance("缺少必要权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
-                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "需前往授权后才能使用该功能", "授权", "取消");
+                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "该功能需访问手机文件", "设置", "取消");
                                 feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                                     @Override
                                     public void close() {
@@ -386,11 +386,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     @Override
                                     public void ok(String txt) {
-                                        Intent intent = new Intent();
-                                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        intent.setData(Uri.parse("package:" + MainActivity.this.getPackageName()));
-                                        MainActivity.this.startActivityForResult(intent, 100);
+                                        CommonUtils.openPermissionSettings(MainActivity.this);
                                         feetDialog.dismiss();
                                     }
                                 });
@@ -412,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
                                 MyToast.getInstance("缺少必要权限").show();
                             } else {
                                 // 返回 false，需要显示对话框引导跳转到设置手动授权
-                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "使用该功能需前往授权精准定位", "授权", "取消");
+                                FeetDialog feetDialog = new FeetDialog(MainActivity.this, "授权", "该功能需使用精准定位", "设置", "取消");
                                 feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                                     @Override
                                     public void close() {
@@ -420,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     @Override
                                     public void ok(String txt) {
-                                        openAppSettings();
+                                        CommonUtils.openPermissionSettings(MainActivity.this);
                                         feetDialog.dismiss();
                                     }
                                 });
@@ -441,18 +437,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-    private void openAppSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        try {
-            startActivity(intent);
-        } catch (Exception e) {
-            // 备用方案：跳转通用设置
-            intent = new Intent(Settings.ACTION_SETTINGS);
-            startActivity(intent);
         }
     }
 

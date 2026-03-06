@@ -435,6 +435,7 @@ public class MapActivity extends AppCompatActivity {
 
     private void checkMockLocation() {
         if (CommonUtils.isMockLocationApp(this)) {
+            if (!CommonUtils.requestNotificationPermissions(this, "显示“通知”提高模拟定位稳定性")) return; // 通知
             checkOverlayPermission();
         } else {
             CommonUtils.openDeveloperOptions(this, allFilesAccessLauncher);

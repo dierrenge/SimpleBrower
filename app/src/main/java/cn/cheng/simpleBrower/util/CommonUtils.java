@@ -9,6 +9,7 @@ import android.app.AppOpsManager;
 import android.app.NotificationManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -71,7 +72,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import cn.cheng.simpleBrower.MyApplication;
-import cn.cheng.simpleBrower.activity.LikeActivity;
 import cn.cheng.simpleBrower.bean.LocationBean;
 import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.bean.PositionBean;
@@ -775,17 +775,22 @@ public class CommonUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             ret = Environment.isExternalStorageManager();
         } else {
-            //版本判断，如果比android 13 就走正常的权限获取
-            if (android.os.Build.VERSION.SDK_INT < 33) {
-                int readPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
-                int writePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                ret = readPermission == PackageManager.PERMISSION_GRANTED && writePermission == PackageManager.PERMISSION_GRANTED;
-            } else {
-                int audioPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO);
-                int imagePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES);
-                int videoPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO);
-                ret = audioPermission == PackageManager.PERMISSION_GRANTED && imagePermission == PackageManager.PERMISSION_GRANTED && videoPermission == PackageManager.PERMISSION_GRANTED;
-            }
+            ret = hasStoragePermissionsOld(context);
+        }
+        return ret;
+    }
+    public static boolean hasStoragePermissionsOld(Context context) {
+        boolean ret;
+        //版本判断，如果低于 android 13 就走正常的权限获取
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            int readPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
+            int writePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            ret = readPermission == PackageManager.PERMISSION_GRANTED && writePermission == PackageManager.PERMISSION_GRANTED;
+        } else {
+            int audioPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO);
+            int imagePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES);
+            int videoPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO);
+            ret = audioPermission == PackageManager.PERMISSION_GRANTED && imagePermission == PackageManager.PERMISSION_GRANTED && videoPermission == PackageManager.PERMISSION_GRANTED;
         }
         return ret;
     }
@@ -798,7 +803,7 @@ public class CommonUtils {
     public static void requestStoragePermissions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
         // android 11 所有文件管理权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            FeetDialog feetDialog = new FeetDialog(context, "授权", "需授权后才能使用该功能", "授权", "取消");
+            FeetDialog feetDialog = new FeetDialog(context, "授权", "该功能需访问手机文件", "设置", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -818,14 +823,20 @@ public class CommonUtils {
             });
             feetDialog.show();
         } else {
-            String[] permissions;
-            if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-            } else {
-                permissions = new String[]{Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
-            }
+            String[] permissions = getStoragePermissions();
             ActivityCompat.requestPermissions(context, permissions, STORAGE_PERMISSION_REQUEST_CODE);
         }
+    }
+
+    // 获取文件管理权限相关名称
+    public static String[] getStoragePermissions() {
+        String[] permissions;
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        } else {
+            permissions = new String[]{Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
+        }
+        return permissions;
     }
 
     /**
@@ -835,7 +846,7 @@ public class CommonUtils {
      * @return
      */
     public static boolean hasNotificationPermissions(Context context) {
-        return  ((NotificationManager) context.getSystemService(NOTIFICATION_SERVICE)).areNotificationsEnabled();
+        return ((NotificationManager) context.getSystemService(NOTIFICATION_SERVICE)).areNotificationsEnabled();
     }
 
     /**
@@ -843,9 +854,9 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static boolean requestNotificationPermissions(Activity context) {
+    public static boolean requestNotificationPermissions(Activity context, String text) {
         if (!hasNotificationPermissions(context)) {
-            FeetDialog feetDialog = new FeetDialog(context, "授权", "该功能将会使用通知", "授权", "取消");
+            FeetDialog feetDialog = new FeetDialog(context, "授权", text, "设置", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
                 @Override
                 public void close() {
@@ -914,7 +925,7 @@ public class CommonUtils {
      * @param context
      */
     public static void requestOverlayPermission(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
-        FeetDialog feetDialog = new FeetDialog(context, "授权", "显示悬浮窗提高模拟定位稳定性", "授权", "取消");
+        FeetDialog feetDialog = new FeetDialog(context, "授权", "显示“悬浮窗”提高模拟定位稳定性", "设置", "取消");
         feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
             @Override
             public void close() {
@@ -991,6 +1002,43 @@ public class CommonUtils {
             }
         });
         feetDialog.show();
+    }
+
+    // 跳转权限管理界面
+    public static void openPermissionSettings(Context context) {
+        try {
+            String manufacturer = android.os.Build.MANUFACTURER.toLowerCase();
+            if (manufacturer.contains("xiaomi")) {
+                Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+                intent.putExtra("extra_pkgname", context.getPackageName());
+                ComponentName componentName = new ComponentName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
+                intent.setComponent(componentName);
+                context.startActivity(intent);
+            } else if (manufacturer.contains("huawei")) {
+                Intent intent = new Intent();
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("packageName", context.getPackageName());
+                ComponentName comp = new ComponentName("com.huawei.systemmanager", "com.huawei.permissionmanager.ui.MainActivity");
+                intent.setComponent(comp);
+                context.startActivity(intent);
+            } else {
+                openAppSettings(context);
+            }
+        } catch (Exception e) {
+            openAppSettings(context);
+        }
+    }
+    public static void openAppSettings(Context context) {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", context.getPackageName(), null);
+        intent.setData(uri);
+        try {
+            context.startActivity(intent);
+        } catch (Exception e) {
+            // 最后备用方案：跳转通用设置
+            intent = new Intent(Settings.ACTION_SETTINGS);
+            context.startActivity(intent);
+        }
     }
 
     /**

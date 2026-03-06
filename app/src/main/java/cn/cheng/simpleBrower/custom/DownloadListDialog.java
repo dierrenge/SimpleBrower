@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -115,6 +117,16 @@ public class DownloadListDialog extends Dialog {
                 DownloadBean bean = downloadList.get(position);
                 if (bean == null) return;
                 editText.setText(bean.getTitle());
+                editText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        bean.setTitle(editText.getText().toString());
+                    }
+                });
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
                     try {
@@ -123,7 +135,7 @@ public class DownloadListDialog extends Dialog {
                             CommonUtils.requestStoragePermissions((Activity) context, null);
                             return;
                         }
-                        if (!CommonUtils.requestNotificationPermissions((Activity) context)) return; // 通知
+                        if (!CommonUtils.requestNotificationPermissions((Activity) context, "开启通知接收下载进度信息")) return; // 通知
                         Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
                         intent.putExtra("what", bean.getWhat());
                         intent.putExtra("url", bean.getUrl());
