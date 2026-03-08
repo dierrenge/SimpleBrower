@@ -15,10 +15,11 @@ import java.lang.reflect.Method;
 
 /**
  * Created by YanGeCheng on 2021/9/6.
- *
+ * 注意：在布局的根元素上添加android:fitsSystemWindows="true"属性，这会自动调整布局内容，使其在状态栏下方开始，避免被状态栏遮挡
  * 系统UI工具类
  */
 public class SysWindowUi {
+
 
     /**
      * 系统状态栏和导航栏风格

@@ -26,6 +26,7 @@ import android.text.style.ForegroundColorSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.Serializable;
@@ -48,7 +49,7 @@ public class TxtActivity extends AppCompatActivity {
     public static boolean flagRead;
 
     private TextView n_title;
-    private Button back;
+    private LinearLayout back;
     private Button n_change;
     private ReadView n_content;
     private Handler msgHandler;

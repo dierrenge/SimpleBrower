@@ -15,11 +15,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -47,11 +49,13 @@ public class DownloadListDialog extends Dialog {
     private static RecyclerView recyclerView;
     private LinearLayout txt_bg2;
     private List<DownloadBean> downloadList;
+    private ActivityResultLauncher<Intent> resultLauncher; // 授权回调
 
 
-    public DownloadListDialog(@NonNull Context context) {
+    public DownloadListDialog(@NonNull Context context, ActivityResultLauncher<Intent> resultLauncher) {
         super(context, R.style.dialog);
         this.context = context;
+        this.resultLauncher = resultLauncher;
         downloadList = MyApplication.getDownloadList();
     }
 
@@ -70,11 +74,11 @@ public class DownloadListDialog extends Dialog {
         Window window = this.getWindow();
         window.setGravity(Gravity.BOTTOM);
         window.setWindowAnimations(R.style.DialogAnimation); // 应用动画样式
-        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        // window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.dimAmount = 0.3F;
+        // params.dimAmount = 0.2F;
         window.setAttributes(params);
 
         initRecyclerView();
@@ -132,17 +136,30 @@ public class DownloadListDialog extends Dialog {
                     try {
                         // 会用到的权限
                         if (!CommonUtils.hasStoragePermissions(context)) {
-                            CommonUtils.requestStoragePermissions((Activity) context, null);
-                            return;
+                            callListener.setCallback(b -> {
+                                if (CommonUtils.hasStoragePermissions(context)) {
+                                    if (CommonUtils.hasNotificationPermissions(context)) {
+                                        startDownloadService(bean);
+                                    } else {
+                                        CommonUtils.requestNotificationPermissions((Activity) context, "开启“通知”接收下载进度信息", resultLauncher);
+                                    }
+                                } else if (CommonUtils.hasStoragePermissions(context) && CommonUtils.hasNotificationPermissions(context)) {
+                                    startDownloadService(bean);
+                                }
+                            });
+                            CommonUtils.requestStoragePermissions((Activity) context, resultLauncher);
+                        } else {
+                            if (CommonUtils.hasNotificationPermissions(context)) {
+                                startDownloadService(bean);
+                            } else {
+                                callListener.setCallback(b -> {
+                                    if (CommonUtils.hasNotificationPermissions(context)) {
+                                        startDownloadService(bean);
+                                    }
+                                });
+                                CommonUtils.requestNotificationPermissions((Activity) context, "开启“通知”接收下载进度信息", resultLauncher);
+                            }
                         }
-                        if (!CommonUtils.requestNotificationPermissions((Activity) context, "开启“通知”接收下载进度信息")) return; // 通知
-                        Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
-                        intent.putExtra("what", bean.getWhat());
-                        intent.putExtra("url", bean.getUrl());
-                        String title0 = editText.getText().toString();
-                        intent.putExtra("title", title0);
-                        intent.putExtra("fileType", bean.getFileType());
-                        MyApplication.getContext().startService(intent);
                     } catch (Throwable e) {
                         CommonUtils.saveLog("=====底部对话框====点击下载=====" + e.getMessage());
                     }
@@ -212,8 +229,18 @@ public class DownloadListDialog extends Dialog {
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
+    private void startDownloadService(DownloadBean bean) {
+        Intent intent = new Intent(MyApplication.getContext(), DownloadService.class);
+        intent.putExtra("what", bean.getWhat());
+        intent.putExtra("url", bean.getUrl());
+        intent.putExtra("title", bean.getTitle());
+        intent.putExtra("fileType", bean.getFileType());
+        MyApplication.getContext().startService(intent);
+    }
+
     @Override
     public void show() {
+        if (callListener != null) callListener.setBackground(true);
         updateMonitorUI();
         super.show();
     }
@@ -221,7 +248,8 @@ public class DownloadListDialog extends Dialog {
     @Override
     public void dismiss() {
         updateMonitorUI();
-        DownloadListDialog.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        // DownloadListDialog.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (callListener != null) callListener.setBackground(false);
         super.dismiss();
     }
 
@@ -237,6 +265,10 @@ public class DownloadListDialog extends Dialog {
 
     public interface CallListener {
         void deleteAll();
+        // 授权回调函数
+        void setCallback(ValueCallback<Boolean> callback);
+        // 设置阴影
+        void setBackground(boolean flag);
     }
 
     // 更新下载检测按钮图标

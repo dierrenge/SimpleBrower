@@ -1,118 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:orientation="vertical">
+    android:background="@color/white">
 
-    <!-- Fragment 容器 -->
-    <FrameLayout
-        android:id="@+id/fragmentContainer"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <!-- 菜单栏 -->
     <LinearLayout
-        android:id="@+id/btn_menu2"
-        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <!-- Fragment 容器 -->
+        <FrameLayout
+            android:id="@+id/fragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+        <!-- 菜单栏 -->
+        <LinearLayout
+            android:id="@+id/btn_menu2"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:orientation="horizontal">
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1">
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:scaleX="1"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginTop="0.5dp"
-                android:scaleType="fitCenter"
-                android:background="@drawable/back"
-                android:gravity="center" />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1">
-            <ImageButton
-                android:id="@+id/btnForward"
-                android:scaleX="-1"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginTop="0.5dp"
-                android:scaleType="fitCenter"
-                android:background="@drawable/back"
-                android:gravity="center" />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1">
-            <ImageButton
-                android:id="@+id/btnHome"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:scaleType="fitCenter"
-                android:background="@drawable/btn_home2"
-                android:layout_marginTop="1dp"
-                android:gravity="center" />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1">
             <LinearLayout
-                android:id="@+id/btnMonitorL"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_width="35dp"
-                android:layout_height="35dp">
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1">
                 <ImageButton
-                    android:id="@+id/btnMonitor"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:id="@+id/btnBack"
+                    android:scaleX="1"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_marginTop="0.5dp"
                     android:scaleType="fitCenter"
-                    android:background="@drawable/btn_monitor"
+                    android:background="@drawable/back"
                     android:gravity="center" />
             </LinearLayout>
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1">
-
             <LinearLayout
-                android:id="@+id/btnMoreL"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:layout_width="35dp"
-                android:layout_height="35dp">
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1">
                 <ImageButton
-                    android:id="@+id/btnMore"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:background="@drawable/btn_more"
-                    android:gravity="center"
-                    android:scaleType="fitCenter" />
+                    android:id="@+id/btnForward"
+                    android:scaleX="-1"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_marginTop="0.5dp"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/back"
+                    android:gravity="center" />
             </LinearLayout>
-        </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/btnHome"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/btn_home2"
+                    android:layout_marginTop="1dp"
+                    android:gravity="center" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1">
+                <LinearLayout
+                    android:id="@+id/btnMonitorL"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp">
+                    <ImageButton
+                        android:id="@+id/btnMonitor"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:scaleType="fitCenter"
+                        android:background="@drawable/btn_monitor"
+                        android:gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1">
 
+                <LinearLayout
+                    android:id="@+id/btnMoreL"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp">
+                    <ImageButton
+                        android:id="@+id/btnMore"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:background="@drawable/btn_more"
+                        android:gravity="center"
+                        android:scaleType="fitCenter" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/layout_bg"
+        android:orientation="horizontal"
+        android:visibility="gone"/>
+
+</RelativeLayout>

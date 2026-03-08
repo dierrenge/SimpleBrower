@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
@@ -35,6 +38,7 @@ public class BrowserActivity2 extends AppCompatActivity {
     private Stack<WebViewFragment> backStack = new Stack<>();
     private Stack<WebViewFragment> forwardStack = new Stack<>();
 
+    private LinearLayout layout_bg;
     private LinearLayout btn_menu2;
     private ImageButton btnForward;
     private ImageButton btnBack;
@@ -46,6 +50,9 @@ public class BrowserActivity2 extends AppCompatActivity {
 
     private static String currentUrl; // 当前网页网址
     private WebViewFragment preFragment; // 上一个fragment
+
+    private ActivityResultLauncher<Intent> resultLauncher; // 授权回调
+    private ValueCallback<Boolean> callback; // 授权回调函数
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
@@ -65,8 +72,12 @@ public class BrowserActivity2 extends AppCompatActivity {
         // 设置默认导航栏、状态栏样式
         SysWindowUi.setStatusBarNavigationBarStyle(this, SysWindowUi.NO_STATE__NO_STATE);
 
+        // 注册权限请求的返回监听
+        initResultLauncherLauncher();
+
         setContentView(R.layout.activity_brower2);
 
+        layout_bg = findViewById(R.id.layout_bg);
         btn_menu2 = findViewById(R.id.btn_menu2);
         btnBack = findViewById(R.id.btnBack);
         btnForward = findViewById(R.id.btnForward);
@@ -89,15 +100,37 @@ public class BrowserActivity2 extends AppCompatActivity {
             BrowserActivity2.super.onBackPressed();
         });
         btnMonitor.setOnClickListener(v -> {
-            DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this);
-            dialog.setOnCallListener(() -> {
-                btnMonitor.setBackgroundResource(R.drawable.btn_monitor);
+            DownloadListDialog dialog = new DownloadListDialog(BrowserActivity2.this, resultLauncher);
+            dialog.setOnCallListener(new DownloadListDialog.CallListener() {
+                @Override
+                public void deleteAll() {
+                    btnMonitor.setBackgroundResource(R.drawable.btn_monitor);
+                }
+                @Override
+                public void setCallback(ValueCallback<Boolean> callback) {
+                    BrowserActivity2.this.callback = callback;
+                }
+                @Override
+                public void setBackground(boolean flag) {
+                    if (flag) {
+                        layout_bg.setVisibility(View.VISIBLE);
+                    } else {
+                        layout_bg.setVisibility(View.GONE);
+                    }
+                }
             });
             dialog.show();
         });
         btnMonitorL.setOnClickListener(v -> btnMonitor.callOnClick());
         btnMore.setOnClickListener(v -> {
             MoreFunctionDialog dialog = new MoreFunctionDialog(BrowserActivity2.this);
+            dialog.setCallListener(flag -> {
+                if (flag) {
+                    layout_bg.setVisibility(View.VISIBLE);
+                } else {
+                    layout_bg.setVisibility(View.GONE);
+                }
+            });
             dialog.show();
         });
         btnMoreL.setOnClickListener(v -> {
@@ -120,6 +153,19 @@ public class BrowserActivity2 extends AppCompatActivity {
 
         // 加载初始页面
         navigateTo(WebViewFragment.newInstance(currentUrl));
+    }
+
+    // 注册权限请求的返回监听
+    private void initResultLauncherLauncher() {
+        // 注册权限请求的返回监听
+        resultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> { // 授权返回后的处理
+                    if (callback != null) {
+                        callback.onReceiveValue(true);
+                    }
+                }
+        );
     }
 
     // 跳转到新页面
@@ -150,6 +196,7 @@ public class BrowserActivity2 extends AppCompatActivity {
         forwardStack.clear(); // 清空前进栈
         backStack.push(fragment);
         fragment.setFullScreenListener(callListener); // 设置回调监听
+        fragment.setResultLauncher(resultLauncher); // 授权回调
         showFragment(fragment);
     }
 
@@ -292,6 +339,11 @@ public class BrowserActivity2 extends AppCompatActivity {
         @Override
         public void sniffingDownload() {
             btnMonitor.setBackgroundResource(R.drawable.btn_monitor2);
+        }
+        // 授权回调函数
+        @Override
+        public void setCallback(ValueCallback<Boolean> callback) {
+            BrowserActivity2.this.callback = callback;
         }
     };
 

@@ -9,11 +9,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,7 +25,6 @@ import java.util.Map;
 import cn.cheng.simpleBrower.MyApplication;
 import cn.cheng.simpleBrower.R;
 import cn.cheng.simpleBrower.bean.PositionBean;
-import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.util.CommonUtils;
 import cn.cheng.simpleBrower.util.SysWindowUi;
 
@@ -41,7 +37,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
     int index = 0;
 
     private TextView c_title;
-    private Button back;
+    private LinearLayout back;
     private RecyclerView recyclerView;
 
     @SuppressLint("MissingInflatedId")

@@ -150,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
                 // 设置默认配置
                 SysBean sysBean = new SysBean();
                 sysBean.setFlagGif(true);
-                sysBean.setFlagVideo(false);
                 CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
 
                 init();
@@ -268,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, MapActivity.class);
                 this.startActivity(intent);
             } else {
-                CommonUtils.requestLocationPermissions(this, allFilesAccessLauncher);
+                CommonUtils.requestLocationAndNotificationPermissions(this);
             }
         });
     }
@@ -399,9 +398,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case CommonUtils.LOCATION_PERMISSION_REQUEST_CODE:
                 if (permissions.length > 0) {
+                    // 只判断定位相关权限
                     int pass = 0;
                     for (int i = 0; i < permissions.length; i++) {
-                        if (grantResults.length > 0 && grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        if (grantResults.length > 0 && (grantResults[i] != PackageManager.PERMISSION_GRANTED && !permissions[i].equals(Manifest.permission.POST_NOTIFICATIONS))) {
                             // 权限授权失败
                             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i])) {
                                 // 返回 true，Toast 提示
@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             return;
                         }
-                        if (grantResults.length > 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                        if (grantResults.length > 0 && (grantResults[i] == PackageManager.PERMISSION_GRANTED || permissions[i].equals(Manifest.permission.POST_NOTIFICATIONS))) {
                             pass++;
                         }
                     }

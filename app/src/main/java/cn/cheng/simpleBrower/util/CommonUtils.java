@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
@@ -800,7 +801,7 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static void requestStoragePermissions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
+    public static void requestStoragePermissions(Activity context, ActivityResultLauncher<Intent> resultLauncher) {
         // android 11 所有文件管理权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             FeetDialog feetDialog = new FeetDialog(context, "授权", "该功能需访问手机文件", "设置", "取消");
@@ -813,8 +814,8 @@ public class CommonUtils {
                 public void ok(String txt) {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                     intent.setData(Uri.parse("package:" + context.getPackageName()));
-                    if (allFilesAccessLauncher != null) {
-                        allFilesAccessLauncher.launch(intent);
+                    if (resultLauncher != null) {
+                        resultLauncher.launch(intent);
                     } else {
                         context.startActivityForResult(intent, 100);
                     }
@@ -854,7 +855,7 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static boolean requestNotificationPermissions(Activity context, String text) {
+    public static boolean requestNotificationPermissions(Activity context, String text, ActivityResultLauncher<Intent> resultLauncher) {
         if (!hasNotificationPermissions(context)) {
             FeetDialog feetDialog = new FeetDialog(context, "授权", text, "设置", "取消");
             feetDialog.setOnTouchListener(new FeetDialog.TouchListener() {
@@ -866,7 +867,11 @@ public class CommonUtils {
                 public void ok(String txt) {
                     Intent settingsIntent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
                     settingsIntent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
-                    context.startActivityForResult(settingsIntent, 200);
+                    if (resultLauncher != null) {
+                        resultLauncher.launch(settingsIntent);
+                    } else {
+                        context.startActivityForResult(settingsIntent, 200);
+                    }
                     feetDialog.dismiss();
                 }
             });
@@ -893,11 +898,14 @@ public class CommonUtils {
      *
      * @param context
      */
-    public static void requestLocationPermissions(Activity context, ActivityResultLauncher<Intent> allFilesAccessLauncher) {
+    public static void requestLocationAndNotificationPermissions(Activity context) {
         String[] permissions;
         // Android 13需单独请求前台定位权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            if (!hasNotificationPermissions(context)) { // 多加一个通知权限
+                permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.POST_NOTIFICATIONS};
+            }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION};
         } else {
@@ -985,18 +993,14 @@ public class CommonUtils {
                 try {
                     // 标准开发者选项 Intent
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
-                    // 添加 FLAG_ACTIVITY_NEW_TASK 确保从非 Activity 上下文启动
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     // 部分厂商定制 ROM 的特殊处理
                     if (intent.resolveActivity(context.getPackageManager()) == null) {
-                        intent = new Intent(Settings.ACTION_SETTINGS)
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent = new Intent(Settings.ACTION_SETTINGS);
                     }
                     allFilesAccessLauncher.launch(intent);
                 } catch (Exception e) {
                     // 备用方案：打开常规设置
-                    context.startActivity(new Intent(Settings.ACTION_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    context.startActivity(new Intent(Settings.ACTION_SETTINGS));
                 }
                 feetDialog.dismiss();
             }
@@ -1016,7 +1020,6 @@ public class CommonUtils {
                 context.startActivity(intent);
             } else if (manufacturer.contains("huawei")) {
                 Intent intent = new Intent();
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("packageName", context.getPackageName());
                 ComponentName comp = new ComponentName("com.huawei.systemmanager", "com.huawei.permissionmanager.ui.MainActivity");
                 intent.setComponent(comp);
@@ -1699,6 +1702,48 @@ public class CommonUtils {
     }
 
     /**
+     * 收藏网址
+     */
+    public static void setLikes(Handler handler) {
+        try {
+            File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+            // 没有文件 hasFile为true 则追加
+            boolean hasFile = false;
+            if (!file.exists()) {
+                hasFile = file.createNewFile();
+            } else {
+                hasFile = true;
+            }
+            try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file, hasFile));
+                 BufferedReader reader = new BufferedReader(new FileReader(file))
+            ) {
+                Message message = Message.obtain();
+                message.what = 1;
+                String likeUrl = MyApplication.jumpUrl + "\n";
+                if (hasFile) {
+                    List<String> likes = new ArrayList<>();
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        likes.add(line);
+                    }
+                    if (likes.size() > 0 && likes.contains(MyApplication.jumpUrl)) {
+                        message.obj = "该网页已收藏过了。";
+                        handler.sendMessage(message);
+                        return;
+                    }
+                }
+                bos.write(likeUrl.getBytes());
+                message.obj = "网页收藏成功";
+                handler.sendMessage(message);
+            } catch (IOException e) {
+                e.getMessage();
+            }
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
+
+    /**
      * 存档默认收藏网址
      */
     public static void setDefaultLikes() {
@@ -1960,7 +2005,6 @@ public class CommonUtils {
     public static void backHome(Activity activity) {
         Intent homeIntent = new Intent(Intent.ACTION_MAIN);
         homeIntent.addCategory(Intent.CATEGORY_HOME);
-        homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(homeIntent);
     }
 

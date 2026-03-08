@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -13,17 +14,20 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
+        <LinearLayout
             android:id="@+id/c_back"
             android:layout_width="40dp"
             android:layout_height="50dp"
-            android:background="@color/trans_color"
-            android:textColor="@color/blackGray"
-            android:paddingBottom="0dp"
-            android:gravity="center|start"
-            android:paddingLeft="5dp"
-            android:textSize="20dp"
-            android:text="〈"/>
+            android:gravity="center"
+            android:paddingLeft="11dp"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:scaleType="centerInside"
+                android:gravity="center"
+                android:src="@drawable/btn_back0"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/c_title"

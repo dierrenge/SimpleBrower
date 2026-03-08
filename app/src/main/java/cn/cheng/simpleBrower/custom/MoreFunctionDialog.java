@@ -49,11 +49,11 @@ public class MoreFunctionDialog extends Dialog {
         Window window = this.getWindow();
         window.setGravity(Gravity.BOTTOM);
         window.setWindowAnimations(R.style.DialogAnimation); // 应用动画样式
-        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        // window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.dimAmount = 0.3F;
+        // params.dimAmount = 0.2F;
         window.setAttributes(params);
 
         historyBtn = this.findViewById(R.id.historyBtn);
@@ -75,14 +75,25 @@ public class MoreFunctionDialog extends Dialog {
         });
     }
 
+    public void setCallListener(CallListener callListener) {
+        this.callListener = callListener;
+    }
+
+    public interface CallListener {
+        // 设置阴影
+        void setBackground(boolean flag);
+    }
+
     @Override
     public void show() {
+        if (callListener != null) callListener.setBackground(true);
         super.show();
     }
 
     @Override
     public void dismiss() {
-        MoreFunctionDialog.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        // MoreFunctionDialog.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (callListener != null) callListener.setBackground(false);
         super.dismiss();
     }
 
@@ -91,13 +102,4 @@ public class MoreFunctionDialog extends Dialog {
     public void setCanceledOnTouchOutside(boolean cancel) {
         super.setCanceledOnTouchOutside(cancel);
     }
-
-    public void setOnCallListener(CallListener touchListener) {
-        this.callListener = touchListener;
-    }
-
-    public interface CallListener {
-        void doing();
-    }
-
 }

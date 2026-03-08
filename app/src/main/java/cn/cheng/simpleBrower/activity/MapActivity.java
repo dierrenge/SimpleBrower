@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -15,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ValueCallback;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,8 +40,6 @@ import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
-import com.amap.api.services.geocoder.GeocodeAddress;
-import com.amap.api.services.geocoder.GeocodeQuery;
 import com.amap.api.services.geocoder.GeocodeResult;
 import com.amap.api.services.geocoder.GeocodeSearch;
 import com.amap.api.services.geocoder.RegeocodeAddress;
@@ -50,9 +48,7 @@ import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import cn.cheng.simpleBrower.R;
@@ -93,6 +89,7 @@ public class MapActivity extends AppCompatActivity {
     private Marker marker; // 标记
     private List<LocationBean> locationList; // 历史定位记录
     private AMapLocation aMapLocationT;
+    private ValueCallback<Boolean> callback; // 授权回调函数
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -124,13 +121,24 @@ public class MapActivity extends AppCompatActivity {
         map_search_layout = findViewById(R.id.map_search_layout);
         map_search_list = findViewById(R.id.map_search_list);
         // 返回
-        findViewById(R.id.map_back).setOnClickListener(v -> this.finish());
+        findViewById(R.id.map_back).setOnClickListener(v -> {
+            if (map_close.getVisibility() == View.VISIBLE) {
+                closeSearch();
+            } else {
+                this.finish();
+            }
+        });
         // 搜索
         map_search.setOnClickListener(v -> {
             map_title.setVisibility(View.GONE);
             map_search.setVisibility(View.GONE);
             map_edit.setVisibility(View.VISIBLE);
             map_close.setVisibility(View.VISIBLE);
+            // 让EditText获取焦点
+            map_edit.requestFocus();
+            // 弹出软键盘
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(map_edit, InputMethodManager.SHOW_IMPLICIT);
         });
         // 关闭搜索
         map_close.setOnClickListener(v -> {
@@ -416,9 +424,7 @@ public class MapActivity extends AppCompatActivity {
         allFilesAccessLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> { // 授权返回后的处理
-                    if (CommonUtils.isMockLocationApp(this) && CommonUtils.hasOverlayPermission(this)) {
-                        startMockLocationService();
-                    }
+                    if (callback != null) callback.onReceiveValue(true);
                 }
         );
     }
@@ -435,10 +441,27 @@ public class MapActivity extends AppCompatActivity {
 
     private void checkMockLocation() {
         if (CommonUtils.isMockLocationApp(this)) {
-            if (!CommonUtils.requestNotificationPermissions(this, "显示“通知”提高模拟定位稳定性")) return; // 通知
+            checkNotificationPermission();
+        } else {
+            callback = f -> {
+                if (CommonUtils.isMockLocationApp(this)) {
+                    checkNotificationPermission();
+                }
+            };
+            CommonUtils.openDeveloperOptions(this, allFilesAccessLauncher);
+        }
+    }
+
+    private void checkNotificationPermission() {
+        if (CommonUtils.hasNotificationPermissions(this)) {
             checkOverlayPermission();
         } else {
-            CommonUtils.openDeveloperOptions(this, allFilesAccessLauncher);
+            callback = f -> {
+                if (CommonUtils.hasNotificationPermissions(this)) {
+                    checkOverlayPermission();
+                }
+            };
+            CommonUtils.requestNotificationPermissions(this, "显示“通知”提高模拟定位稳定性", allFilesAccessLauncher);
         }
     }
 
@@ -446,6 +469,11 @@ public class MapActivity extends AppCompatActivity {
         if (CommonUtils.hasOverlayPermission(this)) {
             startMockLocationService();
         } else {
+            callback = f -> {
+                if (CommonUtils.hasOverlayPermission(this)) {
+                    startMockLocationService();
+                }
+            };
             CommonUtils.requestOverlayPermission(this, allFilesAccessLauncher);
         }
     }
@@ -514,6 +542,18 @@ public class MapActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         mapView.onSaveInstanceState(outState); //保存地图当前的状态
         super.onSaveInstanceState(outState);
+    }
+
+    // 物理按键
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) { // 返回
+            if (map_close.getVisibility() == View.VISIBLE) {
+                closeSearch();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
 }

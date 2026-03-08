@@ -38,6 +38,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -98,6 +99,8 @@ public class WebViewFragment extends Fragment {
     private Map<String, Boolean> loadedUrls = new HashMap<>(); // 广告链接集
     private HashMap<String, String> downloadNameMap = new HashMap<>(); // 记录a标签下载文件名
 
+    private ActivityResultLauncher<Intent> resultLauncher; // 授权回调
+
     // 无参构造函数
     public WebViewFragment() {
     }
@@ -125,10 +128,16 @@ public class WebViewFragment extends Fragment {
         void downLoad();
         // 检测有下载的情况
         void sniffingDownload();
+        // 授权回调函数
+        void setCallback(ValueCallback<Boolean> callback);
     }
 
     public void setFullScreenListener(CallListener listener) {
         this.callListener = listener;
+    }
+
+    public void setResultLauncher(ActivityResultLauncher<Intent> resultLauncher) {
+        this.resultLauncher = resultLauncher;
     }
 
     @SuppressLint("MissingInflatedId")
@@ -170,46 +179,21 @@ public class WebViewFragment extends Fragment {
                 if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
                     //启动线程开始执行 收藏网址存档
                     new Thread(() -> {
-                        try {
-                            File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
-                            // 没有文件 hasFile为true 则追加
-                            boolean hasFile = false;
-                            if (!file.exists()) {
-                                hasFile = file.createNewFile();
-                            } else {
-                                hasFile = true;
-                            }
-                            try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file, hasFile));
-                                 BufferedReader reader = new BufferedReader(new FileReader(file))
-                            ) {
-                                Message message = Message.obtain();
-                                message.what = 1;
-                                String likeUrl = MyApplication.jumpUrl + "\n";
-                                if (hasFile) {
-                                    List<String> likes = new ArrayList<>();
-                                    String line = null;
-                                    while ((line = reader.readLine()) != null) {
-                                        likes.add(line);
-                                    }
-                                    if (likes.size() > 0 && likes.contains(MyApplication.jumpUrl)) {
-                                        message.obj = "该网页已收藏过了。";
-                                        handler.sendMessage(message);
-                                        return;
-                                    }
-                                }
-                                bos.write(likeUrl.getBytes());
-                                message.obj = "网页收藏成功";
-                                handler.sendMessage(message);
-                            } catch (IOException e) {
-                                e.getMessage();
-                            }
-                        } catch (Exception e) {
-                            e.getMessage();
-                        }
+                        CommonUtils.setLikes(handler);
                     }).start();
                 }
             } else {
-                CommonUtils.requestStoragePermissions(requireActivity(), null);
+                callListener.setCallback(b -> {
+                    if (CommonUtils.hasStoragePermissions(requireContext())) {
+                        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
+                            //启动线程开始执行 收藏网址存档
+                            new Thread(() -> {
+                                CommonUtils.setLikes(handler);
+                            }).start();
+                        }
+                    }
+                });
+                CommonUtils.requestStoragePermissions(requireActivity(), resultLauncher);
             }
         });
         // 刷新
@@ -334,12 +318,24 @@ public class WebViewFragment extends Fragment {
             requireContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
             MyToast.getInstance("图片下载成功").show();
         } else {
-            if (!CommonUtils.requestNotificationPermissions(requireActivity(), "开启“通知”接收下载进度信息")) return; // 通知
-            Intent intent = new Intent(requireContext(), DownloadService.class);
-            intent.putExtra("what", what);
-            intent.putExtra("url", url);
-            intent.putExtra("title", titleO);
-            requireContext().startService(intent);
+            if (!CommonUtils.hasNotificationPermissions(requireActivity())) {
+                callListener.setCallback(b -> {
+                    if (CommonUtils.hasNotificationPermissions(requireActivity())) {
+                        Intent intent = new Intent(requireContext(), DownloadService.class);
+                        intent.putExtra("what", what);
+                        intent.putExtra("url", url);
+                        intent.putExtra("title", titleO);
+                        requireContext().startService(intent);
+                    }
+                });
+                CommonUtils.requestNotificationPermissions(requireActivity(), "开启“通知”接收下载进度信息", resultLauncher);
+            } else {
+                Intent intent = new Intent(requireContext(), DownloadService.class);
+                intent.putExtra("what", what);
+                intent.putExtra("url", url);
+                intent.putExtra("title", titleO);
+                requireContext().startService(intent);
+            }
         }
     }
 
@@ -453,38 +449,33 @@ public class WebViewFragment extends Fragment {
                 }
                 try {
                     name = URLDecoder.decode(name, "utf-8");
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
                 // 会用到的权限
                 if (!CommonUtils.hasStoragePermissions(requireContext())) {
-                    CommonUtils.requestStoragePermissions(requireActivity(), null);
-                    if (!name.contains(".html;") && !url.contains(".m3u8")) {
-                        // 记录点击下载的链接url
-                        MyApplication.setClickDownloadUrl(url);
-                        Message msg = Message.obtain();
-                        msg.what = 7;
-                        msg.obj = url;
-                        handler.sendMessage(msg);
-                    }
-                    return;
-                }
-                // 调用系统下载处理
-                // downloadBySystem(url, disposition, mimetype);
-                // 使用自定义下载
-                if (!name.contains(".html;")) {
-                    String text = name;
-                    if (base64Flag) {
-                        text = CommonUtils.getBase64FileSize(url, text);
-                    } else {
-                        text += " / " + url;
-                    }
-                    // 记录点击下载的链接url
-                    MyApplication.setClickDownloadUrl(url);
-                    String[] arr = new String[]{name, url, text};
-                    Message msg = Message.obtain();
-                    msg.obj = arr;
-                    msg.what = base64Flag ? 6 : 4;
-                    handler.sendMessage(msg);
+                    String finalName = name;
+                    callListener.setCallback(b -> {
+                        if (CommonUtils.hasStoragePermissions(requireContext())) {
+                            // 调用系统下载处理
+                            // downloadBySystem(url, disposition, mimetype);
+                            // 使用自定义下载
+                            sendDownloadMsg(finalName, base64Flag, url);
+                        } else {
+                            if (!finalName.contains(".html;") && !url.contains(".m3u8")) {
+                                // 记录点击下载的链接url
+                                MyApplication.setClickDownloadUrl(url);
+                                Message msg = Message.obtain();
+                                msg.what = 7;
+                                msg.obj = url;
+                                handler.sendMessage(msg);
+                            }
+                        }
+                    });
+                    CommonUtils.requestStoragePermissions(requireActivity(), resultLauncher);
+                } else {
+                    // 调用系统下载处理
+                    // downloadBySystem(url, disposition, mimetype);
+                    // 使用自定义下载
+                    sendDownloadMsg(name, base64Flag, url);
                 }
             }
         });
@@ -501,6 +492,24 @@ public class WebViewFragment extends Fragment {
         webView.setWebViewClient(myClient);
         xwebchromeclient = new CustomWebChromeClient();
         webView.setWebChromeClient(new CustomWebChromeClient());
+    }
+
+    private void sendDownloadMsg(String name, boolean base64Flag, String url) {
+        if (!name.contains(".html;")) {
+            String text = name;
+            if (base64Flag) {
+                text = CommonUtils.getBase64FileSize(url, text);
+            } else {
+                text += " / " + url;
+            }
+            // 记录点击下载的链接url
+            MyApplication.setClickDownloadUrl(url);
+            String[] arr = new String[]{name, url, text};
+            Message msg = Message.obtain();
+            msg.obj = arr;
+            msg.what = base64Flag ? 6 : 4;
+            handler.sendMessage(msg);
+        }
     }
 
     // 检测页面是否空白

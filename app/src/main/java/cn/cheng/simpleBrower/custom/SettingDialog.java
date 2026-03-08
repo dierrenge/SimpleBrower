@@ -8,8 +8,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 
@@ -24,10 +23,7 @@ import cn.cheng.simpleBrower.util.CommonUtils;
 public class SettingDialog extends Dialog {
 
     private Activity activity;
-    private RadioButton downLoadTip;
-    private RadioButton gifTip;
-    private RadioGroup downLoadGroup;
-    private RadioGroup gifGroup;
+    private CheckBox gifTip;
 
     public SettingDialog(@NonNull Activity activity) {
         super(activity, R.style.dialog);
@@ -46,46 +42,12 @@ public class SettingDialog extends Dialog {
         setCanceledOnTouchOutside(true);
 
         // 初始化控件
-        downLoadGroup = findViewById(R.id.downLoadGroup);
-        downLoadTip = findViewById(R.id.downLoadTip);
-        downLoadTip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean checked = downLoadTip.isChecked();
-                // 会用到的权限
-                if (!checked && !CommonUtils.hasStoragePermissions(activity)) {
-                    CommonUtils.requestStoragePermissions(activity, null);
-                    return;
-                }
-                SysBean sysBean = new SysBean();
-                if (checked) {
-                    downLoadTip.setChecked(false);
-                    sysBean.setFlagVideo(false);
-                } else {
-                    downLoadGroup.clearCheck();
-                    downLoadTip.setChecked(true);
-                    sysBean.setFlagVideo(true);
-                }
-                sysBean.setFlagGif(gifTip.isChecked());
-                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
-            }
-        });
-        gifGroup = findViewById(R.id.gifGroup);
         gifTip = findViewById(R.id.gifTip);
         gifTip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean checked = gifTip.isChecked();
                 SysBean sysBean = new SysBean();
-                if (checked) {
-                    gifTip.setChecked(false);
-                    sysBean.setFlagGif(false);
-                } else {
-                    gifGroup.clearCheck();
-                    gifTip.setChecked(true);
-                    sysBean.setFlagGif(true);
-                }
-                sysBean.setFlagVideo(downLoadTip.isChecked());
+                sysBean.setFlagGif(gifTip.isChecked());
                 CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
             }
         });
@@ -107,23 +69,9 @@ public class SettingDialog extends Dialog {
     private void setSys() {
         SysBean sysBean = CommonUtils.readObjectFromLocal("SysSetting", SysBean.class);
         if (sysBean != null) {
-            boolean flagVideo = sysBean.isFlagVideo();
             boolean flagGif = sysBean.isFlagGif();
-            if (downLoadTip != null && downLoadGroup != null) {
-                if (!flagVideo) {
-                    downLoadTip.setChecked(flagVideo);
-                } else {
-                    downLoadGroup.clearCheck();
-                    downLoadTip.setChecked(true);
-                }
-            }
-            if (gifTip != null && gifGroup != null) {
-                if (!flagGif) {
-                    gifTip.setChecked(flagGif);
-                } else {
-                    gifGroup.clearCheck();
-                    gifTip.setChecked(true);
-                }
+            if (gifTip != null) {
+                gifTip.setChecked(flagGif);
             }
         }
     }

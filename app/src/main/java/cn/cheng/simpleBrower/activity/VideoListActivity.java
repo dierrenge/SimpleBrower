@@ -43,7 +43,7 @@ import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class VideoListActivity extends AppCompatActivity {
 
-    private Button back;
+    private LinearLayout back;
 
     private LinearLayout layout;
 

@@ -37,7 +37,6 @@ import cn.cheng.simpleBrower.bean.NotificationBean;
 import cn.cheng.simpleBrower.custom.FeetDialog;
 import cn.cheng.simpleBrower.custom.LongClickDialog;
 import cn.cheng.simpleBrower.custom.LongTouchListener;
-import cn.cheng.simpleBrower.custom.M3u8DownLoader;
 import cn.cheng.simpleBrower.custom.MyToast;
 import cn.cheng.simpleBrower.service.DownloadService;
 import cn.cheng.simpleBrower.util.AssetsReader;
@@ -48,7 +47,7 @@ import cn.cheng.simpleBrower.util.SysWindowUi;
 
 public class DownloadActivity extends AppCompatActivity {
 
-    private Button back;
+    private LinearLayout back;
 
     private LinearLayout layout;
 
