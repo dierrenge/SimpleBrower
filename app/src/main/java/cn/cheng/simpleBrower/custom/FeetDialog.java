@@ -95,7 +95,6 @@ public class FeetDialog extends Dialog {
                 dialog_text.setVisibility(View.GONE);
                 dialog_text_layout.setVisibility(View.VISIBLE);
                 dialog_text_fileSize.setVisibility(View.GONE);
-                dialog_text_filename.setMinWidth(CommonUtils.dpToPx(context, 200));
                 dialog_text_filename.setMaxWidth(CommonUtils.dpToPx(context, 260));
                 String name = text.substring(0, text.lastIndexOf("."));
                 String type = text.substring(text.lastIndexOf("."));
@@ -160,6 +159,7 @@ public class FeetDialog extends Dialog {
                             name = "delete";
                         }
                     }
+                    if (CommonUtils.checkFilename(name)) return;
                     touchListener.ok(name + type);
                 }
             }

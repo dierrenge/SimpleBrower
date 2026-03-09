@@ -2097,4 +2097,16 @@ public class CommonUtils {
         return Math.round(dp * density); // 公式：px = dp × (dpi / 160)
     }
 
+    public static boolean checkFilename(String name) {
+        if (StringUtils.isEmpty(name)) {
+            MyToast.getInstance("文件名不能为空").show();
+            return true;
+        } else if (name.contains("\\") || name.contains("/") || name.contains(":") || name.contains("*")
+                || name.contains("?") || name.contains("<") || name.contains(">") || name.contains("|")) {
+            MyToast.getInstance("文件名不能包含\\/:*?<>|").show();
+            return true;
+        }
+        return false;
+    }
+
 }

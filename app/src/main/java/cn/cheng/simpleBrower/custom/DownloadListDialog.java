@@ -133,6 +133,7 @@ public class DownloadListDialog extends Dialog {
                 });
                 textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
+                    if (CommonUtils.checkFilename(bean.getTitle())) return;
                     try {
                         // 会用到的权限
                         if (!CommonUtils.hasStoragePermissions(context)) {
