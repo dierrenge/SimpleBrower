@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".activity.VideoActivity">
     
-    <cn.cheng.simpleBrower.custom.video.SampleVideo
+    <cn.cheng.biShu.custom.video.SampleVideo
         android:id="@+id/video_player"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

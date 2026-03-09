@@ -17,7 +17,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <cn.cheng.simpleBrower.custom.NoCutPasteTextView
+            <cn.cheng.biShu.custom.NoCutPasteTextView
                 android:id="@+id/item_address"
                 android:gravity="center|start"
                 android:layout_width="wrap_content"

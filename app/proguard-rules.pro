@@ -47,7 +47,7 @@
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
--keep class cn.cheng.simpleBrower.bean.** { *; }
+-keep class cn.cheng.biShu.bean.** { *; }
 
 # Bouncy Castle (本地 jar)
 -keep class org.bouncycastle.** { *; }

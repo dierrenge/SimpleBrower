@@ -1,4 +1,4 @@
-package cn.cheng.simpleBrower;
+package cn.cheng.biShu;
 
 import org.junit.Test;
 

@@ -69,11 +69,11 @@ plugins {
 }
 
 android {
-    namespace 'cn.cheng.simpleBrower'
+    namespace 'cn.cheng.biShu'
     compileSdk 35
 
     defaultConfig {
-        applicationId "cn.cheng.simpleBrower"
+        applicationId "cn.cheng.biShu"
         minSdk 26
         targetSdk 35
         versionCode 3

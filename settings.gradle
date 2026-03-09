@@ -22,5 +22,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "SimpleBrower"
+rootProject.name = "BiShu"
 include ':app'

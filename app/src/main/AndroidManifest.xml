@@ -268,7 +268,7 @@
         <!-- 调用系统打开文件需要 -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="cn.cheng.simpleBrower.fileprovider"
+            android:authorities="cn.cheng.biShu.fileprovider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data
