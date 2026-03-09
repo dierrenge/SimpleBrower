@@ -20,7 +20,7 @@
             android:layout_width="40dp"
             android:layout_height="50dp"
             android:gravity="center"
-            android:paddingLeft="11dp"
+            android:paddingLeft="11.5dp"
             android:orientation="vertical">
             <ImageView
                 android:layout_width="22dp"
