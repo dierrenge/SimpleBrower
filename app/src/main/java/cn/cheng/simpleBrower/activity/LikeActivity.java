@@ -484,30 +484,28 @@ public class LikeActivity extends AppCompatActivity {
             message.what = 0;
             handler.sendMessage(message);
         } else {
-            if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-                //启动线程开始执行 加载网址存档
-                new Handler().post(() -> {
-                    try {
-                        File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
-                        if (file.exists()) {
-                            try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                                String line = null;
-                                while ((line = reader.readLine()) != null) {
-                                    likeUrls.add(line);
-                                }
-                            } catch (IOException e) {
-                                e.getMessage();
+            //启动线程开始执行 加载网址存档
+            new Handler().post(() -> {
+                try {
+                    File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+                    if (file.exists()) {
+                        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                            String line = null;
+                            while ((line = reader.readLine()) != null) {
+                                likeUrls.add(line);
                             }
+                        } catch (IOException e) {
+                            e.getMessage();
                         }
-                    } catch (Exception e) {
-                        e.getMessage();
                     }
-                    // 通知handler 数据获取完成 可以初始化recyclerview
-                    Message message = Message.obtain();
-                    message.what = 0;
-                    handler.sendMessage(message);
-                });
-            }
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+                // 通知handler 数据获取完成 可以初始化recyclerview
+                Message message = Message.obtain();
+                message.what = 0;
+                handler.sendMessage(message);
+            });
         }
     }
 
@@ -525,34 +523,32 @@ public class LikeActivity extends AppCompatActivity {
             message.what = 3;
             handler.sendMessage(message);
         } else {
-            if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-                //启动线程开始执行 删除网址存档
-                new Thread(() -> {
-                    try {
-                        File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
-                        if (file.exists()) {
-                            // 集合中删除该网址
-                            likeUrls.removeAll(clearUrls);
-                            clearUrls.clear();
-                            try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
-                                for (String s : likeUrls) {
-                                    if (s != null) {
-                                        bos.write((s + "\n").getBytes());
-                                    }
+            //启动线程开始执行 删除网址存档
+            new Thread(() -> {
+                try {
+                    File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+                    if (file.exists()) {
+                        // 集合中删除该网址
+                        likeUrls.removeAll(clearUrls);
+                        clearUrls.clear();
+                        try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                            for (String s : likeUrls) {
+                                if (s != null) {
+                                    bos.write((s + "\n").getBytes());
                                 }
-                            } catch (IOException e) {
-                                e.getMessage();
                             }
+                        } catch (IOException e) {
+                            e.getMessage();
                         }
-                    } catch (Exception e) {
-                        e.getMessage();
                     }
-                    // 通知handler 数据删除完成 可以刷新recyclerview
-                    Message message = Message.obtain();
-                    message.what = 3;
-                    handler.sendMessage(message);
-                }).start();
-            }
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+                // 通知handler 数据删除完成 可以刷新recyclerview
+                Message message = Message.obtain();
+                message.what = 3;
+                handler.sendMessage(message);
+            }).start();
         }
     }
 
@@ -563,28 +559,26 @@ public class LikeActivity extends AppCompatActivity {
                 MyApplication.setUrl(l);
             }
         } else {
-            if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-                //启动线程开始执行 删除网址存档
-                new Thread(() -> {
-                    try {
-                        File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
-                        if (file.exists()) {
-                            // 集合中删除该网址
-                            try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
-                                for (String s : likeUrls) {
-                                    if (s != null) {
-                                        bos.write((s + "\n").getBytes());
-                                    }
+            //启动线程开始执行 删除网址存档
+            new Thread(() -> {
+                try {
+                    File file = CommonUtils.getFile("SimpleBrower/0_like", "like.txt", "");
+                    if (file.exists()) {
+                        // 集合中删除该网址
+                        try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+                            for (String s : likeUrls) {
+                                if (s != null) {
+                                    bos.write((s + "\n").getBytes());
                                 }
-                            } catch (IOException e) {
-                                e.getMessage();
                             }
+                        } catch (IOException e) {
+                            e.getMessage();
                         }
-                    } catch (Exception e) {
-                        e.getMessage();
                     }
-                }).start();
-            }
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+            }).start();
         }
     }
 

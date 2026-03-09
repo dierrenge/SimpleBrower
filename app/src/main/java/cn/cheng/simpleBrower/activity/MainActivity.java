@@ -143,17 +143,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSetting() {
-        if (Build.VERSION.SDK_INT >= 29) {// android 12的sd卡读写
-            //启动线程开始执行
-            new Handler().post(() -> {
-                // 设置默认配置
-                SysBean sysBean = new SysBean();
-                sysBean.setFlagGif(true);
-                CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
+        //启动线程开始执行
+        new Handler().post(() -> {
+            // 设置默认配置
+            SysBean sysBean = new SysBean();
+            sysBean.setFlagGif(true);
+            CommonUtils.writeObjectIntoLocal(sysBean, "SysSetting");
 
-                init();
-            });
-        }
+            init();
+        });
     }
 
     private void init() {

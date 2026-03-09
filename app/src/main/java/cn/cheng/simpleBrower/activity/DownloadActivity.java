@@ -545,55 +545,51 @@ public class DownloadActivity extends AppCompatActivity {
     private void initFileUrls() {
         notificationNum = MyApplication.getDownLoadInfoMap().size();
         fileUrls.clear();
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            new Handler().post(() -> {
-                CommonUtils.downloadListFileWalk(getDownloadDir(), fileUrls);
-                Message message = handler.obtainMessage(0);
-                handler.sendMessage(message);
-            });
-        }
+        new Handler().post(() -> {
+            CommonUtils.downloadListFileWalk(getDownloadDir(), fileUrls);
+            Message message = handler.obtainMessage(0);
+            handler.sendMessage(message);
+        });
     }
 
     private void deleteFileRecord(String txt) {
-        if (Build.VERSION.SDK_INT >= 29 ) { // android 12的sd卡读写
-            boolean isDeleteO = "delete".equals(txt);
-            //启动线程开始执行 删除网址存档
-            for (String url0 : clearUrls) {
-                final String url1 = url0;
-                if (!url0.contains("/")) { // 下载时，先删除对应通知
-                    int notificationId = Integer.parseInt(url0.substring(8));
-                    NotificationUtils.deleteDownloadNotification(this, notificationId, true);
-                    url0 = getDownloadDir() + url0 + ".json";
-                }
-                final String url = url0;
-                new Thread(() -> {
-                    try {
-                        if (isDeleteO) { // 删除原文件
-                            NotificationBean bean = CommonUtils.readObjectFromLocal(NotificationBean.class, url);
-                            if (bean != null && bean.getAbsolutePath() != null) {
-                                String absolutePath = bean.getAbsolutePath();
-                                if (!url.endsWith(".m3u8")) {
-                                    CommonUtils.deleteFile(new File(absolutePath));
-                                }
+        boolean isDeleteO = "delete".equals(txt);
+        //启动线程开始执行 删除网址存档
+        for (String url0 : clearUrls) {
+            final String url1 = url0;
+            if (!url0.contains("/")) { // 下载时，先删除对应通知
+                int notificationId = Integer.parseInt(url0.substring(8));
+                NotificationUtils.deleteDownloadNotification(this, notificationId, true);
+                url0 = getDownloadDir() + url0 + ".json";
+            }
+            final String url = url0;
+            new Thread(() -> {
+                try {
+                    if (isDeleteO) { // 删除原文件
+                        NotificationBean bean = CommonUtils.readObjectFromLocal(NotificationBean.class, url);
+                        if (bean != null && bean.getAbsolutePath() != null) {
+                            String absolutePath = bean.getAbsolutePath();
+                            if (!url.endsWith(".m3u8")) {
+                                CommonUtils.deleteFile(new File(absolutePath));
                             }
                         }
-                        File file = new File(url);
-                        boolean isDelete = CommonUtils.deleteFile(file);
-                        // 通知handler 数据删除完成 可以刷新recyclerview
-                        Message message = Message.obtain();
-                        if (isDelete) {
-                            message.what = 3;
-                            message.obj = url1;
-                        } else {
-                            message.what = 1;
-                            message.obj = "删除失败（" + clearMap.get(url1) + "）";
-                        }
-                        handler.sendMessage(message);
-                    } catch (Exception e) {
-                        e.getMessage();
                     }
-                }).start();
-            }
+                    File file = new File(url);
+                    boolean isDelete = CommonUtils.deleteFile(file);
+                    // 通知handler 数据删除完成 可以刷新recyclerview
+                    Message message = Message.obtain();
+                    if (isDelete) {
+                        message.what = 3;
+                        message.obj = url1;
+                    } else {
+                        message.what = 1;
+                        message.obj = "删除失败（" + clearMap.get(url1) + "）";
+                    }
+                    handler.sendMessage(message);
+                } catch (Exception e) {
+                    e.getMessage();
+                }
+            }).start();
         }
     }
 
@@ -678,7 +674,7 @@ public class DownloadActivity extends AppCompatActivity {
 
     // 获取下载记录文件目录
     private String getDownloadDir() {
-        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        String dir = PhoneSysPath.getDownloadDir();
         return dir + "/SimpleBrower/0_like/downloadList/";
     }
 

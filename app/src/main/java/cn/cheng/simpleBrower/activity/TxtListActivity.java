@@ -474,23 +474,19 @@ public class TxtListActivity extends AppCompatActivity {
     }
 
     private void initTxtUrls() {
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            // 文本文件格式
-            txtUrls.clear();
-            List<String> formats = new ArrayList<>();
-            formats.add(".txt");
-            CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, txtUrls, 2);
-            Message message = handler.obtainMessage(0);
-            handler.sendMessage(message);
-        }
+        // 文本文件格式
+        txtUrls.clear();
+        List<String> formats = new ArrayList<>();
+        formats.add(".txt");
+        CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, txtUrls, 2);
+        Message message = handler.obtainMessage(0);
+        handler.sendMessage(message);
     }
 
     private void deleteTxtUrl() {
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            //启动线程开始执行 删除网址存档
-            for (String url : clearUrls) {
-                delete(url);
-            }
+        //启动线程开始执行 删除网址存档
+        for (String url : clearUrls) {
+            delete(url);
         }
     }
 

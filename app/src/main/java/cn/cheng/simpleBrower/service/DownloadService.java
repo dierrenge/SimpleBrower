@@ -63,7 +63,7 @@ public class DownloadService extends Service {
             if (title.contains("/")) {
                 title = title.substring(title.lastIndexOf("/") + 1);
             }
-            supDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower";
+            supDir = PhoneSysPath.getDownloadDir() + "/SimpleBrower";
             notificationId = intent.getIntExtra("notificationId", CommonUtils.randomNum());
 
             // 下载服务启动校验
@@ -155,12 +155,10 @@ public class DownloadService extends Service {
 
     // 启动线程开始执行下载任务
     public static void start(int notificationId) {
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            // M3u8DownLoader.test(url, myHandler);
-            M3u8DownLoader m3u8Download = new M3u8DownLoader(notificationId);
-            //开始下载
-            m3u8Download.start();
-        }
+        // M3u8DownLoader.test(url, myHandler);
+        M3u8DownLoader m3u8Download = new M3u8DownLoader(notificationId);
+        //开始下载
+        m3u8Download.start();
     }
 
 }

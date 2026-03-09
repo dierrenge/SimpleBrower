@@ -335,7 +335,7 @@ public class CommonUtils {
      * 磁盘中读取定位记录
      */
     public static List<LocationBean> locationListFileWalk() {
-        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        String dir = PhoneSysPath.getDownloadDir();
         dir += "/SimpleBrower/0_like/locationList";
         List<LocationBean> fileList = new ArrayList<>();
         try {
@@ -1611,7 +1611,7 @@ public class CommonUtils {
      * @return
      */
     public static File getFile(String dirPath, String fName, String key) {
-        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        String dir = PhoneSysPath.getDownloadDir();
         if ("SysSetting".equals(key)) {
             dir = PhoneSysPath.getSandboxPath(MyApplication.getContext());
         }

@@ -97,7 +97,7 @@ public class VideoActivity extends AppCompatActivity {
                 // 测试用2
                 /*if (name.contains(".m3u8")) {
                     new Handler().post(() -> {
-                        CommonUtils.setTsNumLog(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/SimpleBrower/m3u8/" + name.replace(".m3u8", "") + "/1.xyz2"));
+                        CommonUtils.setTsNumLog(new File(PhoneSysPath.getDownloadDir() + "/SimpleBrower/m3u8/" + name.replace(".m3u8", "") + "/1.xyz2"));
                     });
                 }*/
                 List<String> videoUrls = new ArrayList<>();

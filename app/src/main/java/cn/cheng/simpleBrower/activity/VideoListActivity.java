@@ -462,37 +462,33 @@ public class VideoListActivity extends AppCompatActivity {
     }
 
     private void initVideoUrls() {
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            // 影音文件格式
-            videoUrls.clear();
-            List<String> formats = AssetsReader.getList("audioVideo.txt");
-            CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, videoUrls, 2);
-            Message message = handler.obtainMessage(0);
-            handler.sendMessage(message);
-        }
+        // 影音文件格式
+        videoUrls.clear();
+        List<String> formats = AssetsReader.getList("audioVideo.txt");
+        CommonUtils.fileWalk(PhoneSysPath.getDownloadDir(), formats, videoUrls, 2);
+        Message message = handler.obtainMessage(0);
+        handler.sendMessage(message);
     }
 
     private void deleteVideoUrl() {
-        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-            //启动线程开始执行 删除网址存档
-            boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8"));
-            if (hasM3u8) {
-                Message message = Message.obtain();
-                message.what = 1;
-                message.obj = "后台删除中，请勿关闭应用";
-                handler.sendMessage(message);
+        //启动线程开始执行 删除网址存档
+        boolean hasM3u8 = clearUrls.stream().anyMatch(url -> url.endsWith(".m3u8"));
+        if (hasM3u8) {
+            Message message = Message.obtain();
+            message.what = 1;
+            message.obj = "后台删除中，请勿关闭应用";
+            handler.sendMessage(message);
+        }
+        // 先删除单个文件的
+        for (String url : clearUrls) {
+            if (!url.endsWith(".m3u8")) {
+                delete(url);
             }
-            // 先删除单个文件的
-            for (String url : clearUrls) {
-                if (!url.endsWith(".m3u8")) {
-                    delete(url);
-                }
-            }
-            // 后删除多个文件的
-            for (String url : clearUrls) {
-                if (url.endsWith(".m3u8")) {
-                    delete(url);
-                }
+        }
+        // 后删除多个文件的
+        for (String url : clearUrls) {
+            if (url.endsWith(".m3u8")) {
+                delete(url);
             }
         }
     }

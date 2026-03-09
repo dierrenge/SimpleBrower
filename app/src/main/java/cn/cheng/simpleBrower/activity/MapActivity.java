@@ -369,7 +369,7 @@ public class MapActivity extends AppCompatActivity {
                         String fullAddress = address.getFormatAddress();
                         // 保存定位记录（不重复）
                         String name = "" + longitude + latitude;
-                        String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+                        String dir = PhoneSysPath.getDownloadDir();
                         String url = dir + "/SimpleBrower/0_like/locationList/" + name + ".json";
                         LocationBean oldBean = CommonUtils.readObjectFromLocal(LocationBean.class, url);
                         if (oldBean == null) {

@@ -176,21 +176,17 @@ public class WebViewFragment extends Fragment {
         url_like2.setOnClickListener(v -> {
             // 页面跳转后会用到的权限
             if (CommonUtils.hasStoragePermissions(requireContext())) {
-                if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-                    //启动线程开始执行 收藏网址存档
-                    new Thread(() -> {
-                        CommonUtils.setLikes(handler);
-                    }).start();
-                }
+                //启动线程开始执行 收藏网址存档
+                new Thread(() -> {
+                    CommonUtils.setLikes(handler);
+                }).start();
             } else {
                 callListener.setCallback(b -> {
                     if (CommonUtils.hasStoragePermissions(requireContext())) {
-                        if (Build.VERSION.SDK_INT >= 29) { // android 12的sd卡读写
-                            //启动线程开始执行 收藏网址存档
-                            new Thread(() -> {
-                                CommonUtils.setLikes(handler);
-                            }).start();
-                        }
+                        //启动线程开始执行 收藏网址存档
+                        new Thread(() -> {
+                            CommonUtils.setLikes(handler);
+                        }).start();
                     }
                 });
                 CommonUtils.requestStoragePermissions(requireActivity(), resultLauncher);
