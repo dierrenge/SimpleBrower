@@ -95,11 +95,11 @@ public class FeetDialog extends Dialog {
                 dialog_text.setVisibility(View.GONE);
                 dialog_text_layout.setVisibility(View.VISIBLE);
                 dialog_text_fileSize.setVisibility(View.GONE);
-                dialog_text_filename.setMaxWidth(CommonUtils.dpToPx(context, 260));
                 String name = text.substring(0, text.lastIndexOf("."));
                 String type = text.substring(text.lastIndexOf("."));
                 dialog_text_filename.setText(name);
                 dialog_text_fileType.setText(type);
+                setEditTextMaxWidth();
             } else {
                 if (text.contains("下载记录")) {
                     delete_select_l.setVisibility(View.VISIBLE);
@@ -108,6 +108,7 @@ public class FeetDialog extends Dialog {
                     dialog_text.setVisibility(View.GONE);
                     dialog_text_layout.setVisibility(View.VISIBLE);
                     loadFileSize(text);
+                    setEditTextMaxWidth();
                 } else {
                     dialog_text.setText(text);
                 }
@@ -217,6 +218,14 @@ public class FeetDialog extends Dialog {
         dialog_text_filename.setText(name);
         dialog_text_fileType.setText(type);
         dialog_text_fileSize.setText(size);
+    }
+
+    private void setEditTextMaxWidth() {
+        dialog_text_layout.post(() -> {
+            int editTextMaxWidth = dialog_text_layout.getWidth() - dialog_text_fileType.getWidth()
+                    - dialog_text_fileSize.getWidth() - CommonUtils.dpToPx(context, 28);
+            dialog_text_filename.setMaxWidth(editTextMaxWidth);
+        });
     }
 
     @Override

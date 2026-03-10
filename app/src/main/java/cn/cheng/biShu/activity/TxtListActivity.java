@@ -224,7 +224,6 @@ public class TxtListActivity extends AppCompatActivity {
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 LinearLayout item_layout = holder.itemView.findViewById(R.id.item_layout);
                 item_layout.setBackgroundResource(R.color.white);
-                LinearLayout item_l = holder.itemView.findViewById(R.id.item_l);
                 LinearLayout item_select_bg = holder.itemView.findViewById(R.id.item_select_bg);
                 CheckBox item_select = holder.itemView.findViewById(R.id.item_select);
                 TextView textView = holder.itemView.findViewById(R.id.item_txt);
@@ -234,9 +233,6 @@ public class TxtListActivity extends AppCompatActivity {
                 if (s.length > 0) {
                     String name = s[s.length - 1];
                     textView.setText(name);
-                    textView.setOnClickListener(view -> {
-                        click(txtUrl, item_select);
-                    });
                     textView.setOnLongClickListener(view -> true);
                     textView.setOnTouchListener(new LongTouchListener() {
                         @Override
@@ -248,7 +244,11 @@ public class TxtListActivity extends AppCompatActivity {
                             item_layout.setBackgroundResource(R.color.white);
                         }
                         @Override
-                        public void upEvent(float x, float y) {
+                        public void clickEvent() {
+                            click(txtUrl, item_select);
+                        }
+                        @Override
+                        public void longEvent(float x, float y) {
                             if (isChange) {
                                 select(txtUrl, item_select);
                                 return;
@@ -283,7 +283,8 @@ public class TxtListActivity extends AppCompatActivity {
                                             String fileUrl = txtUrl.substring(0, txtUrl.lastIndexOf("/") + 1) + txt;
                                             if (!txt.startsWith(".") && !txtUrl.equals(fileUrl)) {
                                                 new Thread(() -> {
-                                                    if (TxtActivity.txtActivity != null && TxtActivity.flagRead) { // 停止服务
+                                                    if (TxtActivity.txtActivity != null && TxtActivity.flagRead
+                                                            && txtUrl.equals(MyApplication.getTxtUrl())) { // 停止服务
                                                         Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
                                                         TxtActivity.txtActivity.stopService(intentS);
                                                     }
@@ -319,9 +320,6 @@ public class TxtListActivity extends AppCompatActivity {
                             });
                             dialog.show();
                         }
-                    });
-                    item_l.setOnClickListener(view -> {
-                        click(txtUrl, item_select);
                     });
                     // 解决：配置了android:textIsSelectable="true",同时也设置了点击事件，发现点第一次时候，点击事件没有生效
                     /*textView.setOnTouchListener(new View.OnTouchListener() {

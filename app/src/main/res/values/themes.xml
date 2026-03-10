@@ -20,6 +20,8 @@
         <item name="android:windowNoTitle">true</item><!-- 隐藏标题栏（APP名称） -->
         <!--<item name="android:windowFullscreen">true</item>--><!--这一句是隐藏状态栏-->
         <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowEnableSplitTouch">false</item><!--禁用全局多点触控-->
+        <item name="android:splitMotionEvents">false</item><!--禁用全局多点触控-->
 
     </style>
 

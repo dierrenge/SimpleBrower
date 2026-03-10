@@ -56,10 +56,8 @@ public class TxtActivity extends AppCompatActivity {
 
     String txtUrl = "";
     ArrayList<String> lines;
-    // 当前小说进度
+    // 当前文本进度
     PositionBean positionBean;
-
-    private ReadService readService;
 
     private Intent intentS;
     private MsgReceiver msgReceiver;
@@ -136,7 +134,7 @@ public class TxtActivity extends AppCompatActivity {
             }
             MyApplication.setTxtUrl(txtUrl);
 
-            // 读取内存中的小说行
+            // 读取内存中的文本行
             Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
             lines = novelLinesMap.get(txtUrl);
             if (lines == null) {

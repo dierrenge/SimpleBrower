@@ -87,7 +87,7 @@ public class LongClickDialog extends Dialog {
         params.dimAmount = 0.3F;
         params.x = (x + popupWidth > screenWidth) ? screenWidth - popupWidth : popupWidth*3/5 > x ? 0 : x - popupWidth*3/5;
         if (params.x < 60) params.x = 60;
-        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight : popupHeight/4 > y ? 0 : y - popupHeight/4;
+        params.y = (y + popupHeight > screenHeight) ? screenHeight - popupHeight : y;
         if (params.y < 60) params.y = 60;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             params.setCanPlayMoveAnimation(false);

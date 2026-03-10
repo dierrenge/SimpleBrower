@@ -113,10 +113,16 @@ public class DownloadListDialog extends Dialog {
             @Override
             public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
                 // 设置TextView显示数据
+                LinearLayout parent_l = holder.itemView.findViewById(R.id.item_download_parent_l);
                 EditText editText = holder.itemView.findViewById(R.id.item_downloadFilename);
                 TextView textView = holder.itemView.findViewById(R.id.item_downloadFileType);
-                // textView.setInputType(InputType.TYPE_NULL); // 屏蔽软键盘
+                LinearLayout item_ll = holder.itemView.findViewById(R.id.item_download_ll);
                 Button button = holder.itemView.findViewById(R.id.item_download);
+                // 动态设置最大宽度
+                parent_l.post(() -> {
+                    int editTextMaxWidth = parent_l.getWidth() - item_ll.getWidth() - textView.getWidth();
+                    editText.setMaxWidth(editTextMaxWidth);
+                });
 
                 DownloadBean bean = downloadList.get(position);
                 if (bean == null) return;

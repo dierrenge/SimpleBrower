@@ -22,10 +22,10 @@ public class MyApplication extends Application {
     // 存放 当前网页 路径
     private static List<String> urls = new ArrayList<>();
 
-    // 存放 当前小说行
+    // 存放 当前文本行
     private static Map<String, ArrayList<String>> novelLinesMap = new HashMap<>();
 
-    // 记录小说的本地路径url
+    // 记录文本的本地路径url
     private static String txtUrl;
 
     // 记录网页中的下载对象（主要是影音下载对象）

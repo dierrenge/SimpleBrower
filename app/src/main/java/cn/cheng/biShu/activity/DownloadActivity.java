@@ -213,7 +213,6 @@ public class DownloadActivity extends AppCompatActivity {
                 try {
                     LinearLayout item_layout = holder.itemView.findViewById(R.id.item_download_layout);
                     item_layout.setBackgroundResource(R.color.white);
-                    LinearLayout item_l = holder.itemView.findViewById(R.id.item_download_l);
                     TextView textView = holder.itemView.findViewById(R.id.item_download_txt);
                     TextView processView  = holder.itemView.findViewById(R.id.downloadProcess);
                     Button button = holder.itemView.findViewById(R.id.item_download_btn);
@@ -232,13 +231,6 @@ public class DownloadActivity extends AppCompatActivity {
                         if (bean == null) return;
                     }
                     String name = CommonUtils.getUrlName2(bean.getAbsolutePath());
-                    textView.setOnClickListener(view -> {
-                        if (isChange) {
-                            select(fileRecordUrl, item_select);
-                            return; // 编辑模式不可跳转
-                        }
-                        click(button, bean, processView);
-                    });
                     textView.setOnLongClickListener(view -> true);
                     textView.setOnTouchListener(new LongTouchListener() {
                         @Override
@@ -250,7 +242,15 @@ public class DownloadActivity extends AppCompatActivity {
                             item_layout.setBackgroundResource(R.color.white);
                         }
                         @Override
-                        public void upEvent(float x, float y) {
+                        public void clickEvent() {
+                            if (isChange) {
+                                select(fileRecordUrl, item_select);
+                                return; // 编辑模式不可跳转
+                            }
+                            click(button, bean, processView);
+                        }
+                        @Override
+                        public void longEvent(float x, float y) {
                             if (isChange) {
                                 select(fileRecordUrl, item_select);
                                 return; // 编辑模式不可跳转
@@ -285,13 +285,6 @@ public class DownloadActivity extends AppCompatActivity {
                             });
                             dialog.show();
                         }
-                    });
-                    item_l.setOnClickListener(view -> {
-                        if (isChange) {
-                            select(fileRecordUrl, item_select);
-                            return; // 编辑模式不可跳转
-                        }
-                        click(button, bean, processView);
                     });
                     button.setOnClickListener(view -> {
                         try {

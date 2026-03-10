@@ -76,12 +76,13 @@
         android:theme="@style/NoTitle"
         android:usesCleartextTraffic="true"
         tools:targetApi="35">
+        <!--android:excludeFromRecents=“true” // 不在最近任务中显示
+            android:noHistory=“true” // 不保留历史，即用户离开后销毁该Activity
+            android:usesCleartextTraffic="true" // 是否支持http协议（true为支持）-->
         <!--高德地图api使用的key-->
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="a4bd2a7d1e3216b4aa0b2eb2112deaa2" />
-        <!--android:excludeFromRecents=“true” // 不在最近任务中显示
-            android:noHistory=“true” // 不保留历史，即用户离开后销毁该Activity-->
         <activity
             android:name=".activity.MainActivity"
             android:exported="true"

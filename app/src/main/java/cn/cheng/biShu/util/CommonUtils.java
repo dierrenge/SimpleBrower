@@ -1045,7 +1045,7 @@ public class CommonUtils {
     }
 
     /**
-     * 按行读取小说
+     * 按行读取文本
      * @param filePath
      * @param lines
      */
@@ -1388,14 +1388,14 @@ public class CommonUtils {
             File file = CommonUtils.getFile("BiShu/0_like", "set2.txt", key);
             JSONObject jsonObject = new JSONObject();
             if (file.exists()) {
-                String json = "";
+                StringBuilder json = new StringBuilder();
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                     String line = "";
                     while ((line = br.readLine()) != null) {
-                        json = json + line;
+                        json.append(line);
                     }
                 }
-                jsonObject = new JSONObject(json);
+                jsonObject = new JSONObject(json.toString());
             }
             jsonObject.put(key, new Gson().toJson(bean));
             String jsonStr = jsonObject.toString();
@@ -1434,21 +1434,24 @@ public class CommonUtils {
             File file = CommonUtils.getFile("BiShu/0_like", "set2.txt", oldName);
             JSONObject jsonObject = new JSONObject();
             if (file.exists()) {
-                String json = "";
+                StringBuilder json = new StringBuilder();
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                     String line = "";
                     while ((line = br.readLine()) != null) {
-                        json = json + line;
+                        json.append(line);
                     }
                 }
-                jsonObject = new JSONObject(json);
-            }
-            String info = jsonObject.getString(oldName);
-            // jsonObject.remove(oldName);
-            jsonObject.put(newName, info);
-            String jsonStr = jsonObject.toString();
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                bw.write(jsonStr);
+                if ((jsonObject = checkJson(json.toString())) != null) {
+                    if (jsonObject.has(oldName)) {
+                        String info = jsonObject.getString(oldName);
+                        // jsonObject.remove(oldName);
+                        jsonObject.put(newName, info);
+                        String jsonStr = jsonObject.toString();
+                        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                            bw.write(jsonStr);
+                        }
+                    }
+                }
             }
             return true;
         } catch (Exception e) {
@@ -2097,6 +2100,7 @@ public class CommonUtils {
         return Math.round(dp * density); // 公式：px = dp × (dpi / 160)
     }
 
+    // 文件名校验
     public static boolean checkFilename(String name) {
         if (StringUtils.isEmpty(name)) {
             MyToast.getInstance("文件名不能为空").show();
@@ -2109,4 +2113,11 @@ public class CommonUtils {
         return false;
     }
 
+    public static JSONObject checkJson(String str) {
+        try {
+            return new JSONObject(str);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
