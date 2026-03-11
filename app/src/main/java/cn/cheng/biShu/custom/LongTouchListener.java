@@ -3,6 +3,9 @@ package cn.cheng.biShu.custom;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.ValueCallback;
+
+import cn.cheng.biShu.util.CommonUtils;
 
 /**
  * 自定义长按触摸监听器
@@ -21,21 +24,12 @@ public abstract class LongTouchListener implements View.OnTouchListener {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             xDown = event.getRawX();
             yDown = event.getRawY();
-            downEvent();
-            // 记录初始触摸时间
-            timeDown = event.getEventTime();
+            timeDown = event.getEventTime(); // 记录初始触摸时间
             runnable = () -> longEvent(xDown, yDown);
             handler.postDelayed(runnable, LONG_TIME);
-        }
-        if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            float xMove = Math.abs(xDown - event.getRawX());
-            float yMove = Math.abs(yDown - event.getRawY());
-            float timeMove = Math.abs(timeDown - event.getEventTime());
-            if (xMove >= 20 || yMove >= 20 || timeMove < LONG_TIME) {
+            downEvent(b -> {
                 handler.removeCallbacks(runnable);
-            } else {
-                return true;
-            }
+            });
         }
         if (event.getAction() == MotionEvent.ACTION_UP) {
             float xMove = Math.abs(xDown - event.getRawX());
@@ -46,14 +40,16 @@ public abstract class LongTouchListener implements View.OnTouchListener {
                 handler.removeCallbacks(runnable);
                 if (xMove < 20 && yMove < 20) clickEvent();
             } else {
-                return true;
+                if (xMove < 20 && yMove < 20) lClickEvent();
             }
         }
         return false;
     }
 
-    public void downEvent() {}
+    public void downEvent(ValueCallback<Boolean> callback) {}
     public void realUpEvent() {}
+
+    public void lClickEvent() {}
 
     public abstract void clickEvent();
 

@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ValueCallback;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -83,6 +84,8 @@ public class DownloadActivity extends AppCompatActivity {
     private volatile int notificationNum; // 消息数
 
     private boolean isChange = false;
+
+    private ValueCallback<Boolean> stopLongTouchCallback;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -234,7 +237,8 @@ public class DownloadActivity extends AppCompatActivity {
                     textView.setOnLongClickListener(view -> true);
                     textView.setOnTouchListener(new LongTouchListener() {
                         @Override
-                        public void downEvent() {
+                        public void downEvent(ValueCallback<Boolean> callback) {
+                            stopLongTouchCallback = callback;
                             item_layout.setBackgroundResource(R.color.colorLightGray1);
                         }
                         @Override
@@ -250,37 +254,44 @@ public class DownloadActivity extends AppCompatActivity {
                             click(button, bean, processView);
                         }
                         @Override
+                        public void lClickEvent() {
+                            if (isChange) select(fileRecordUrl, item_select);
+                        }
+                        @Override
                         public void longEvent(float x, float y) {
-                            if (isChange) {
-                                select(fileRecordUrl, item_select);
-                                return; // 编辑模式不可跳转
-                            }
+                            if (isChange) return;
+                            setScrollEnabled(false);
                             LongClickDialog dialog = new LongClickDialog(DownloadActivity.this, x, y - mWindowTop);
                             dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                                 @Override
                                 public void close() {
                                     dialog.dismiss();
+                                    setScrollEnabled(true);
                                 }
                                 @Override
                                 public void open() {
                                     dialog.dismiss();
                                     click(button, bean, processView);
+                                    setScrollEnabled(true);
                                 }
                                 @Override
                                 public void copy() {
                                     dialog.dismiss();
                                     CommonUtils.copy(DownloadActivity.this, name);
+                                    setScrollEnabled(true);
                                 }
                                 @Override
                                 public void delete() {
                                     dialog.dismiss();
                                     clearUrls.add(fileRecordUrl);
                                     menu_clear.callOnClick();
+                                    setScrollEnabled(true);
                                 }
                                 @Override
                                 public void selectMore() {
                                     dialog.dismiss();
                                     menu_edit.callOnClick();
+                                    setScrollEnabled(true);
                                 }
                             });
                             dialog.show();
@@ -469,6 +480,10 @@ public class DownloadActivity extends AppCompatActivity {
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (stopLongTouchCallback != null) {
+                    stopLongTouchCallback.onReceiveValue(true);
+                    stopLongTouchCallback = null;
+                }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     // 获取第一个可见项的位置
@@ -496,6 +511,17 @@ public class DownloadActivity extends AppCompatActivity {
                 // change();
             }
         });
+    }
+
+    void setScrollEnabled(boolean start) {
+        if (recyclerView == null) return;
+        if (start) {
+            recyclerView.getLayoutManager().setItemPrefetchEnabled(true);
+            recyclerView.setLayoutFrozen(false);
+        } else {
+            recyclerView.getLayoutManager().setItemPrefetchEnabled(false);
+            recyclerView.setLayoutFrozen(true);
+        }
     }
 
     void initHandler() {

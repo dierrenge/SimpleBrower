@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ValueCallback;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -84,6 +85,8 @@ public class LikeActivity extends AppCompatActivity {
     private boolean isChange = false; // 是否开启编辑模式
 
     private String flag = "收藏";
+
+    private ValueCallback<Boolean> stopLongTouchCallback;
 
     @SuppressLint({"MissingInflatedId", "ResourceAsColor"})
     @Override
@@ -258,7 +261,8 @@ public class LikeActivity extends AppCompatActivity {
                 textView.setOnLongClickListener(view -> true);
                 textView.setOnTouchListener(new LongTouchListener() {
                     @Override
-                    public void downEvent() {
+                    public void downEvent(ValueCallback<Boolean> callback) {
+                        stopLongTouchCallback = callback;
                         item_layout.setBackgroundResource(R.color.colorLightGray1);
                     }
                     @Override
@@ -270,37 +274,44 @@ public class LikeActivity extends AppCompatActivity {
                         click(likeUrl, item_select);
                     }
                     @Override
+                    public void lClickEvent() {
+                        if (isChange) select(likeUrl, item_select);
+                    }
+                    @Override
                     public void longEvent(float x, float y) {
-                        if (isChange) {
-                            select(likeUrl, item_select);
-                            return;
-                        }
+                        if (isChange) return;
+                        setScrollEnabled(false);
                         LongClickDialog dialog = new LongClickDialog(LikeActivity.this, x, y - mWindowTop);
                         dialog.setOnTouchListener(new LongClickDialog.TouchListener() {
                             @Override
                             public void close() {
                                 dialog.dismiss();
+                                setScrollEnabled(true);
                             }
                             @Override
                             public void open() {
                                 dialog.dismiss();
                                 click(likeUrl, item_select);
+                                setScrollEnabled(true);
                             }
                             @Override
                             public void copy() {
                                 dialog.dismiss();
                                 CommonUtils.copy(LikeActivity.this, likeUrl);
+                                setScrollEnabled(true);
                             }
                             @Override
                             public void delete() {
                                 dialog.dismiss();
                                 clearUrls.add(likeUrl);
                                 menu_clear.callOnClick();
+                                setScrollEnabled(true);
                             }
                             @Override
                             public void selectMore() {
                                 dialog.dismiss();
                                 menu_edit.callOnClick();
+                                setScrollEnabled(true);
                             }
                         });
                         dialog.show();
@@ -368,6 +379,10 @@ public class LikeActivity extends AppCompatActivity {
         recyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (stopLongTouchCallback != null) {
+                    stopLongTouchCallback.onReceiveValue(true);
+                    stopLongTouchCallback = null;
+                }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     // 获取第一个可见项的位置
@@ -432,6 +447,17 @@ public class LikeActivity extends AppCompatActivity {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         };
+    }
+
+    void setScrollEnabled(boolean start) {
+        if (recyclerView == null) return;
+        if (start) {
+            recyclerView.getLayoutManager().setItemPrefetchEnabled(true);
+            recyclerView.setLayoutFrozen(false);
+        } else {
+            recyclerView.getLayoutManager().setItemPrefetchEnabled(false);
+            recyclerView.setLayoutFrozen(true);
+        }
     }
 
     void initHandler() {
