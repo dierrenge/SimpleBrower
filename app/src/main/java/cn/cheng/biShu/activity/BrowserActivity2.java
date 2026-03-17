@@ -205,23 +205,38 @@ public class BrowserActivity2 extends AppCompatActivity {
         /*String str = "";
         for (int i = backStack.size() - 1; i >= 0; i--) {
             str += backStack.get(i).getWebView().getUrl() + "\n";
-            if (i < backStack.size() - 2) break;
         }
-        CommonUtils.saveLog(backStack.size() + "返回栈：\n" + str);*/
-        if (backStack.size() > 1) {
+        System.out.println(backStack.size() + "返回栈：\n" + str);*/
+        int size = backStack.size();
+        if (size > 1) {
             WebViewFragment fragment = backStack.pop();
-            // 当前网页停止加载
-            fragment.getWebView().stopLoading();
-            // System.out.println("*************************" + fragment.getWebView().getUrl());
+            fragment.getWebView().stopLoading(); // 当前网页停止加载
             WebViewFragment backFragment = backStack.peek();
-            // System.out.println("*************************" + backFragment.getWebView().getUrl());
             // 判断当前网页是否是下载链接的
             String url = fragment.getWebView().getUrl();
             if (url != null && url.equals(MyApplication.getClickDownloadUrl())) {
                 showFragment(backFragment);
             } else {
+                boolean backFlag = false;
+                if (size > 2) {
+                    try {
+                        String url2 = backStack.get(size - 2).getWebView().getUrl();
+                        String url3 = backStack.get(size - 3).getWebView().getUrl();
+                        if (url2.equals(url3)) backFlag = true;
+                    } catch (Exception ignored) {}
+                }
+                if (backFlag) { // 相邻两个页面网址相同的情况
+                    // 隐藏上一个fragment
+                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.hide(fragment);
+                    fragmentTransaction.commit();
+                    onBack();
+                } else {
+                    forwardStack.push(preFragment);
+                    showFragment(backFragment);
+                }
                 // 判断上一个网页是否空白的
-                backFragment.checkIfPageIsEmpty(previousIsEmpty -> {
+                /*backFragment.checkIfPageIsEmpty(previousIsEmpty -> {
                     // 递归处理空白页
                     if (previousIsEmpty) {
                         // 隐藏上一个fragment
@@ -236,7 +251,7 @@ public class BrowserActivity2 extends AppCompatActivity {
                         // System.out.println("*************************" + backFragment.getWebView().getUrl());
                         showFragment(backFragment);
                     }
-                });
+                });*/
             }
         } else {
             BrowserActivity2.super.onBackPressed();
