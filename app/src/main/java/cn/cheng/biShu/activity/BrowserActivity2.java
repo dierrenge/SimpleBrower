@@ -345,9 +345,11 @@ public class BrowserActivity2 extends AppCompatActivity {
 
         @Override
         public void downLoad() {
-            goBackOrForward("back", b -> {
-                onBack();
-            });
+            if (backStack.size() > 1) {
+                goBackOrForward("back", b -> {
+                    onBack();
+                });
+            }
         }
 
         // 检测有下载的情况
