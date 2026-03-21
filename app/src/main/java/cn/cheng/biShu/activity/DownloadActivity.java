@@ -40,6 +40,7 @@ import cn.cheng.biShu.custom.LongClickDialog;
 import cn.cheng.biShu.custom.LongTouchListener;
 import cn.cheng.biShu.custom.MyToast;
 import cn.cheng.biShu.service.DownloadService;
+import cn.cheng.biShu.service.ReadService;
 import cn.cheng.biShu.util.AssetsReader;
 import cn.cheng.biShu.util.CommonUtils;
 import cn.cheng.biShu.util.MIMEUtils;
@@ -429,6 +430,10 @@ public class DownloadActivity extends AppCompatActivity {
                     Intent intent = null;
                     if (".txt".equalsIgnoreCase(format)) {
                         if (MyApplication.isTurnPageFlag()) {
+                            if (TxtActivity.txtActivity != null) {
+                                Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+                                TxtActivity.txtActivity.stopService(intentS);
+                            }
                             MyToast.getInstance("朗读翻页中，请稍后").show();
                             return;
                         }

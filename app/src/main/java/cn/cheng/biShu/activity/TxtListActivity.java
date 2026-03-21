@@ -376,6 +376,10 @@ public class TxtListActivity extends AppCompatActivity {
                     }
                     // 跳转该网址
                     if (MyApplication.isTurnPageFlag()) {
+                        if (TxtActivity.txtActivity != null) {
+                            Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+                            TxtActivity.txtActivity.stopService(intentS);
+                        }
                         MyToast.getInstance("朗读翻页中，请稍后").show();
                         return;
                     }
