@@ -1384,8 +1384,9 @@ public class CommonUtils {
      * @return true 保存成功
      */
     public static boolean writeObjectIntoLocal(Object bean, String key) {
+        File file = null;
         try {
-            File file = CommonUtils.getFile("BiShu/0_like", "set2.txt", key);
+            file = CommonUtils.getFile("BiShu/0_like", "set2.txt", key);
             JSONObject jsonObject = new JSONObject();
             if (file.exists()) {
                 StringBuilder json = new StringBuilder();
@@ -1404,6 +1405,10 @@ public class CommonUtils {
             }
             return true;
         } catch (Exception e) {
+            CommonUtils.saveLog(key + "读写异常：" + e.getMessage());
+            if (file != null && file.exists()) {
+                file.delete();
+            }
             e.printStackTrace();
             return false;
         }

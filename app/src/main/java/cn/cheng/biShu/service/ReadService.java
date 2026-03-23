@@ -1,10 +1,12 @@
 package cn.cheng.biShu.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -32,7 +34,11 @@ public class ReadService extends Service {
         // 注册广播接收器 接收器监听噪音ACTION_AUDIO_BECOMING_NOISY（可判断耳机断开链接）
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        registerReceiver(receiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(receiver, intentFilter);
+        }
 
         // 设置为前台服务
         NotificationCompat.Builder builder = NotificationUtils.initBuilder(this, "朗读服务", "彼黍朗读服务运行中", TxtActivity.class);

@@ -97,7 +97,11 @@ public class TxtActivity extends AppCompatActivity {
             msgReceiver = new MsgReceiver();
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("com.example.communication.RECEIVER");
-            registerReceiver(msgReceiver, intentFilter);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(msgReceiver, intentFilter);
+            }
 
             Intent intent = getIntent();
             String action = intent.getAction();
