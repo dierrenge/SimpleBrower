@@ -120,7 +120,7 @@ public class DownloadListDialog extends Dialog {
                 Button button = holder.itemView.findViewById(R.id.item_download);
                 // 动态设置最大宽度
                 parent_l.post(() -> {
-                    int editTextMaxWidth = parent_l.getWidth() - item_ll.getWidth() - textView.getWidth() - CommonUtils.dpToPx(context, 28);
+                    int editTextMaxWidth = parent_l.getWidth() - item_ll.getWidth() - textView.getWidth() - CommonUtils.dpToPx(context, 15);
                     editText.setMaxWidth(editTextMaxWidth);
                 });
 

@@ -5,14 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
 import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,7 +87,7 @@ public class ReadService extends Service {
                         // 发送Action为com.example.communication.RECEIVER的广播
                         Intent intentReceiver = new Intent("com.example.communication.RECEIVER");
                         intentReceiver.putExtra("txtUrl", txtUrl);
-                        LocalBroadcastManager.getInstance(ReadService.this).sendBroadcast(intentReceiver);
+                        sendBroadcast(intentReceiver);
                     }
                     @Override
                     public void onError(String s) {

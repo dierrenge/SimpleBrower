@@ -2,7 +2,6 @@ package cn.cheng.biShu.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -98,7 +97,11 @@ public class TxtActivity extends AppCompatActivity {
             msgReceiver = new MsgReceiver();
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("com.example.communication.RECEIVER");
-            LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, intentFilter);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(msgReceiver, intentFilter);
+            }
 
             Intent intent = getIntent();
             String action = intent.getAction();
@@ -473,7 +476,7 @@ public class TxtActivity extends AppCompatActivity {
         // 注销广播
         // 退出该activity也要能播放所以这里停止播放时才注销
         if (!flagRead) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
+            unregisterReceiver(msgReceiver);
             MyApplication.setTxtUrl(null);
             TxtActivity.txtActivity = null;
         }
