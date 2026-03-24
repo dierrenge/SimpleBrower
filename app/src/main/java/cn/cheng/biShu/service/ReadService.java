@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,6 +28,7 @@ public class ReadService extends Service {
 
     public static TextToSpeech textToSpeech;
     private final HeadphoneReceiver receiver = new HeadphoneReceiver();
+    private long time;
 
     @Override
     public void onCreate() {
@@ -75,16 +77,19 @@ public class ReadService extends Service {
                 textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override
                     public void onStart(String s) {
-
+                        time = System.currentTimeMillis();
                     }
                     @Override
                     public void onDone(String s) {
+                        speechDestroy();
+                        long endTime = System.currentTimeMillis() - time;
+                        if (txt.length() > 20 && endTime < 4000) return; // 防止多翻页
                         // 标记开始翻页
                         MyApplication.setTurnPageFlag(true);
                         // 发送Action为com.example.communication.RECEIVER的广播
                         Intent intentReceiver = new Intent("com.example.communication.RECEIVER");
                         intentReceiver.putExtra("txtUrl", txtUrl);
-                        sendBroadcast(intentReceiver);
+                        LocalBroadcastManager.getInstance(ReadService.this).sendBroadcast(intentReceiver);
                     }
                     @Override
                     public void onError(String s) {

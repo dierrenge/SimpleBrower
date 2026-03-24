@@ -2,6 +2,7 @@ package cn.cheng.biShu.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -97,11 +98,7 @@ public class TxtActivity extends AppCompatActivity {
             msgReceiver = new MsgReceiver();
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("com.example.communication.RECEIVER");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
-            } else {
-                registerReceiver(msgReceiver, intentFilter);
-            }
+            LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, intentFilter);
 
             Intent intent = getIntent();
             String action = intent.getAction();
@@ -362,7 +359,7 @@ public class TxtActivity extends AppCompatActivity {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readNextPageDef(lines, positionBean);
             n_content.setText(span(positionBean.getTxt()));
-            new Handler().post(() -> {
+            n_content.post(() -> {
                 /*if (init == 0) {
                     init = 1;
                     n_content.setMaxLines(n_content.getLineNum() + 1);
@@ -386,7 +383,7 @@ public class TxtActivity extends AppCompatActivity {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readPreviousPageDef(lines, positionBean);
             n_content.setText(span(positionBean.getTxt()));
-            new Handler().post(() -> {
+            n_content.post(() -> {
                 positionBean.setSize(n_content.getCharNum());
                 CommonUtils.readPreviousPage(lines, positionBean, msgHandler);
                 n_content.setText(span(positionBean.getTxt()));
@@ -396,7 +393,7 @@ public class TxtActivity extends AppCompatActivity {
                     positionBean.setEndNum(0);
                     setNextPosition();
                 } else {
-                    new Handler().post(() -> {
+                    n_content.post(() -> {
                         // 获取当前显示最后一行内容
                         Layout layout = n_content.getLayout();
                         int i = n_content.getLineNum();
@@ -476,23 +473,24 @@ public class TxtActivity extends AppCompatActivity {
         // 注销广播
         // 退出该activity也要能播放所以这里停止播放时才注销
         if (!flagRead) {
-            unregisterReceiver(msgReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
             MyApplication.setTxtUrl(null);
             TxtActivity.txtActivity = null;
         }
-
-        if (positionBean != null) {
-            new Handler().post(() -> {
+        new Handler().post(() -> {
+            if (positionBean != null) {
                 CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
-            });
-        }
+            }
+        });
     }
 
     private void read() {
         if (txtUrl != null && positionBean != null) {
             // 记录进度
             new Handler().post(() -> {
-                CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
+                if (positionBean != null) {
+                    CommonUtils.writeObjectIntoLocal(positionBean, txtUrl);
+                }
             });
             if (flagRead) {
                 // 朗读文本
