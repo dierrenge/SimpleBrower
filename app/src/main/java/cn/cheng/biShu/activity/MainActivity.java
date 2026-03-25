@@ -5,7 +5,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.DownloadManager;
@@ -15,12 +14,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.Settings;
 import android.text.Editable;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -31,29 +28,17 @@ import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
 
-import cn.cheng.biShu.MyApplication;
 import cn.cheng.biShu.R;
 import cn.cheng.biShu.bean.SysBean;
 import cn.cheng.biShu.custom.FeetDialog;
 import cn.cheng.biShu.custom.MyToast;
 import cn.cheng.biShu.custom.SettingDialog;
 import cn.cheng.biShu.receiver.MyDeviceAdminReceiver;
-import cn.cheng.biShu.service.DownloadService;
 import cn.cheng.biShu.service.ReadService;
 import cn.cheng.biShu.util.AssetsReader;
 import cn.cheng.biShu.util.CommonUtils;
@@ -343,9 +328,8 @@ public class MainActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (isExit) {
                 // 停止服务
-                if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
-                    Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                    TxtActivity.txtActivity.stopService(intentS);
+                if (TxtActivity.flagRead) {
+                    TxtActivity.stopReadService();
                 }
                 this.finish();
             } else {

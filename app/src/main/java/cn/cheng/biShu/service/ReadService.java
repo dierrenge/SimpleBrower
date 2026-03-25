@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
 import androidx.core.app.NotificationCompat;
+
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -79,11 +81,11 @@ public class ReadService extends Service {
                     }
                     @Override
                     public void onDone(String s) {
+                        // 清除旧语音资源
                         speechDestroy();
+                        // 防止多翻页
                         long endTime = System.currentTimeMillis() - time;
-                        if (txt.length() > 20 && endTime < 4000) return; // 防止多翻页
-                        // 标记开始翻页
-                        MyApplication.setTurnPageFlag(true);
+                        if (txt.length() > 20 && endTime < 4000) return;
                         // 发送Action为com.example.communication.RECEIVER的广播
                         Intent intentReceiver = new Intent("com.example.communication.RECEIVER");
                         intentReceiver.putExtra("txtUrl", txtUrl);
@@ -116,7 +118,6 @@ public class ReadService extends Service {
         super.onDestroy();
         unregisterReceiver(receiver);
         speechDestroy();
-        MyApplication.setTurnPageFlag(false); // 标记结束翻页
     }
 
     /**

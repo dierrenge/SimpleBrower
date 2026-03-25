@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ValueCallback;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -97,9 +98,8 @@ public class FeetDialog extends Dialog {
                 dialog_text_fileSize.setVisibility(View.GONE);
                 String name = text.substring(0, text.lastIndexOf("."));
                 String type = text.substring(text.lastIndexOf("."));
-                dialog_text_filename.setText(name);
                 dialog_text_fileType.setText(type);
-                setEditTextMaxWidth();
+                setEditTextMaxWidth(b -> dialog_text_filename.setText(name));
             } else {
                 if (text.contains("下载记录")) {
                     delete_select_l.setVisibility(View.VISIBLE);
@@ -107,8 +107,7 @@ public class FeetDialog extends Dialog {
                 if (text.contains(" / ")) {
                     dialog_text.setVisibility(View.GONE);
                     dialog_text_layout.setVisibility(View.VISIBLE);
-                    loadFileSize(text);
-                    setEditTextMaxWidth();
+                    loadFileSize(text, true);
                 } else {
                     dialog_text.setText(text);
                 }
@@ -189,7 +188,7 @@ public class FeetDialog extends Dialog {
         // 异步获取文件大小
         handler = new Handler(message -> {
             String finalText = (String) message.obj;
-            loadFileSize(finalText);
+            loadFileSize(finalText, false);
             return false;
         });
         if (url != null && fName != null) {
@@ -202,7 +201,7 @@ public class FeetDialog extends Dialog {
         }
     }
 
-    private void loadFileSize(String text) {
+    private void loadFileSize(String text, boolean flag) {
         String name = text.substring(0, text.lastIndexOf(" / "));
         String type = " / ";
         String size = text.substring(text.lastIndexOf(" / ") + 3);
@@ -215,16 +214,23 @@ public class FeetDialog extends Dialog {
             type = name.substring(name.lastIndexOf(".")) + type;
             name = name.substring(0, name.lastIndexOf("."));
         }
-        dialog_text_filename.setText(name);
         dialog_text_fileType.setText(type);
         dialog_text_fileSize.setText(size);
+        if (flag) {
+            String finalName = name;
+            setEditTextMaxWidth(b -> dialog_text_filename.setText(finalName));
+        } else {
+            dialog_text_filename.setText(name);
+        }
+
     }
 
-    private void setEditTextMaxWidth() {
+    private void setEditTextMaxWidth(ValueCallback<Boolean> callback) {
         dialog_text_layout.post(() -> {
             int editTextMaxWidth = dialog_text_layout.getWidth() - dialog_text_fileType.getWidth()
                     - dialog_text_fileSize.getWidth() - CommonUtils.dpToPx(context, 28);
             dialog_text_filename.setMaxWidth(editTextMaxWidth);
+            dialog_text_filename.post(() -> callback.onReceiveValue(true));
         });
     }
 

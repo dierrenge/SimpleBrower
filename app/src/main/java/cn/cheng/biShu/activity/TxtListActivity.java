@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -293,10 +292,8 @@ public class TxtListActivity extends AppCompatActivity {
                                             String fileUrl = txtUrl.substring(0, txtUrl.lastIndexOf("/") + 1) + txt;
                                             if (!txt.startsWith(".") && !txtUrl.equals(fileUrl)) {
                                                 new Thread(() -> {
-                                                    if (TxtActivity.txtActivity != null && TxtActivity.flagRead
-                                                            && txtUrl.equals(MyApplication.getTxtUrl())) { // 停止服务
-                                                        Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                                                        TxtActivity.txtActivity.stopService(intentS);
+                                                    if (TxtActivity.flagRead && txtUrl.equals(MyApplication.getTxtUrl())) { // 停止服务
+                                                        TxtActivity.stopReadService();
                                                     }
                                                     boolean re = CommonUtils.renameObjectIntoLocal(txtUrl, fileUrl); // 更名阅读记录
                                                     if (re) re = new File(txtUrl).renameTo(new File(fileUrl)); // 更名文件
@@ -375,14 +372,6 @@ public class TxtListActivity extends AppCompatActivity {
                         return; // 编辑模式不可跳转
                     }
                     // 跳转该网址
-                    if (MyApplication.isTurnPageFlag()) {
-                        if (TxtActivity.txtActivity != null) {
-                            Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                            TxtActivity.txtActivity.stopService(intentS);
-                        }
-                        MyToast.getInstance("朗读翻页中，请稍后").show();
-                        return;
-                    }
                     Intent intent = new Intent(TxtListActivity.this, TxtActivity.class);
                     intent.putExtra("txtUrl", txtUrl);
                     TxtListActivity.this.startActivity(intent);

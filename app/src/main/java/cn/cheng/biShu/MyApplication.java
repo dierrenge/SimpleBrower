@@ -44,9 +44,6 @@ public class MyApplication extends Application {
     // 标记打开txtActivity
     private static boolean openFlag;
 
-    // 语音翻页标记（自动翻页时不可进入txtActivity）
-    private static boolean turnPageFlag;
-
     public static String downloadUrl; // 记录下载链接以防止重复
 
     public static String jumpUrl; // 记录当前网页地址
@@ -180,11 +177,4 @@ public class MyApplication extends Application {
         MyApplication.openFlag = openFlag;
     }
 
-    public static boolean isTurnPageFlag() {
-        return turnPageFlag;
-    }
-
-    public static void setTurnPageFlag(boolean turnPageFlag) {
-        MyApplication.turnPageFlag = turnPageFlag;
-    }
 }

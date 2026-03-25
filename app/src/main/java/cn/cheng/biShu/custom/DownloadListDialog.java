@@ -118,15 +118,9 @@ public class DownloadListDialog extends Dialog {
                 TextView textView = holder.itemView.findViewById(R.id.item_downloadFileType);
                 LinearLayout item_ll = holder.itemView.findViewById(R.id.item_download_ll);
                 Button button = holder.itemView.findViewById(R.id.item_download);
-                // 动态设置最大宽度
-                parent_l.post(() -> {
-                    int editTextMaxWidth = parent_l.getWidth() - item_ll.getWidth() - textView.getWidth() - CommonUtils.dpToPx(context, 15);
-                    editText.setMaxWidth(editTextMaxWidth);
-                });
-
                 DownloadBean bean = downloadList.get(position);
                 if (bean == null) return;
-                editText.setText(bean.getTitle());
+                textView.setText(bean.getFileType());
                 editText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -137,7 +131,6 @@ public class DownloadListDialog extends Dialog {
                         bean.setTitle(editText.getText().toString());
                     }
                 });
-                textView.setText(bean.getFileType());
                 button.setOnClickListener(view -> {
                     if (CommonUtils.checkFilename(bean.getTitle())) return;
                     try {
@@ -170,6 +163,12 @@ public class DownloadListDialog extends Dialog {
                     } catch (Throwable e) {
                         CommonUtils.saveLog("=====底部对话框====点击下载=====" + e.getMessage());
                     }
+                });
+                // 动态设置最大宽度
+                parent_l.post(() -> {
+                    int editTextMaxWidth = parent_l.getWidth() - item_ll.getWidth() - textView.getWidth();
+                    editText.setMaxWidth(editTextMaxWidth);
+                    editText.post(() -> editText.setText(bean.getTitle()));
                 });
             }
 

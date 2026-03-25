@@ -59,7 +59,6 @@ public class TxtActivity extends AppCompatActivity {
     // 当前文本进度
     PositionBean positionBean;
 
-    private Intent intentS;
     private MsgReceiver msgReceiver;
 
     private Handler handler = new Handler();
@@ -90,15 +89,12 @@ public class TxtActivity extends AppCompatActivity {
         setContentView(R.layout.activity_txt);
         txtActivity = this;
         try {
-            // Service
-            intentS = new Intent(this, ReadService.class);
-
             // 动态注册广播接收器
             msgReceiver = new MsgReceiver();
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("com.example.communication.RECEIVER");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
             } else {
                 registerReceiver(msgReceiver, intentFilter);
             }
@@ -115,7 +111,7 @@ public class TxtActivity extends AppCompatActivity {
                 txtUrl = intent.getStringExtra("txtUrl");
             }
             if (txtUrl == null || !txtUrl.contains("/")) {
-                MyToast.getInstance("还未访问授权喔").show();
+                MyToast.getInstance("还没有访问授权喔").show();
                 this.finish();
                 return;
             }
@@ -129,10 +125,11 @@ public class TxtActivity extends AppCompatActivity {
             }
 
             // 复用朗读服务的情况
-            if (otherFlag || (txtUrl != null && !txtUrl.equals(MyApplication.getTxtUrl()))) {
+            if (otherFlag || (txtUrl != null && !txtUrl.equals(MyApplication.getTxtUrl()))
+                || ReadService.textToSpeech == null || !ReadService.textToSpeech.isSpeaking()) {
                 flagRead = false;
                 // 停止服务
-                stopService(intentS);
+                TxtActivity.stopReadService();
             } else {
                 flagRead = true;
             }
@@ -198,7 +195,7 @@ public class TxtActivity extends AppCompatActivity {
                     public void readSet() {
                         // 停止朗读服务
                         flagRead = false;
-                        TxtActivity.this.stopService(intentS);
+                        TxtActivity.stopReadService();
                         try {
                             // 跳转到文字转语音设置界面
                             Intent intent = new Intent();
@@ -218,7 +215,7 @@ public class TxtActivity extends AppCompatActivity {
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                                 // 停止朗读服务
                                 flagRead = false;
-                                TxtActivity.this.stopService(intentS);
+                                TxtActivity.stopReadService();
 
                                 // PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                                 // boolean hasIgnored = false;
@@ -347,8 +344,7 @@ public class TxtActivity extends AppCompatActivity {
     // 通话时停止朗读
     private void stopDuringCall() {
         if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
-            Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-            TxtActivity.txtActivity.stopService(intentS);
+            TxtActivity.stopReadService();
             TxtActivity.flagRead = false;
             MyToast.getInstance(TxtActivity.this, "通话开始").show();
         }
@@ -362,7 +358,7 @@ public class TxtActivity extends AppCompatActivity {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readNextPageDef(lines, positionBean);
             n_content.setText(span(positionBean.getTxt()));
-            n_content.post(() -> {
+            new Handler().post(() -> {
                 /*if (init == 0) {
                     init = 1;
                     n_content.setMaxLines(n_content.getLineNum() + 1);
@@ -386,7 +382,7 @@ public class TxtActivity extends AppCompatActivity {
             positionBean.setSize(1320); // 字母i  24行、每行55个
             CommonUtils.readPreviousPageDef(lines, positionBean);
             n_content.setText(span(positionBean.getTxt()));
-            n_content.post(() -> {
+            new Handler().post(() -> {
                 positionBean.setSize(n_content.getCharNum());
                 CommonUtils.readPreviousPage(lines, positionBean, msgHandler);
                 n_content.setText(span(positionBean.getTxt()));
@@ -396,7 +392,7 @@ public class TxtActivity extends AppCompatActivity {
                     positionBean.setEndNum(0);
                     setNextPosition();
                 } else {
-                    n_content.post(() -> {
+                    new Handler().post(() -> {
                         // 获取当前显示最后一行内容
                         Layout layout = n_content.getLayout();
                         int i = n_content.getLineNum();
@@ -498,6 +494,7 @@ public class TxtActivity extends AppCompatActivity {
             if (flagRead) {
                 // 朗读文本
                 String txt = positionBean != null ? positionBean.getTxt() : "";
+                Intent intentS = new Intent(this, ReadService.class);
                 intentS.putExtra("txtUrl", txtUrl);
                 intentS.putExtra("txt", txt);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -505,10 +502,8 @@ public class TxtActivity extends AppCompatActivity {
                 } else {
                     startService(intentS);
                 }
-                // 标记结束翻页
-                MyApplication.setTurnPageFlag(false);
             } else {
-                stopService(intentS);
+                TxtActivity.stopReadService();
             }
         }
     }
@@ -573,4 +568,14 @@ public class TxtActivity extends AppCompatActivity {
         }
     }
 
+    // 停止朗读服务
+    public static void stopReadService() {
+        if (txtActivity != null) {
+            Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
+            try {
+                txtActivity.stopService(intentS);
+                flagRead = false;
+            } catch (Exception ignored) {}
+        }
+    }
 }

@@ -8,6 +8,7 @@ import android.media.AudioManager;
 import cn.cheng.biShu.activity.TxtActivity;
 import cn.cheng.biShu.custom.MyToast;
 import cn.cheng.biShu.service.ReadService;
+import cn.cheng.biShu.util.CommonUtils;
 
 /**
  * 创建接收器，处理状态变化
@@ -22,10 +23,8 @@ public class HeadphoneReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
             // 停止TTS服务
-            if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
-                Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                TxtActivity.txtActivity.stopService(intentS);
-                TxtActivity.flagRead = false;
+            if (TxtActivity.flagRead) {
+                TxtActivity.stopReadService();
                 MyToast.getInstance("耳机已断开连接").show();
             }
         }

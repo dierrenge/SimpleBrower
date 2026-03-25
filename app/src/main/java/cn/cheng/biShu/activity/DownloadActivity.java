@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
@@ -429,14 +428,6 @@ public class DownloadActivity extends AppCompatActivity {
                     // 跳转该网址
                     Intent intent = null;
                     if (".txt".equalsIgnoreCase(format)) {
-                        if (MyApplication.isTurnPageFlag()) {
-                            if (TxtActivity.txtActivity != null) {
-                                Intent intentS = new Intent(TxtActivity.txtActivity, ReadService.class);
-                                TxtActivity.txtActivity.stopService(intentS);
-                            }
-                            MyToast.getInstance("朗读翻页中，请稍后").show();
-                            return;
-                        }
                         intent = new Intent(DownloadActivity.this, TxtActivity.class);
                         intent.putExtra("txtUrl", absolutePath);
                     } else if (formats.contains(format)) {
