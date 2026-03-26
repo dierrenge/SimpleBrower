@@ -1822,6 +1822,26 @@ public class CommonUtils {
             }
         });
     }
+    public static void saveLog2(String txt) {
+        try {
+            File file = CommonUtils.getFile("BiShu/log", "log.txt", "");
+            String oldTxt = "";
+            if (file.exists()) {
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    String line = "";
+                    while ((line = br.readLine()) != null) {
+                        oldTxt += line + "\n";
+                    }
+                }
+            }
+            oldTxt += txt + "\n";
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(oldTxt);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     // 手机目录文件url修正
     public static String correctUrl(Uri uri, Activity activity) {
@@ -1957,19 +1977,19 @@ public class CommonUtils {
     public static String preventDuplication(String str) {
         int num = 1;
         try {
-            String patternStr = "（(\\d+)）\\s*$"; // 这个正则表达式匹配末尾的整数序列
+            String patternStr = "\\((\\d+)\\)\\s*$"; // 这个正则表达式匹配末尾的整数序列
             Pattern pattern = Pattern.compile(patternStr);
             Matcher matcher = pattern.matcher(str);
             if (matcher.find()) {
                 num = Integer.parseInt(matcher.group(1));
-                str = str.substring(0, str.lastIndexOf("（" + num + "）"));
+                str = str.substring(0, str.lastIndexOf("(" + num + ")"));
                 num++;
             }
         } catch (Exception e) {
             num = new Random().nextInt();
             saveLog("preventDuplication==============" + e.getMessage());
         }
-        return str + "（" + num + "）";
+        return str + "(" + num + ")";
     }
 
     // 判断数字（包括小数）
@@ -2124,5 +2144,15 @@ public class CommonUtils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // 文件地址集是否包含给定文件名
+    public static boolean fileListHasName(List<String> list, String name) {
+        if (list != null && name != null) {
+            for (String fileUrl : list) {
+                if (fileUrl.substring(fileUrl.lastIndexOf("/")+1).equals(name)) return true;
+            }
+        }
+        return false;
     }
 }

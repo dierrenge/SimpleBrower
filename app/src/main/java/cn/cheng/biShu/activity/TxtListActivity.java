@@ -291,22 +291,27 @@ public class TxtListActivity extends AppCompatActivity {
                                         public void ok(String txt) {
                                             String fileUrl = txtUrl.substring(0, txtUrl.lastIndexOf("/") + 1) + txt;
                                             if (!txt.startsWith(".") && !txtUrl.equals(fileUrl)) {
-                                                new Thread(() -> {
-                                                    if (TxtActivity.flagRead && txtUrl.equals(MyApplication.getTxtUrl())) { // 停止服务
-                                                        TxtActivity.stopReadService();
-                                                    }
-                                                    boolean re = CommonUtils.renameObjectIntoLocal(txtUrl, fileUrl); // 更名阅读记录
-                                                    if (re) re = new File(txtUrl).renameTo(new File(fileUrl)); // 更名文件
-                                                    Message message = Message.obtain();
-                                                    if (!re) {
-                                                        message.what = 1;
-                                                        message.obj = "更名失败" ;
-                                                    } else {
-                                                        message.what = 2;
-                                                        message.obj = new String[] {txt, txtUrl, fileUrl, position+""};
-                                                    }
-                                                    handler.sendMessage(message);
-                                                }).start();
+                                                if (txtUrls.contains(fileUrl)) {
+                                                    MyToast.getInstance("已存在同名文件").show();
+                                                    return;
+                                                } else {
+                                                    new Thread(() -> {
+                                                        if (TxtActivity.flagRead && txtUrl.equals(MyApplication.getTxtUrl())) { // 停止服务
+                                                            TxtActivity.stopReadService();
+                                                        }
+                                                        boolean re = CommonUtils.renameObjectIntoLocal(txtUrl, fileUrl); // 更名阅读记录
+                                                        if (re) re = new File(txtUrl).renameTo(new File(fileUrl)); // 更名文件
+                                                        Message message = Message.obtain();
+                                                        if (!re) {
+                                                            message.what = 1;
+                                                            message.obj = "更名失败" ;
+                                                        } else {
+                                                            message.what = 2;
+                                                            message.obj = new String[] {txt, txtUrl, fileUrl, position+""};
+                                                        }
+                                                        handler.sendMessage(message);
+                                                    }).start();
+                                                }
                                             }
                                             feetDialog.dismiss();
                                         }
@@ -574,12 +579,25 @@ public class TxtListActivity extends AppCompatActivity {
                 fileUris.add(data.getData());
             }
             new Thread(() -> {
-                for (Uri uri : fileUris) {
-                    String fileName = CommonUtils.getFileName(this, uri);
-                    File file = CommonUtils.getFile("BiShu", fileName, "");
-                    CommonUtils.getCopyFile(this, uri, file);
+                try {
+                    for (Uri uri : fileUris) {
+                        String fileName = CommonUtils.getFileName(this, uri);
+                        File file;
+                        while ((file = CommonUtils.getFile("BiShu", fileName, "")).exists()) {
+                            if (fileName.contains(".")) {
+                                String name = fileName.substring(0, fileName.lastIndexOf("."));
+                                String type = fileName.substring(fileName.lastIndexOf("."));
+                                fileName = CommonUtils.preventDuplication(name) + type;
+                            } else {
+                                fileName = CommonUtils.preventDuplication(fileName);
+                            }
+                        }
+                        CommonUtils.getCopyFile(this, uri, file);
+                    }
+                    initTxtUrls();
+                } catch (Throwable e) {
+                    CommonUtils.saveLog2("添加文件异常：" + e.getMessage());
                 }
-                initTxtUrls();
             }).start();
         }
     }

@@ -293,18 +293,23 @@ public class VideoListActivity extends AppCompatActivity {
                                         public void ok(String txt) {
                                             String fileUrl = videoUrl.substring(0, videoUrl.lastIndexOf("/") + 1) + txt;
                                             if (!txt.startsWith(".") && !videoUrl.equals(fileUrl)) {
-                                                new Thread(() -> {
-                                                    boolean re = new File(videoUrl).renameTo(new File(fileUrl));
-                                                    Message message = Message.obtain();
-                                                    if (!re) {
-                                                        message.what = 1;
-                                                        message.obj = "更名失败" ;
-                                                    } else {
-                                                        message.what = 2;
-                                                        message.obj = new String[] {txt, videoUrl, fileUrl, position+""};
-                                                    }
-                                                    handler.sendMessage(message);
-                                                }).start();
+                                                if (videoUrls.contains(fileUrl)) {
+                                                    MyToast.getInstance("已存在同名文件").show();
+                                                    return;
+                                                } else {
+                                                    new Thread(() -> {
+                                                        boolean re = new File(videoUrl).renameTo(new File(fileUrl));
+                                                        Message message = Message.obtain();
+                                                        if (!re) {
+                                                            message.what = 1;
+                                                            message.obj = "更名失败" ;
+                                                        } else {
+                                                            message.what = 2;
+                                                            message.obj = new String[] {txt, videoUrl, fileUrl, position+""};
+                                                        }
+                                                        handler.sendMessage(message);
+                                                    }).start();
+                                                }
                                             }
                                             feetDialog.dismiss();
                                         }
@@ -594,12 +599,25 @@ public class VideoListActivity extends AppCompatActivity {
                 fileUris.add(data.getData());
             }
             new Thread(() -> {
-                for (Uri uri : fileUris) {
-                    String fileName = CommonUtils.getFileName(this, uri);
-                    File file = CommonUtils.getFile("BiShu", fileName, "");
-                    CommonUtils.getCopyFile(this, uri, file);
+                try {
+                    for (Uri uri : fileUris) {
+                        String fileName = CommonUtils.getFileName(this, uri);
+                        File file;
+                        while ((file = CommonUtils.getFile("BiShu", fileName, "")).exists()) {
+                            if (fileName.contains(".")) {
+                                String name = fileName.substring(0, fileName.lastIndexOf("."));
+                                String type = fileName.substring(fileName.lastIndexOf("."));
+                                fileName = CommonUtils.preventDuplication(name) + type;
+                            } else {
+                                fileName = CommonUtils.preventDuplication(fileName);
+                            }
+                        }
+                        CommonUtils.getCopyFile(this, uri, file);
+                    }
+                    initVideoUrls();
+                } catch (Throwable e) {
+                    CommonUtils.saveLog2("添加文件异常：" + e.getMessage());
                 }
-                initVideoUrls();
             }).start();
         }
     }
