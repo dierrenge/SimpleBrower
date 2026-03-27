@@ -208,10 +208,17 @@ public class CommonUtils {
         } else {
             fileListFilter(dir, formats, fileList);
         }
-        // 排序 (先按字符串长度排序，其次按字符串中的数字大小排序)
+        // 排序
+        fileListSort(fileList);
+    }
+
+    // 文件列表排序(先按字符串长度排序，其次按字符串中的数字大小排序)
+    public static void fileListSort(List<String> fileList) {
         Collections.sort(fileList, new Comparator<String>() {
             @Override
-            public int compare(String o1, String o2) {
+            public int compare(String oo1, String oo2) {
+                String o1 = getUrlName(oo1);
+                String o2 = getUrlName(oo2);
                 // 获取字符串包含的数字 并 获取去除数字后的字符串
                 List<String> nums1 = getNums(o1);
                 String o1X = o1;
@@ -2154,5 +2161,43 @@ public class CommonUtils {
             }
         }
         return false;
+    }
+
+    // 拷贝文件到应用目录
+    public static void copyFiles(Context context, Intent data, List<String> urls, Handler handler) {
+        List<Uri> fileUris = new ArrayList<>();
+        if (data.getClipData() != null) {
+            for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                fileUris.add(data.getClipData().getItemAt(i).getUri());
+            }
+        } else if (data.getData() != null) {
+            fileUris.add(data.getData());
+        }
+        new Thread(() -> {
+            try {
+                for (Uri uri : fileUris) {
+                    String fileName = CommonUtils.getFileName(context, uri);
+                    File file;
+                    while ((file = CommonUtils.getFile("BiShu", fileName, "")).exists()) {
+                        if (fileName.contains(".")) {
+                            String name = fileName.substring(0, fileName.lastIndexOf("."));
+                            String type = fileName.substring(fileName.lastIndexOf("."));
+                            fileName = CommonUtils.preventDuplication(name) + type;
+                        } else {
+                            fileName = CommonUtils.preventDuplication(fileName);
+                        }
+                    }
+                    CommonUtils.getCopyFile(context, uri, file);
+                    urls.add(PhoneSysPath.getDownloadDir() + "/BiShu/" + fileName);
+                }
+                if (!fileUris.isEmpty()) {
+                    CommonUtils.fileListSort(urls);
+                    Message message = handler.obtainMessage(0);
+                    handler.sendMessage(message);
+                }
+            } catch (Throwable e) {
+                CommonUtils.saveLog2("添加文件异常：" + e.getMessage());
+            }
+        }).start();
     }
 }

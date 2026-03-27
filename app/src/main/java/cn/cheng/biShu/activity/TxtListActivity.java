@@ -570,35 +570,7 @@ public class TxtListActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_PICK_FILE && resultCode == RESULT_OK && data != null) {
-            List<Uri> fileUris = new ArrayList<>();
-            if (data.getClipData() != null) {
-                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                    fileUris.add(data.getClipData().getItemAt(i).getUri());
-                }
-            } else if (data.getData() != null) {
-                fileUris.add(data.getData());
-            }
-            new Thread(() -> {
-                try {
-                    for (Uri uri : fileUris) {
-                        String fileName = CommonUtils.getFileName(this, uri);
-                        File file;
-                        while ((file = CommonUtils.getFile("BiShu", fileName, "")).exists()) {
-                            if (fileName.contains(".")) {
-                                String name = fileName.substring(0, fileName.lastIndexOf("."));
-                                String type = fileName.substring(fileName.lastIndexOf("."));
-                                fileName = CommonUtils.preventDuplication(name) + type;
-                            } else {
-                                fileName = CommonUtils.preventDuplication(fileName);
-                            }
-                        }
-                        CommonUtils.getCopyFile(this, uri, file);
-                    }
-                    initTxtUrls();
-                } catch (Throwable e) {
-                    CommonUtils.saveLog2("添加文件异常：" + e.getMessage());
-                }
-            }).start();
+            CommonUtils.copyFiles(this, data, txtUrls, handler);
         }
     }
 
