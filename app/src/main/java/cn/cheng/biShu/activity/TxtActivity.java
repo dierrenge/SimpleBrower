@@ -127,7 +127,6 @@ public class TxtActivity extends AppCompatActivity {
             // 复用朗读服务的情况
             if (otherFlag || (txtUrl != null && !txtUrl.equals(MyApplication.getTxtUrl()))
                 || ReadService.textToSpeech == null || !ReadService.textToSpeech.isSpeaking()) {
-                flagRead = false;
                 // 停止服务
                 TxtActivity.stopReadService();
             } else {
@@ -194,7 +193,6 @@ public class TxtActivity extends AppCompatActivity {
                     @Override
                     public void readSet() {
                         // 停止朗读服务
-                        flagRead = false;
                         TxtActivity.stopReadService();
                         try {
                             // 跳转到文字转语音设置界面
@@ -214,7 +212,6 @@ public class TxtActivity extends AppCompatActivity {
                         try {
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                                 // 停止朗读服务
-                                flagRead = false;
                                 TxtActivity.stopReadService();
 
                                 // PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -345,7 +342,6 @@ public class TxtActivity extends AppCompatActivity {
     private void stopDuringCall() {
         if (TxtActivity.txtActivity != null && TxtActivity.flagRead) {
             TxtActivity.stopReadService();
-            TxtActivity.flagRead = false;
             MyToast.getInstance(TxtActivity.this, "通话开始").show();
         }
     }
@@ -452,11 +448,9 @@ public class TxtActivity extends AppCompatActivity {
     // 此activity失去焦点后再次获取焦点时调用(调用其他activity再回来时)
     @Override
     protected void onResume() {
-        if (ReadService.textToSpeech != null && flagRead) {
-            // 根据实际情况判断是否正在朗读
-            if (!ReadService.textToSpeech.isSpeaking()) {
-                flagRead = false;
-            }
+        // 根据实际情况判断是否正在朗读
+        if (ReadService.textToSpeech == null || !ReadService.textToSpeech.isSpeaking()) {
+            flagRead = false;
         }
         MyApplication.setOpenFlag(false);
         new Handler().postDelayed(() -> {
