@@ -37,7 +37,7 @@ public class ReadService extends Service {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(receiver, intentFilter, Context.RECEIVER_EXPORTED);
         } else {
             registerReceiver(receiver, intentFilter);
         }

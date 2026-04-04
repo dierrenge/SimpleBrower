@@ -6,9 +6,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +45,7 @@ public class TxtCatalogActivity extends AppCompatActivity {
     private LinearLayout back;
     private RecyclerView recyclerView;
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "UnspecifiedRegisterReceiverFlag"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +53,14 @@ public class TxtCatalogActivity extends AppCompatActivity {
         SysWindowUi.hideStatusNavigationBar(this, false);
 
         setContentView(R.layout.activity_txt_catalog);
+
+        // 注册广播接收器
+        IntentFilter filter = new IntentFilter("CLOSE_TC_ACTIVITY");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(receiver, filter);
+        }
 
         // 获取上一界面传过来的数据
         Intent intent = getIntent();
@@ -70,20 +83,39 @@ public class TxtCatalogActivity extends AppCompatActivity {
         Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
         lines = novelLinesMap.get(txtUrl);
 
-        // 获取章节
-        chapters = CommonUtils.getTitles(lines, positionBean.getStartLine());
-        if (chapters.size() > 0) {
-            index = Integer.parseInt(chapters.get(0).get("index"));
-            // System.out.println(positionBean.getStartLine());
-            // System.out.println(index);
-            // MyToast.getInstance("+" + index).show();
-            initRecyclerView();
-        }
+        Handler handler = new Handler(message -> {
+            if (message.what == 0) {
+                // 获取章节
+                if (!chapters.isEmpty()) {
+                    index = Integer.parseInt(chapters.get(0).get("index"));
+                    // System.out.println(positionBean.getStartLine());
+                    // System.out.println(index);
+                    // MyToast.getInstance("+" + index).show();
+                    initRecyclerView();
+                } else {
+                    // 反馈解析结果
+                    ((TextView) findViewById(R.id.txt_catalog_load_text)).setText("未发现章节目录");
+                }
+            }
+            return false;
+        });
+
+        // 异步解析章节名
+        new Thread(() -> {
+            chapters = CommonUtils.getTitles(lines, positionBean.getStartLine());
+            Message message = handler.obtainMessage(0);
+            handler.sendMessage(message);
+        }).start();
+
     }
 
     private void initRecyclerView() {
+        // 关闭加载背景
+        findViewById(R.id.txt_catalog_load).setVisibility(View.GONE);
+
         // 获取recyclerview视图实例
         recyclerView = findViewById(R.id.catalog_list);
+        recyclerView.setVisibility(View.VISIBLE);
 
         // 创建线性布局管理器 赋值给recyclerview
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -169,4 +201,24 @@ public class TxtCatalogActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // 注销广播接收器
+        unregisterReceiver(receiver);
+    }
+
+    // 关闭当前界面，回到TxtActivity
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("CLOSE_TC_ACTIVITY".equals(intent.getAction())) {
+                TxtCatalogActivity.this.finish();
+                Intent i = new Intent(context, TxtActivity.class);
+                i.putExtra("txtUrl", MyApplication.getTxtUrl());
+                TxtCatalogActivity.this.startActivity(i);
+            }
+        }
+    };
 }

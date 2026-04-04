@@ -94,7 +94,7 @@ public class TxtActivity extends AppCompatActivity {
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("com.example.communication.RECEIVER");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+                registerReceiver(msgReceiver, intentFilter, Context.RECEIVER_EXPORTED);
             } else {
                 registerReceiver(msgReceiver, intentFilter);
             }
@@ -137,10 +137,12 @@ public class TxtActivity extends AppCompatActivity {
             // 读取内存中的文本行
             Map<String, ArrayList<String>> novelLinesMap = MyApplication.getNovelLinesMap();
             lines = novelLinesMap.get(txtUrl);
-            if (lines == null) {
+            if (lines == null || !flagRead) {
                 lines = new ArrayList<>();
-                CommonUtils.readLines(txtUrl, lines);
-                MyApplication.setNovelLines(txtUrl, lines);
+                new Thread(() -> {
+                    CommonUtils.readLines(txtUrl, lines);
+                    MyApplication.setNovelLines(txtUrl, lines);
+                }).start();
             }
 
             // 设置书名

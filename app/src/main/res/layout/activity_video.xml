@@ -13,39 +13,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
-    
-    <!--屏幕边缘触屏事件兼容-->
-    <ImageView
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:scaleType="centerInside"
-        android:src="@color/translucent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:ignore="MissingConstraints" />
-    <ImageView
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:scaleType="centerInside"
-        android:src="@color/translucent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
-    <ImageView
-        android:layout_gravity="center"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:scaleType="centerInside"
-        android:src="@color/translucent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        tools:ignore="MissingConstraints" />
-    <ImageView
-        android:layout_gravity="center"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:scaleType="centerInside"
-        android:src="@color/translucent"
-        app:layout_constraintRight_toRightOf="parent"
-        tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

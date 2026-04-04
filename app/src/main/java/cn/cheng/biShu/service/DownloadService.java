@@ -15,6 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import cn.cheng.biShu.MyApplication;
 import cn.cheng.biShu.bean.NotificationBean;
@@ -160,6 +163,20 @@ public class DownloadService extends Service {
         M3u8DownLoader m3u8Download = new M3u8DownLoader(notificationId);
         //开始下载
         m3u8Download.start();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // 存档
+        new Handler().post(() -> {
+            HashMap<Integer, NotificationBean> downLoadInfoMap = MyApplication.getDownLoadInfoMap();
+            Set<Map.Entry<Integer, NotificationBean>> entries = downLoadInfoMap.entrySet();
+            for (Map.Entry<Integer, NotificationBean> entry : entries) {
+                NotificationBean downLoadInfo = entry.getValue();
+                CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
+            }
+        });
     }
 
 }

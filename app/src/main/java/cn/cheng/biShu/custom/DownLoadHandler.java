@@ -88,6 +88,7 @@ public class DownLoadHandler extends Handler {
                             String state = "继续";
                             downLoadInfo.setState(state);
                             MyToast.getInstance("可用内存过低").show();
+                            CommonUtils.writeObjectIntoLocal("downloadList", downLoadInfo.getDate() + CommonUtils.zeroPadding(downLoadInfo.getNotificationId()), downLoadInfo);
                         }
                     }
                     break;

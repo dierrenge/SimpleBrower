@@ -11,7 +11,9 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
@@ -320,6 +322,20 @@ public class VideoActivity extends AppCompatActivity {
         }
         if (orientationUtils != null)
             orientationUtils.releaseListener();
+    }
+
+    // 设置边缘滑动时，不触发播放器滑动事件
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            DisplayMetrics d = getResources().getDisplayMetrics();
+            int minDistance = 40;
+            if (ev.getY() <= minDistance || ev.getX() <= minDistance ||
+                d.heightPixels - ev.getY() <= minDistance || d.widthPixels - ev.getX() <= minDistance) {
+                return false; // 将边缘事件传递给系统
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 
 }

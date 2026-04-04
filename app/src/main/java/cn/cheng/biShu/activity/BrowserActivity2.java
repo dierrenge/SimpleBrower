@@ -308,6 +308,11 @@ public class BrowserActivity2 extends AppCompatActivity {
                 // 激活webView
                 webView.onResume();
                 webView.resumeTimers();
+                String url = webView.getUrl();
+                if (url != null) {
+                    currentUrl = url;
+                    MyApplication.jumpUrl = url;
+                }
             }
         } catch (Exception e) {
             CommonUtils.saveLog("===========showFragment===========" + e.getMessage());

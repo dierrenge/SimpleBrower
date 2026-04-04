@@ -606,8 +606,10 @@ public class M3u8DownLoader {
                     this.fixedThreadPool = Executors.newFixedThreadPool(threadCount);
                     // notificationBean.setFixedThreadPool(fixedThreadPool);
                     // 获取并整理所有ts片段链接
-                    if (notificationBean.getAbsolutePath() == null || notificationBean.getTsList().isEmpty()
-                       || notificationBean.getKey() == null || notificationBean.getMethod() == null) {
+                    String absolutePath = notificationBean.getAbsolutePath();
+                    if (absolutePath == null || !new File(absolutePath).exists() || notificationBean.getTsList().isEmpty()
+                            || notificationBean.getKey() == null || notificationBean.getMethod() == null) {
+                        notificationBean.getTsList().clear();
                         getTsUrl(); // 首次获取ts片段
                     } else {
                         finishedCount = notificationBean.getHlsFinishedCount(); // 非首次继续上次进度

@@ -1,5 +1,6 @@
 package cn.cheng.biShu.util;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -42,6 +43,7 @@ public class NotificationUtils {
     }
 
     // 创建基础通知构建器
+    @SuppressLint("NotificationTrampoline")
     public static NotificationCompat.Builder initBuilder(Context context, String title, String text, Class clazz) {
         // 通知渠道
         initChannel(context);
@@ -60,15 +62,24 @@ public class NotificationUtils {
                 .setWhen(System.currentTimeMillis());
         // 跳转指定Activity的Intent
         if (clazz != null) {
-            Intent i = new Intent(context, clazz);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            if ("朗读服务".equals(title)) {
-                i.putExtra("txtUrl", MyApplication.getTxtUrl());
-            }
             // 意图可变标志（这里PendingIntent必须设置意图可变标志，否则变量永远是旧的）
             int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE|PendingIntent.FLAG_UPDATE_CURRENT : PendingIntent.FLAG_UPDATE_CURRENT;
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, flag);
-            builder.setContentIntent(pendingIntent);
+            if ("朗读服务".equals(title)) {
+                // Intent i = new Intent(context, clazz);
+                // i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                // i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // android15版本可用，为了兼容在TxtActivity中调用广播关闭
+                // i.putExtra("txtUrl", MyApplication.getTxtUrl());
+                // 创建一个用于点击的intent 调用广播
+                Intent intentCancel = new Intent(context, NotificationBroadcastReceiver.class);
+                intentCancel.setAction("notification_click");
+                PendingIntent pendingIntentClick = PendingIntent.getBroadcast(context, 0, intentCancel, flag);
+                builder.setContentIntent(pendingIntentClick);
+            } else {
+                Intent i = new Intent(context, clazz);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, flag);
+                builder.setContentIntent(pendingIntent);
+            }
         }
 
         return builder;
