@@ -1,8 +1,10 @@
 package cn.cheng.biShu;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,10 +50,44 @@ public class MyApplication extends Application {
 
     public static String jumpUrl; // 记录当前网页地址
 
+    public static Activity currentActivity; // 当前运行的activity
+
     @Override
     public void onCreate() {
         super.onCreate();
         context=getApplicationContext();
+
+        // 跟踪 Activity 的生命周期
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+            }
+
+            @Override
+            public void onActivityResumed(Activity activity) {
+                currentActivity = activity;
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+            }
+        });
 
         // 全局异常捕获
         Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
