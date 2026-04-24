@@ -1326,6 +1326,8 @@ public class CommonUtils {
             String[] s = lineTxt.trim().split(" ");
             if (s.length > 1 && s[0].trim().startsWith("第") && (s[0].trim().endsWith("卷") || s[0].trim().endsWith("章") || s[0].trim().endsWith("节") || s[0].trim().endsWith("集"))) {
                 return lineTxt;
+            } else if (s.length == 2 && ((s[0].trim().startsWith("章") && hasNum(s[0].trim().substring(1))) || hasNum(s[0].trim()))) {
+                return lineTxt;
             } else if (s.length > 2 && s[1].trim().startsWith("第") && (s[1].trim().endsWith("卷") || s[1].trim().endsWith("章") || s[1].trim().endsWith("节") || s[1].trim().endsWith("集"))) {
                 return lineTxt;
             } else if (s.length > 3 && s[2].trim().startsWith("第") && (s[2].trim().endsWith("卷") || s[2].trim().endsWith("章") || s[2].trim().endsWith("节") || s[2].trim().endsWith("集"))) {
