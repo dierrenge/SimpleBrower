@@ -329,9 +329,7 @@ public class VideoActivity extends AppCompatActivity {
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             DisplayMetrics d = getResources().getDisplayMetrics();
-            int minDistance = 40;
-            if (ev.getY() <= minDistance || ev.getX() <= minDistance ||
-                d.heightPixels - ev.getY() <= minDistance || d.widthPixels - ev.getX() <= minDistance) {
+            if (ev.getY() <= 40 || ev.getX() <= 15|| d.heightPixels - ev.getY() <= 2) { // 上下
                 return false; // 将边缘事件传递给系统
             }
         }

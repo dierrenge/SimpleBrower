@@ -67,6 +67,7 @@ import cn.cheng.biShu.bean.DownloadBean;
 import cn.cheng.biShu.bean.SysBean;
 import cn.cheng.biShu.custom.FeetDialog;
 import cn.cheng.biShu.custom.MyToast;
+import cn.cheng.biShu.custom.MyWebView;
 import cn.cheng.biShu.service.DownloadService;
 import cn.cheng.biShu.util.AdBlocker;
 import cn.cheng.biShu.util.AssetsReader;
@@ -81,7 +82,7 @@ public class WebViewFragment extends Fragment {
     private ProgressBar viewViewProgressbar;
     private LinearLayout progressBg;
     private Handler progressHandler;
-    private WebView webView;
+    private MyWebView webView;
     private CallListener callListener;
 
     private CustomWebChromeClient xwebchromeclient;
@@ -717,9 +718,15 @@ public class WebViewFragment extends Fragment {
             if (isAd(url)) {
                 return true;
             }
+
+            // 判断是否用户点击的连接
+            boolean isUserClick = webView.isUserClickTriggered();
+            if (isUserClick) {
+                webView.resetClickState();
+            }
             // 仅处理用户触发的 非重定向 主框架请求
             if ((request.getRequestHeaders() == null || request.getRequestHeaders().get("Referer") == null)
-                    && !request.isRedirect() && request.isForMainFrame()) {
+                    && !request.isRedirect() && request.isForMainFrame() && isUserClick) {
                 if (callListener != null) {
                     // 暂停webView
                      new Handler().postDelayed(() -> {

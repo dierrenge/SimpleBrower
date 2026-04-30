@@ -81,6 +81,8 @@ public class ReadService extends Service {
                     }
                     @Override
                     public void onDone(String s) {
+                        // 翻页控制
+                        MyApplication.turnThePage = true;
                         // 清除旧语音资源
                         speechDestroy();
                         // 防止多翻页

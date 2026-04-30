@@ -377,6 +377,10 @@ public class TxtListActivity extends AppCompatActivity {
                         return; // 编辑模式不可跳转
                     }
                     // 跳转该网址
+                    if (ReadService.textToSpeech != null && ReadService.textToSpeech.isSpeaking() && MyApplication.turnThePage) {
+                        MyToast.getInstance("加载中请稍后").show();
+                        return;
+                    }
                     Intent intent = new Intent(TxtListActivity.this, TxtActivity.class);
                     intent.putExtra("txtUrl", txtUrl);
                     TxtListActivity.this.startActivity(intent);

@@ -84,7 +84,7 @@
             android:layout_height="2dp"
             android:orientation="horizontal">
         </LinearLayout>
-        <WebView
+        <cn.cheng.biShu.custom.MyWebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

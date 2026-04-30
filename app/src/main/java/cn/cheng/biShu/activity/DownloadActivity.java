@@ -428,6 +428,10 @@ public class DownloadActivity extends AppCompatActivity {
                     // 跳转该网址
                     Intent intent = null;
                     if (".txt".equalsIgnoreCase(format)) {
+                        if (ReadService.textToSpeech != null && ReadService.textToSpeech.isSpeaking() && MyApplication.turnThePage) {
+                            MyToast.getInstance("加载中请稍后").show();
+                            return;
+                        }
                         intent = new Intent(DownloadActivity.this, TxtActivity.class);
                         intent.putExtra("txtUrl", absolutePath);
                     } else if (formats.contains(format)) {

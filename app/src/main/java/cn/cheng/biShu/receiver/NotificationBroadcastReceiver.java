@@ -7,6 +7,8 @@ import android.content.Intent;
 import cn.cheng.biShu.MyApplication;
 import cn.cheng.biShu.activity.TxtActivity;
 import cn.cheng.biShu.activity.TxtCatalogActivity;
+import cn.cheng.biShu.custom.MyToast;
+import cn.cheng.biShu.service.ReadService;
 import cn.cheng.biShu.util.NotificationUtils;
 
 // 用于接受下载完成提示的广播接收者
@@ -29,6 +31,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 context.sendBroadcast(closeCIntent);
             } else {
                 // 跳转TxtActivity
+                if (ReadService.textToSpeech != null && ReadService.textToSpeech.isSpeaking() && MyApplication.turnThePage) {
+                    MyToast.getInstance("加载中请稍后").show();
+                    return;
+                }
                 Intent i = new Intent(MyApplication.currentActivity, TxtActivity.class);
                 i.putExtra("txtUrl", MyApplication.getTxtUrl());
                 MyApplication.currentActivity.startActivity(i);

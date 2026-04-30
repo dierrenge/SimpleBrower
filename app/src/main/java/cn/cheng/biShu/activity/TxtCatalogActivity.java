@@ -30,6 +30,8 @@ import java.util.Map;
 import cn.cheng.biShu.MyApplication;
 import cn.cheng.biShu.R;
 import cn.cheng.biShu.bean.PositionBean;
+import cn.cheng.biShu.custom.MyToast;
+import cn.cheng.biShu.service.ReadService;
 import cn.cheng.biShu.util.CommonUtils;
 import cn.cheng.biShu.util.SysWindowUi;
 
@@ -161,6 +163,10 @@ public class TxtCatalogActivity extends AppCompatActivity {
             }
 
             public void click(HashMap<String, String> map) {
+                if (ReadService.textToSpeech != null && ReadService.textToSpeech.isSpeaking() && MyApplication.turnThePage) {
+                    MyToast.getInstance("加载中请稍后").show();
+                    return;
+                }
                 TxtActivity.txtActivity.finish();
                 // 跳转该网址
                 Intent intent = new Intent(TxtCatalogActivity.this, TxtActivity.class);
@@ -214,6 +220,10 @@ public class TxtCatalogActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("CLOSE_TC_ACTIVITY".equals(intent.getAction())) {
+                if (ReadService.textToSpeech != null && ReadService.textToSpeech.isSpeaking() && MyApplication.turnThePage) {
+                    MyToast.getInstance("加载中请稍后").show();
+                    return;
+                }
                 TxtCatalogActivity.this.finish();
                 Intent i = new Intent(context, TxtActivity.class);
                 i.putExtra("txtUrl", MyApplication.getTxtUrl());

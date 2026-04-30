@@ -52,6 +52,8 @@ public class MyApplication extends Application {
 
     public static Activity currentActivity; // 当前运行的activity
 
+    public static boolean turnThePage;
+
     @Override
     public void onCreate() {
         super.onCreate();

@@ -218,13 +218,11 @@ public class BrowserActivity2 extends AppCompatActivity {
                 showFragment(backFragment);
             } else {
                 boolean backFlag = false;
-                if (size > 2) {
-                    try {
-                        String url2 = backStack.get(size - 2).getWebView().getUrl();
-                        String url3 = backStack.get(size - 3).getWebView().getUrl();
-                        if (url2.equals(url3)) backFlag = true;
-                    } catch (Exception ignored) {}
-                }
+                try {
+                    String url1 = fragment.getArguments().getString("url");
+                    String url2 = backFragment.getArguments().getString("url");
+                    if (url2.equals(url1)) backFlag = true;
+                } catch (Exception ignored) {}
                 if (backFlag) { // 相邻两个页面网址相同的情况
                     // 隐藏上一个fragment
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
